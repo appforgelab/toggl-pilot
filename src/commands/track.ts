@@ -17,6 +17,8 @@ interface TimeEntry {
   workspace_id: number;
 }
 
+const VALID_FLAGS = new Set(["-p", "--project", "-t", "--tags", "--at", "--dur"]);
+
 function parseArgs(args: string[]): { description: string; project: string | null; tags: string[]; at: string | null; dur: string | null } {
   let description = "";
   let project: string | null = null;
@@ -25,6 +27,12 @@ function parseArgs(args: string[]): { description: string; project: string | nul
   let dur: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith("-") && !VALID_FLAGS.has(args[i])) {
+      console.log(`Unknown flag: ${args[i]}`);
+      console.log('Valid flags: -p/--project, -t/--tags, --at, --dur');
+      process.exit(1);
+    }
+
     if ((args[i] === "-p" || args[i] === "--project") && args[i + 1]) {
       project = args[++i];
     } else if ((args[i] === "-t" || args[i] === "--tags") && args[i + 1]) {

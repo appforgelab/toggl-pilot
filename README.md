@@ -21,6 +21,7 @@ Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll
 | `npm run projects` | List workspace projects | [docs/projects.md](docs/projects.md) |
 | `npm run delete -- <id>` | Delete a time entry | [docs/delete.md](docs/delete.md) |
 | `npm run track -- "Desc" -p "Project" -t tags` | Start a timer or log time | [docs/track.md](docs/track.md) |
+| `npm run stop` | Stop running timer | [docs/stop.md](docs/stop.md) |
 
 ## Environment Variables
 
@@ -41,6 +42,7 @@ src/
     projects.ts       # List workspace projects
     delete.ts         # Delete a time entry
     track.ts          # Start timer or log completed entry
+    stop.ts           # Stop running timer
 ```
 
 ## License

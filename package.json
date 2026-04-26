@@ -9,7 +9,8 @@
     "me": "tsx src/index.ts me",
     "entries": "tsx src/index.ts entries",
     "projects": "tsx src/index.ts projects",
-    "delete": "tsx src/index.ts delete"
+    "delete": "tsx src/index.ts delete",
+    "stop": "tsx src/index.ts stop"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
