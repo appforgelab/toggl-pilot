@@ -19,6 +19,7 @@ Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll
 | `npm run me` | Verify authentication | [docs/me.md](docs/me.md) |
 | `npm run entries` | List time entries for a day | [docs/entries.md](docs/entries.md) |
 | `npm run projects` | List workspace projects | [docs/projects.md](docs/projects.md) |
+| `npm run delete -- <id>` | Delete a time entry | [docs/delete.md](docs/delete.md) |
 
 ## Environment Variables
 
@@ -37,6 +38,7 @@ src/
   commands/
     entries.ts        # List time entries + totals
     projects.ts       # List workspace projects
+    delete.ts         # Delete a time entry
 ```
 
 ## License
