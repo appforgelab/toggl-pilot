@@ -18,7 +18,6 @@ Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll
 |---------|-------------|------|
 | `npm run me` | Verify authentication | [docs/me.md](docs/me.md) |
 | `npm run entries` | List time entries for a day | [docs/entries.md](docs/entries.md) |
-| `npm run entries -- -d 2026-04-29` | List entries for a specific date | [docs/entries.md](docs/entries.md) |
 
 ## Environment Variables
 
