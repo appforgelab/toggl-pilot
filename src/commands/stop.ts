@@ -20,9 +20,13 @@ export async function stop() {
   }
 
   const wsId = current.workspace_id;
+  const stopTime = new Date().toISOString();
+  const durationSec = Math.floor((Date.now() - new Date(current.start).getTime()) / 1000);
+
   const stopped = await put<TimeEntry>(`/workspaces/${wsId}/time_entries/${current.id}`, {
     ...current,
-    stop: new Date().toISOString(),
+    stop: stopTime,
+    duration: durationSec,
   });
 
   const projectLabel = stopped.project_name ? ` [${stopped.project_name}]` : "";

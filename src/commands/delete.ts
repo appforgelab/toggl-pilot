@@ -10,18 +10,34 @@ interface TimeEntry {
 }
 
 export async function deleteEntry(args: string[]) {
-  const id = args.find((a) => !a.startsWith("-"));
+  const id = args.slice(1).find((a) => !a.startsWith("-"));
   if (!id) {
     console.log("Usage: tsx src/index.ts delete <entry_id>");
     process.exit(1);
   }
 
-  const entry = await get<TimeEntry>(`/me/time_entries/${id}`);
+  let entry: TimeEntry;
+  try {
+    entry = await get<TimeEntry>(`/me/time_entries/${id}`);
+  } catch {
+    console.log(`Entry ${id} not found.`);
+    return;
+  }
+
   const start = new Date(entry.start).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const stop = entry.stop ? new Date(entry.stop).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "...";
   const desc = entry.description || "(no description)";
   const project = entry.project_name ? ` [${entry.project_name}]` : "";
 
-  await del(`/workspaces/${entry.workspace_id}/time_entries/${id}`);
+  try {
+    await del(`/workspaces/${entry.workspace_id}/time_entries/${id}`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("400") || msg.includes("404")) {
+      console.log(`Entry ${id} not found or already deleted.`);
+      return;
+    }
+    throw e;
+  }
   console.log(`Deleted: ${desc} (${start}-${stop})${project}`);
 }

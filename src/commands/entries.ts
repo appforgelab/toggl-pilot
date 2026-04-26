@@ -9,6 +9,7 @@ interface TimeEntry {
   duration: number;
   project_id: number | null;
   project_name: string | null;
+  tags: string[] | null;
   workspace_id: number;
 }
 
@@ -65,7 +66,7 @@ export async function entries(args: string[]) {
 
   console.log(`\nTime entries for ${dayStr}\n`);
 
-  const header = `  ${"ID".padEnd(12)} ${"Time".padEnd(14)} ${"Dur.".padEnd(7)} ${"Description".padEnd(22)} Project`;
+  const header = `  ${"ID".padEnd(12)} ${"Time".padEnd(14)} ${"Dur.".padEnd(7)} ${"Description".padEnd(22)} Tags         Project`;
   console.log(header);
 
   const totals = new Map<string, number>();
@@ -78,7 +79,7 @@ export async function entries(args: string[]) {
 
     const isRunning = entry.duration < 0;
     const durationSec = isRunning
-      ? Math.floor(Date.now() / 1000) + entry.duration
+      ? Math.floor((Date.now() - new Date(entry.start).getTime()) / 1000)
       : entry.duration;
     const dur = formatDuration(durationSec);
 
@@ -86,7 +87,8 @@ export async function entries(args: string[]) {
       ? projectMap.get(entry.project_id) ?? entry.project_name ?? "—"
       : "—";
 
-    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || "(no description)").slice(0, 22).padEnd(22)} ${projectName}${isRunning ? "  ● running" : ""}`;
+    const tagStr = entry.tags?.length ? `{${entry.tags.join(",")}}` : "—";
+    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || "(no description)").slice(0, 22).padEnd(22)} ${tagStr.padEnd(13)} ${projectName}${isRunning ? "  ● running" : ""}`;
     console.log(line);
 
     if (projectName !== "—") {
