@@ -18,6 +18,7 @@ Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll
 |---------|-------------|------|
 | `npm run me` | Verify authentication | [docs/me.md](docs/me.md) |
 | `npm run entries` | List time entries for a day | [docs/entries.md](docs/entries.md) |
+| `npm run projects` | List workspace projects | [docs/projects.md](docs/projects.md) |
 
 ## Environment Variables
 
@@ -35,6 +36,7 @@ src/
   index.ts            # CLI entry point
   commands/
     entries.ts        # List time entries + totals
+    projects.ts       # List workspace projects
 ```
 
 ## License

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "me": "tsx src/index.ts me",
-    "entries": "tsx src/index.ts entries"
+    "entries": "tsx src/index.ts entries",
+    "projects": "tsx src/index.ts projects"
   },
   "dependencies": {
     "dotenv": "^16.4.7"

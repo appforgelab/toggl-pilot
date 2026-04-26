@@ -1,5 +1,6 @@
 import { get } from "./api.js";
 import { entries } from "./commands/entries.js";
+import { projects } from "./commands/projects.js";
 
 interface Me {
   id: number;
@@ -24,7 +25,10 @@ switch (command) {
   case "entries":
     entries(args);
     break;
+  case "projects":
+    projects();
+    break;
   default:
     console.log("Usage: tsx src/index.ts <command>");
-    console.log("Commands: me, entries [-d DATE]");
+    console.log("Commands: me, entries [-d DATE], projects");
 }
