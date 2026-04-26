@@ -2,6 +2,7 @@ import { get } from "./api.js";
 import { entries } from "./commands/entries.js";
 import { projects } from "./commands/projects.js";
 import { deleteEntry } from "./commands/delete.js";
+import { track } from "./commands/track.js";
 
 interface Me {
   id: number;
@@ -32,7 +33,10 @@ switch (command) {
   case "delete":
     deleteEntry(args);
     break;
+  case "track":
+    track(args);
+    break;
   default:
     console.log("Usage: tsx src/index.ts <command>");
-    console.log("Commands: me, entries [-d DATE], projects, delete <entry_id>");
+    console.log("Commands: me, entries [-d DATE], projects, delete <entry_id>, track");
 }

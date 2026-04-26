@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
+    "track": "tsx src/index.ts track",
     "me": "tsx src/index.ts me",
     "entries": "tsx src/index.ts entries",
     "projects": "tsx src/index.ts projects",
