@@ -1,4 +1,5 @@
 import { get } from "./api.js";
+import { entries } from "./commands/entries.js";
 
 interface Me {
   id: number;
@@ -14,12 +15,16 @@ async function me() {
 }
 
 const command = process.argv[2];
+const args = process.argv.slice(2);
 
 switch (command) {
   case "me":
     me();
     break;
+  case "entries":
+    entries(args);
+    break;
   default:
     console.log("Usage: tsx src/index.ts <command>");
-    console.log("Commands: me");
+    console.log("Commands: me, entries [-d DATE]");
 }

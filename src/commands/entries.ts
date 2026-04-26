@@ -1,0 +1,106 @@
+import { config } from "../config.js";
+import { get } from "../api.js";
+
+interface TimeEntry {
+  id: number;
+  description: string;
+  start: string;
+  stop: string | null;
+  duration: number;
+  project_id: number | null;
+  project_name: string | null;
+  workspace_id: number;
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 0) seconds = Math.floor(Date.now() / 1000) + seconds;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h${String(m).padStart(2, "0")}m`;
+}
+
+function parseDateArg(args: string[]): Date {
+  const idx = args.indexOf("-d") !== -1 ? args.indexOf("-d") : args.indexOf("--date");
+  if (idx !== -1 && args[idx + 1]) {
+    const d = new Date(args[idx + 1] + "T12:00:00");
+    if (!isNaN(d.getTime())) return d;
+    throw new Error(`Invalid date: ${args[idx + 1]}`);
+  }
+  return new Date();
+}
+
+export async function entries(args: string[]) {
+  const date = parseDateArg(args);
+  const dayStr = formatDate(date);
+  const nextDay = formatDate(new Date(date.getTime() + 86400000));
+
+  const wsId = await config.getWorkspaceId();
+  const timeEntries = await get<TimeEntry[]>(
+    `/me/time_entries?start_date=${dayStr}&end_date=${nextDay}`
+  );
+
+  const projectIds = [...new Set(timeEntries.filter((e) => e.project_id).map((e) => e.project_id!))];
+  const projectMap = new Map<number, string>();
+  if (projectIds.length > 0) {
+    const projects = await get<{ id: number; name: string }[]>(`/workspaces/${wsId}/projects`);
+    for (const p of projects) {
+      if (projectIds.includes(p.id)) projectMap.set(p.id, p.name);
+    }
+  }
+
+  if (timeEntries.length === 0) {
+    console.log(`No time entries for ${dayStr}`);
+    return;
+  }
+
+  timeEntries.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  console.log(`\nTime entries for ${dayStr}\n`);
+
+  const header = `  ${"ID".padEnd(12)} ${"Time".padEnd(14)} ${"Dur.".padEnd(7)} ${"Description".padEnd(22)} Project`;
+  console.log(header);
+
+  const totals = new Map<string, number>();
+  let grandTotal = 0;
+
+  for (const entry of timeEntries) {
+    const id = String(entry.id);
+    const start = formatTime(entry.start);
+    const stop = entry.stop ? formatTime(entry.stop) : "...";
+
+    const isRunning = entry.duration < 0;
+    const durationSec = isRunning
+      ? Math.floor(Date.now() / 1000) + entry.duration
+      : entry.duration;
+    const dur = formatDuration(durationSec);
+
+    const projectName = entry.project_id
+      ? projectMap.get(entry.project_id) ?? entry.project_name ?? "—"
+      : "—";
+
+    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || "(no description)").slice(0, 22).padEnd(22)} ${projectName}${isRunning ? "  ● running" : ""}`;
+    console.log(line);
+
+    if (projectName !== "—") {
+      totals.set(projectName, (totals.get(projectName) ?? 0) + durationSec);
+    }
+    grandTotal += durationSec;
+  }
+
+  if (totals.size > 0) {
+    console.log(`\n─── Totals ${"─".repeat(45)}`);
+    for (const [name, secs] of totals) {
+      console.log(`  ${name.padEnd(14)}${formatDuration(secs)}`);
+    }
+    console.log(`  ${"Total".padEnd(14)}${formatDuration(grandTotal)}`);
+  }
+  console.log();
+}

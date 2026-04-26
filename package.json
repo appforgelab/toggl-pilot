@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
-    "me": "tsx src/index.ts me"
+    "me": "tsx src/index.ts me",
+    "entries": "tsx src/index.ts entries"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
