@@ -1,5 +1,5 @@
-import { config } from "../config.js";
-import { get, post } from "../api.js";
+import { config } from '../config.js';
+import { get, post } from '../api.js';
 
 interface Project {
   id: number;
@@ -17,37 +17,45 @@ interface TimeEntry {
   workspace_id: number;
 }
 
-const VALID_FLAGS = new Set(["-p", "--project", "-t", "--tags", "--at", "--dur"]);
+const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur']);
 
-function parseArgs(args: string[]): { description: string; project: string | null; tags: string[]; at: string | null; dur: string | null } {
-  let description = "";
+function parseArgs(args: string[]): {
+  description: string;
+  project: string | null;
+  tags: string[];
+  at: string | null;
+  dur: string | null;
+} {
+  let description = '';
   let project: string | null = null;
   let tags: string[] = [];
   let at: string | null = null;
   let dur: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith("-") && !VALID_FLAGS.has(args[i])) {
+    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
       console.log(`Unknown flag: ${args[i]}`);
       console.log('Valid flags: -p/--project, -t/--tags, --at, --dur');
       process.exit(1);
     }
 
-    if ((args[i] === "-p" || args[i] === "--project") && args[i + 1]) {
+    if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
       project = args[++i];
-    } else if ((args[i] === "-t" || args[i] === "--tags") && args[i + 1]) {
-      tags = args[++i].split(",").map((t) => t.trim());
-    } else if ((args[i] === "--at") && args[i + 1]) {
+    } else if ((args[i] === '-t' || args[i] === '--tags') && args[i + 1]) {
+      tags = args[++i].split(',').map((t) => t.trim());
+    } else if (args[i] === '--at' && args[i + 1]) {
       at = args[++i];
-    } else if ((args[i] === "--dur") && args[i + 1]) {
+    } else if (args[i] === '--dur' && args[i + 1]) {
       dur = args[++i];
-    } else if (!args[i].startsWith("-")) {
+    } else if (!args[i].startsWith('-')) {
       description = args[i];
     }
   }
 
   if (!description) {
-    console.log('Usage: tsx src/index.ts track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]');
+    console.log(
+      'Usage: tsx src/index.ts track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
+    );
     process.exit(1);
   }
 
@@ -65,7 +73,7 @@ function parseDuration(dur: string): number {
 }
 
 function buildStartTime(at: string): string {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
   const d = new Date(`${today}T${at}:00`);
   if (isNaN(d.getTime())) throw new Error(`Invalid time: ${at}. Use HH:MM format.`);
   return d.toISOString();
@@ -93,7 +101,7 @@ export async function track(args: string[]) {
 
   const isTimed = at !== null && dur !== null;
   if ((at !== null) !== (dur !== null)) {
-    console.log("Both --at and --dur must be provided together, or neither for a running timer.");
+    console.log('Both --at and --dur must be provided together, or neither for a running timer.');
     process.exit(1);
   }
 
@@ -107,11 +115,11 @@ export async function track(args: string[]) {
     start: startTime,
     duration,
     workspace_id: wsId,
-    created_with: "toggl-pilot",
+    created_with: 'toggl-pilot',
   });
 
-  const projectLabel = entry.project_name ? ` [${entry.project_name}]` : "";
-  const tagLabel = entry.tags?.length ? ` {${entry.tags.join(", ")}}` : "";
-  const action = isTimed ? "Logged" : "Started";
+  const projectLabel = entry.project_name ? ` [${entry.project_name}]` : '';
+  const tagLabel = entry.tags?.length ? ` {${entry.tags.join(', ')}}` : '';
+  const action = isTimed ? 'Logged' : 'Started';
   console.log(`${action}: ${description}${projectLabel}${tagLabel} (id: ${entry.id})`);
 }

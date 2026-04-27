@@ -25,8 +25,8 @@ function main(): void {
   }).trim();
   const staged = getStagedFiles();
 
-  console.log('Running markdown format...');
-  execSync('npm run format:md', { stdio: 'inherit', cwd: repoRoot });
+  console.log('Running format...');
+  execSync('npm run format', { stdio: 'inherit', cwd: repoRoot });
   restage(staged, repoRoot);
 
   console.log('Running markdown lint...');
