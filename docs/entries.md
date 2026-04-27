@@ -15,15 +15,15 @@ npm run entries -- --date 2026-04-29   # long form
 ```text
 Time entries for 2026-04-29
 
-  ID           Time           Dur.    Description            Project
-  1234567890   09:00-10:30   1h30m   Dev: API client         Dev-Pilot
-  1234567891   10:30-11:00   0h30m   Code review             Dev-Pilot
-  1234567892   13:00-...     1h45m   Bug fixing              Client-X  ● running
+  ID           Time         Dur.    Description            Tags            Project
+  1234567890   09:00-10:30  1h30m   Dev: API client        {dev}           Dev-Pilot
+  1234567891   10:30-11:00  0h30m   Code review            {dev}           Dev-Pilot
+  1234567892   13:00-...    1h45m   Bug fixing             {dev}           Client-X  ● running
 
 ─── Totals ─────────────────────────────────────────────
-  Dev-Pilot      2h00m
-  Client-X       1h45m
-  Total          3h45m
+  Dev-Pilot    2h00m
+  Client-X     1h45m
+  Total        3h45m
 ```
 
 ## Columns
@@ -34,6 +34,7 @@ Time entries for 2026-04-29
 | Time        | Start and stop times (`...` if still running) |
 | Dur.        | Duration of the entry                         |
 | Description | Entry description                             |
+| Tags        | Comma-separated tags in curly braces, or `—`  |
 | Project     | Project name, or `—` if unassigned            |
 
 ## Running Entries

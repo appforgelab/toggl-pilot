@@ -67,11 +67,17 @@ export async function entries(args: string[]) {
 
   console.log(`\nTime entries for ${dayStr}\n`);
 
-  const header = `  ${'ID'.padEnd(12)} ${'Time'.padEnd(14)} ${'Dur.'.padEnd(7)} ${'Description'.padEnd(22)} Tags         Project`;
-  console.log(header);
-
   const totals = new Map<string, number>();
   let grandTotal = 0;
+  const rows: { line: string; isRunning: boolean }[] = [];
+
+  const tagColWidth = timeEntries.reduce((max, entry) => {
+    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : '—';
+    return Math.max(max, tagStr.length);
+  }, 0);
+
+  const header = `  ${'ID'.padEnd(12)} ${'Time'.padEnd(11)}  ${'Dur.'.padEnd(7)} ${'Description'.padEnd(22)} ${'Tags'.padEnd(tagColWidth + 1)} Project`;
+  console.log(header);
 
   for (const entry of timeEntries) {
     const id = String(entry.id);
@@ -89,8 +95,8 @@ export async function entries(args: string[]) {
       : '—';
 
     const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : '—';
-    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || '(no description)').slice(0, 22).padEnd(22)} ${tagStr.padEnd(13)} ${projectName}${isRunning ? '  ● running' : ''}`;
-    console.log(line);
+    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || '(no description)').slice(0, 22).padEnd(22)} ${tagStr.padEnd(tagColWidth + 1)} ${projectName}${isRunning ? '  ● running' : ''}`;
+    rows.push({ line, isRunning });
 
     if (projectName !== '—') {
       totals.set(projectName, (totals.get(projectName) ?? 0) + durationSec);
@@ -98,12 +104,20 @@ export async function entries(args: string[]) {
     grandTotal += durationSec;
   }
 
+  for (const { line } of rows) {
+    console.log(line);
+  }
+
   if (totals.size > 0) {
     console.log(`\n─── Totals ${'─'.repeat(45)}`);
+    const maxNameLen = Math.max(
+      [...totals.keys()].reduce((m, n) => Math.max(m, n.length), 0),
+      'Total'.length
+    );
     for (const [name, secs] of totals) {
-      console.log(`  ${name.padEnd(14)}${formatDuration(secs)}`);
+      console.log(`  ${name.padEnd(maxNameLen + 2)}${formatDuration(secs)}`);
     }
-    console.log(`  ${'Total'.padEnd(14)}${formatDuration(grandTotal)}`);
+    console.log(`  ${'Total'.padEnd(maxNameLen + 2)}${formatDuration(grandTotal)}`);
   }
   console.log();
 }
