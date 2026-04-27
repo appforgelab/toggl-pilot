@@ -32,7 +32,7 @@
     "markdownlint-cli": "^0.48.0",
     "prettier": "^3.8.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.0"
   }
 }
