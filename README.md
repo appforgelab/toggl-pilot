@@ -8,6 +8,7 @@ Unofficial CLI for [Toggl Track](https://toggl.com/) time management, using the 
 cp .env.example .env
 # Edit .env and add your Toggl API token
 npm install
+bash scripts/setup-hooks.sh
 ```
 
 Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll to API Token section).
