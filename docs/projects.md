@@ -10,7 +10,7 @@ npm run projects
 
 ## Output
 
-```
+```text
 Projects in workspace 21355416
 
   ID           Name                            Client                Status
@@ -22,9 +22,9 @@ Projects in workspace 21355416
 
 ## Columns
 
-| Column | Description |
-|--------|-------------|
-| ID | Toggl project ID (use with `tasks` command) |
-| Name | Project name |
-| Client | Client name, or `—` if unassigned |
-| Status | `active` or `archived` |
+| Column | Description                                 |
+| ------ | ------------------------------------------- |
+| ID     | Toggl project ID (use with `tasks` command) |
+| Name   | Project name                                |
+| Client | Client name, or `—` if unassigned           |
+| Status | `active` or `archived`                      |

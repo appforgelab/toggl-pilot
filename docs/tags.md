@@ -10,7 +10,7 @@ npm run tags
 
 ## Output
 
-```
+```text
 Tags in workspace 21355416
 
   ID           Name

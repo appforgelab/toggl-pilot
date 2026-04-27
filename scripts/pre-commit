@@ -1,0 +1,7 @@
+#!/bin/bash
+# Git pre-commit hook wrapper
+# Calls the TypeScript pre-commit script via npm
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+npm run pre-commit
+exit $?

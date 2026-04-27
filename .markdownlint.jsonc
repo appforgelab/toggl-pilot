@@ -1,0 +1,14 @@
+{
+  // Enforce top-level heading on first line
+  "MD041": true,
+  // Disallow bare URLs (require angle brackets or markdown links)
+  "MD034": true,
+  // Disallow multiple consecutive blank lines
+  "MD012": true,
+  // Increase max line length to accommodate table rows and GitHub URLs
+  "MD013": {
+    "line_length": 130
+  },
+  // Unordered list indentation: align with Prettier (4 spaces)
+  "MD007": { "indent": 4 }
+}

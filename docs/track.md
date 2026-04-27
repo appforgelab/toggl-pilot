@@ -32,20 +32,22 @@ npm run track -- "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
 
 ## Options
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--project` | `-p` | Project name (case-insensitive) |
-| `--tags` | `-t` | Comma-separated tag names |
-| `--at` | | Start time in HH:MM format (today) — requires `--dur` |
-| `--dur` | | Duration (e.g. `30m`, `1h`, `1h30m`) — requires `--at` |
+| Flag        | Short | Description                                            |
+| ----------- | ----- | ------------------------------------------------------ |
+| `--project` | `-p`  | Project name (case-insensitive)                        |
+| `--tags`    | `-t`  | Comma-separated tag names                              |
+| `--at`      |       | Start time in HH:MM format (today) — requires `--dur`  |
+| `--dur`     |       | Duration (e.g. `30m`, `1h`, `1h30m`) — requires `--at` |
 
 ## Project Lookup
 
-Projects are looked up by name (case-insensitive). If no match is found, you'll get an error. Use `npm run projects` to see available names. If multiple projects share the same name, the ambiguous matches are listed.
+Projects are looked up by name (case-insensitive). If no match is found, you'll get an
+error. Use `npm run projects` to see available names. If multiple projects share the
+same name, the ambiguous matches are listed.
 
 ## Output
 
-```
+```text
 Started: Fixing login bug [Dev-Pilot] {dev, bug} (id: 4383678598)
 Logged: Morning standup [Dev-Pilot] (id: 4383678599)
 ```

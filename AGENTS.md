@@ -1,0 +1,29 @@
+# AGENTS.md
+
+## Project
+
+CLI tool for Toggl Track time management. TypeScript, runs via `tsx`.
+
+## Stack
+
+- Node 22 + TypeScript (strict mode, ES modules)
+- `tsx` for running TS directly
+- `dotenv` for env config
+- No framework — plain `fetch` for HTTP, no CLI parser yet
+
+## Commands
+
+See README.md for available commands and usage.
+
+## Guidelines
+
+This file describes common mistakes and confusion points that an agent may encounter as
+they work on this project. If you ever encounter something that surprises you or
+confuses you, please alert the developer working with you and edit AGENTS.md to prevent
+future agents from having the issue.
+
+## API Quota (Free Plan)
+
+30 requests per hour, per user, per organization. When developing/testing, be mindful
+of this limit. During testing you may see 402 errors — wait for the quota reset
+(time shown in the error message).

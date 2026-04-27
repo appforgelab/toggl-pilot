@@ -12,12 +12,17 @@
     "delete": "tsx src/index.ts delete",
     "stop": "tsx src/index.ts stop",
     "tags": "tsx src/index.ts tags",
-    "edit": "tsx src/index.ts edit"
+    "edit": "tsx src/index.ts edit",
+    "format:md": "prettier --write \"**/*.{md,mdx}\"",
+    "lint:md": "markdownlint \"**/*.{md,mdx}\" --ignore-path .markdownlintignore",
+    "pre-commit": "tsx scripts/pre-commit.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
+    "markdownlint-cli": "^0.48.0",
+    "prettier": "^3.8.3",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }

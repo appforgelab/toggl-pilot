@@ -12,7 +12,7 @@ npm run entries -- --date 2026-04-29   # long form
 
 ## Output
 
-```
+```text
 Time entries for 2026-04-29
 
   ID           Time           Dur.    Description            Project
@@ -28,13 +28,13 @@ Time entries for 2026-04-29
 
 ## Columns
 
-| Column | Description |
-|--------|-------------|
-| ID | Toggl time entry ID (use with `delete`) |
-| Time | Start and stop times (`...` if still running) |
-| Dur. | Duration of the entry |
-| Description | Entry description |
-| Project | Project name, or `—` if unassigned |
+| Column      | Description                                   |
+| ----------- | --------------------------------------------- |
+| ID          | Toggl time entry ID (use with `delete`)       |
+| Time        | Start and stop times (`...` if still running) |
+| Dur.        | Duration of the entry                         |
+| Description | Entry description                             |
+| Project     | Project name, or `—` if unassigned            |
 
 ## Running Entries
 
