@@ -107,7 +107,7 @@ export async function track(args: string[]) {
     start: startTime,
     duration,
     workspace_id: wsId,
-    created_with: "dev-pilot",
+    created_with: "toggl-pilot",
   });
 
   const projectLabel = entry.project_name ? ` [${entry.project_name}]` : "";

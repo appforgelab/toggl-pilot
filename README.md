@@ -1,4 +1,4 @@
-# dev-pilot
+# toggl-pilot
 
 Unofficial CLI for [Toggl Track](https://toggl.com/) time management, using the [Toggl Track API v9](https://developers.track.toggl.com/docs/).
 

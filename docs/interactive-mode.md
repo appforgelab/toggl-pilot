@@ -42,7 +42,7 @@ $ npm run track
 
 ### Relationship to Shell Completion & Cache
 
-Interactive mode and shell completion can share the same cache (`~/.dev-pilot-cache.json`):
+Interactive mode and shell completion can share the same cache (`~/.tgt-cache.json`):
 
 - When prompting for a project → show cached project list
   as selectable options
