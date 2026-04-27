@@ -59,7 +59,7 @@ function parseArgs(args: string[]): {
     process.exit(1);
   }
 
-  return { id, description, project, tags };
+  return { id: id!, description, project, tags };
 }
 
 export async function edit(args: string[]) {
