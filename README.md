@@ -1,6 +1,6 @@
 # dev-pilot
 
-CLI tool for Toggl Track time management.
+CLI tool for [Toggl Track](https://toggl.com/) time management, using the [Toggl Track API v9](https://developers.track.toggl.com/docs/).
 
 ## Setup
 
@@ -51,4 +51,4 @@ src/
 
 ## License
 
-MIT
+[MIT](LICENSE) · Made by [Stefano Locati](https://www.linkedin.com/in/stivlo/)
