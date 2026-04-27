@@ -1,11 +1,11 @@
-import { get } from "./api.js";
-import { entries } from "./commands/entries.js";
-import { projects } from "./commands/projects.js";
-import { deleteEntry } from "./commands/delete.js";
-import { track } from "./commands/track.js";
-import { stop } from "./commands/stop.js";
-import { tags } from "./commands/tags.js";
-import { edit } from "./commands/edit.js";
+import { get } from './api.js';
+import { entries } from './commands/entries.js';
+import { projects } from './commands/projects.js';
+import { deleteEntry } from './commands/delete.js';
+import { track } from './commands/track.js';
+import { stop } from './commands/stop.js';
+import { tags } from './commands/tags.js';
+import { edit } from './commands/edit.js';
 
 interface Me {
   id: number;
@@ -15,7 +15,7 @@ interface Me {
 }
 
 async function me() {
-  const user = await get<Me>("/me");
+  const user = await get<Me>('/me');
   console.log(`Authenticated as: ${user.fullname} (${user.email})`);
   console.log(`Default workspace: ${user.default_workspace_id}`);
 }
@@ -24,31 +24,31 @@ const command = process.argv[2];
 const args = process.argv.slice(2);
 
 switch (command) {
-  case "me":
+  case 'me':
     me();
     break;
-  case "entries":
+  case 'entries':
     entries(args);
     break;
-  case "projects":
+  case 'projects':
     projects();
     break;
-  case "delete":
+  case 'delete':
     deleteEntry(args);
     break;
-  case "track":
+  case 'track':
     track(args);
     break;
-  case "stop":
+  case 'stop':
     stop();
     break;
-  case "tags":
+  case 'tags':
     tags();
     break;
-  case "edit":
+  case 'edit':
     edit(args);
     break;
   default:
-    console.log("Usage: tsx src/index.ts <command>");
-    console.log("Commands: me, entries [-d DATE], projects, delete <entry_id>, track, stop, tags, edit");
+    console.log('Usage: tsx src/index.ts <command>');
+    console.log('Commands: me, entries [-d DATE], projects, delete <entry_id>, track, stop, tags, edit');
 }

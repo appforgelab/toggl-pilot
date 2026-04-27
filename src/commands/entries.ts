@@ -1,5 +1,5 @@
-import { config } from "../config.js";
-import { get } from "../api.js";
+import { config } from '../config.js';
+import { get } from '../api.js';
 
 interface TimeEntry {
   id: number;
@@ -14,24 +14,27 @@ interface TimeEntry {
 }
 
 function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
+  return date.toISOString().split('T')[0];
 }
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function formatDuration(seconds: number): string {
   if (seconds < 0) seconds = Math.floor(Date.now() / 1000) + seconds;
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return `${h}h${String(m).padStart(2, "0")}m`;
+  return `${h}h${String(m).padStart(2, '0')}m`;
 }
 
 function parseDateArg(args: string[]): Date {
-  const idx = args.indexOf("-d") !== -1 ? args.indexOf("-d") : args.indexOf("--date");
+  const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
   if (idx !== -1 && args[idx + 1]) {
-    const d = new Date(args[idx + 1] + "T12:00:00");
+    const d = new Date(args[idx + 1] + 'T12:00:00');
     if (!isNaN(d.getTime())) return d;
     throw new Error(`Invalid date: ${args[idx + 1]}`);
   }
@@ -44,9 +47,7 @@ export async function entries(args: string[]) {
   const nextDay = formatDate(new Date(date.getTime() + 86400000));
 
   const wsId = await config.getWorkspaceId();
-  const timeEntries = await get<TimeEntry[]>(
-    `/me/time_entries?start_date=${dayStr}&end_date=${nextDay}`
-  );
+  const timeEntries = await get<TimeEntry[]>(`/me/time_entries?start_date=${dayStr}&end_date=${nextDay}`);
 
   const projectIds = [...new Set(timeEntries.filter((e) => e.project_id).map((e) => e.project_id!))];
   const projectMap = new Map<number, string>();
@@ -66,7 +67,7 @@ export async function entries(args: string[]) {
 
   console.log(`\nTime entries for ${dayStr}\n`);
 
-  const header = `  ${"ID".padEnd(12)} ${"Time".padEnd(14)} ${"Dur.".padEnd(7)} ${"Description".padEnd(22)} Tags         Project`;
+  const header = `  ${'ID'.padEnd(12)} ${'Time'.padEnd(14)} ${'Dur.'.padEnd(7)} ${'Description'.padEnd(22)} Tags         Project`;
   console.log(header);
 
   const totals = new Map<string, number>();
@@ -75,7 +76,7 @@ export async function entries(args: string[]) {
   for (const entry of timeEntries) {
     const id = String(entry.id);
     const start = formatTime(entry.start);
-    const stop = entry.stop ? formatTime(entry.stop) : "...";
+    const stop = entry.stop ? formatTime(entry.stop) : '...';
 
     const isRunning = entry.duration < 0;
     const durationSec = isRunning
@@ -84,25 +85,25 @@ export async function entries(args: string[]) {
     const dur = formatDuration(durationSec);
 
     const projectName = entry.project_id
-      ? projectMap.get(entry.project_id) ?? entry.project_name ?? "—"
-      : "—";
+      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? '—')
+      : '—';
 
-    const tagStr = entry.tags?.length ? `{${entry.tags.join(",")}}` : "—";
-    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || "(no description)").slice(0, 22).padEnd(22)} ${tagStr.padEnd(13)} ${projectName}${isRunning ? "  ● running" : ""}`;
+    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : '—';
+    const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || '(no description)').slice(0, 22).padEnd(22)} ${tagStr.padEnd(13)} ${projectName}${isRunning ? '  ● running' : ''}`;
     console.log(line);
 
-    if (projectName !== "—") {
+    if (projectName !== '—') {
       totals.set(projectName, (totals.get(projectName) ?? 0) + durationSec);
     }
     grandTotal += durationSec;
   }
 
   if (totals.size > 0) {
-    console.log(`\n─── Totals ${"─".repeat(45)}`);
+    console.log(`\n─── Totals ${'─'.repeat(45)}`);
     for (const [name, secs] of totals) {
       console.log(`  ${name.padEnd(14)}${formatDuration(secs)}`);
     }
-    console.log(`  ${"Total".padEnd(14)}${formatDuration(grandTotal)}`);
+    console.log(`  ${'Total'.padEnd(14)}${formatDuration(grandTotal)}`);
   }
   console.log();
 }

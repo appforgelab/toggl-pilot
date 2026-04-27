@@ -1,5 +1,5 @@
-import { config } from "../config.js";
-import { get, put } from "../api.js";
+import { config } from '../config.js';
+import { get, put } from '../api.js';
 
 interface TimeEntry {
   id: number;
@@ -12,10 +12,10 @@ interface TimeEntry {
 }
 
 export async function stop() {
-  const current = await get<TimeEntry | null>("/me/time_entries/current");
+  const current = await get<TimeEntry | null>('/me/time_entries/current');
 
   if (!current) {
-    console.log("No running timer.");
+    console.log('No running timer.');
     return;
   }
 
@@ -29,13 +29,13 @@ export async function stop() {
     duration: durationSec,
   });
 
-  const projectLabel = stopped.project_name ? ` [${stopped.project_name}]` : "";
+  const projectLabel = stopped.project_name ? ` [${stopped.project_name}]` : '';
   const dur = formatDuration(stopped.duration);
-  console.log(`Stopped: ${stopped.description || "(no description)"}${projectLabel} (${dur})`);
+  console.log(`Stopped: ${stopped.description || '(no description)'}${projectLabel} (${dur})`);
 }
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return `${h}h${String(m).padStart(2, "0")}m`;
+  return `${h}h${String(m).padStart(2, '0')}m`;
 }
