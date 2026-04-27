@@ -29,6 +29,9 @@ function main(): void {
   execSync('npm run format', { stdio: 'inherit', cwd: repoRoot });
   restage(staged, repoRoot);
 
+  console.log('Running lint...');
+  execSync('npm run lint', { stdio: 'inherit', cwd: repoRoot });
+
   console.log('Running markdown lint...');
   execSync('npm run lint:md', { stdio: 'inherit', cwd: repoRoot });
 }

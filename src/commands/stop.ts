@@ -1,4 +1,3 @@
-import { config } from '../config.js';
 import { get, put } from '../api.js';
 
 interface TimeEntry {
