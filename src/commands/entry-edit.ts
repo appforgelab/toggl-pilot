@@ -68,7 +68,7 @@ export async function entryEdit(args: string[]) {
   try {
     entry = await get<TimeEntry>(`/me/time_entries/${id}`);
   } catch {
-    console.log(`Entry ${id} not found.`);
+    console.error(`Entry ${id} not found.`);
     return;
   }
 
@@ -79,14 +79,14 @@ export async function entryEdit(args: string[]) {
     const projects = await get<Project[]>(`/workspaces/${wsId}/projects`);
     const matches = projects.filter((p) => p.name.toLowerCase() === projectName.toLowerCase());
     if (matches.length === 0) {
-      console.log(
+      console.error(
         `Project "${projectName}" not found. Use "npm run project-list" to list available projects.`
       );
       process.exit(1);
     }
     if (matches.length > 1) {
-      console.log(`Multiple projects match "${projectName}":`);
-      matches.forEach((p) => console.log(`  ${p.id}  ${p.name}`));
+      console.error(`Multiple projects match "${projectName}":`);
+      matches.forEach((p) => console.error(`  ${p.id}  ${p.name}`));
       process.exit(1);
     }
     projectId = matches[0].id;

@@ -49,8 +49,8 @@ switch (command) {
     entryEdit(args);
     break;
   default:
-    console.log('Usage: tsx src/index.ts <command>');
-    console.log(
+    console.error('Usage: tsx src/index.ts <command>');
+    console.error(
       'Commands: me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
     );
 }

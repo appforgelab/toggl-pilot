@@ -15,7 +15,7 @@ export async function stop() {
   const current = await get<TimeEntry | null>('/me/time_entries/current');
 
   if (!current) {
-    console.log('No running timer.');
+    console.error('No running timer.');
     return;
   }
 
