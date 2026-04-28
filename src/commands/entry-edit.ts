@@ -50,7 +50,9 @@ function parseArgs(args: string[]): {
   }
 
   if (!id) {
-    console.log('Usage: tsx src/index.ts edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]');
+    console.log(
+      'Usage: tsx src/index.ts entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]'
+    );
     process.exit(1);
   }
 
@@ -62,7 +64,7 @@ function parseArgs(args: string[]): {
   return { id: id!, description, project, tags };
 }
 
-export async function edit(args: string[]) {
+export async function entryEdit(args: string[]) {
   const { id, description, project: projectName, tags: newTags } = parseArgs(args.slice(1));
 
   let entry: TimeEntry;
@@ -80,7 +82,9 @@ export async function edit(args: string[]) {
     const projects = await get<Project[]>(`/workspaces/${wsId}/projects`);
     const matches = projects.filter((p) => p.name.toLowerCase() === projectName.toLowerCase());
     if (matches.length === 0) {
-      console.log(`Project "${projectName}" not found. Use "npm run projects" to list available projects.`);
+      console.log(
+        `Project "${projectName}" not found. Use "npm run project-list" to list available projects.`
+      );
       process.exit(1);
     }
     if (matches.length > 1) {

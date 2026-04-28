@@ -9,10 +9,10 @@ interface TimeEntry {
   workspace_id: number;
 }
 
-export async function deleteEntry(args: string[]) {
+export async function entryDelete(args: string[]) {
   const id = args.slice(1).find((a) => !a.startsWith('-'));
   if (!id) {
-    console.log('Usage: tsx src/index.ts delete <entry_id>');
+    console.log('Usage: tsx src/index.ts entry-delete <entry_id>');
     process.exit(1);
   }
 

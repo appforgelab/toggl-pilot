@@ -1,13 +1,13 @@
-# `entries` — List Time Entries
+# `entry-list` — List Time Entries
 
 Lists all time entries for a given day with totals by project.
 
 ## Usage
 
 ```bash
-npm run entries                        # today
-npm run entries -- -d 2026-04-29       # specific date
-npm run entries -- --date 2026-04-29   # long form
+npm run entry-list                        # today
+npm run entry-list -- -d 2026-04-29       # specific date
+npm run entry-list -- --date 2026-04-29   # long form
 ```
 
 ## Output
@@ -30,7 +30,7 @@ Time entries for 2026-04-29
 
 | Column      | Description                                   |
 | ----------- | --------------------------------------------- |
-| ID          | Toggl time entry ID (use with `delete`)       |
+| ID          | Toggl time entry ID (use with `entry-delete`) |
 | Time        | Start and stop times (`...` if still running) |
 | Dur.        | Duration of the entry                         |
 | Description | Entry description                             |

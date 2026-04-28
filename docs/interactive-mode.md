@@ -28,11 +28,11 @@ $ npm run track
 
 ### Candidate Commands
 
-| Command   | Current behavior (no args) | Interactive behavior                       |
-| --------- | -------------------------- | ------------------------------------------ |
-| `track`   | Error                      | Prompt for desc, project, tags             |
-| `edit`    | Error                      | Prompt for entry ID, then fields to change |
-| `entries` | Show today                 | Prompt for date range                      |
+| Command      | Current behavior (no args) | Interactive behavior                       |
+| ------------ | -------------------------- | ------------------------------------------ |
+| `track`      | Error                      | Prompt for desc, project, tags             |
+| `entry-edit` | Error                      | Prompt for entry ID, then fields to change |
+| `entry-list` | Show today                 | Prompt for date range                      |
 
 ### Libraries to Evaluate
 

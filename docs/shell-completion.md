@@ -30,7 +30,7 @@ Cache file: `~/.tgt-cache.json`
 - **TTL**: 15 minutes — cache is considered stale after this
 - **API budget impact**: 2 requests per 15 min (projects + tags) = 8/hr, well within the 30/hr limit
 - On completion: if cache is fresh, use it; if stale, fetch and update
-- Commands like `npm run projects` / `npm run tags` should also update the cache as a side effect
+- Commands like `npm run project-list` / `npm run tag-list` should also update the cache as a side effect
 
 ## Alternative: Interactive Picker (fzf)
 

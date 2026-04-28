@@ -42,7 +42,7 @@ npm run track -- "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
 ## Project Lookup
 
 Projects are looked up by name (case-insensitive). If no match is found, you'll get an
-error. Use `npm run projects` to see available names. If multiple projects share the
+error. Use `npm run project-list` to see available names. If multiple projects share the
 same name, the ambiguous matches are listed.
 
 ## Output

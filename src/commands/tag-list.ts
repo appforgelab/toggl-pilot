@@ -6,7 +6,7 @@ interface Tag {
   name: string;
 }
 
-export async function tags() {
+export async function tagList() {
   const wsId = await config.getWorkspaceId();
   const list = await get<Tag[]>(`/workspaces/${wsId}/tags`);
 
