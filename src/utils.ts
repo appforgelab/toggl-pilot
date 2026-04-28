@@ -1,3 +1,12 @@
+export function parseOrExit<T>(fn: () => T): T {
+  try {
+    return fn();
+  } catch (e) {
+    console.error((e as Error).message);
+    process.exit(1);
+  }
+}
+
 export function formatDuration(seconds: number): string {
   if (seconds < 0) {
     seconds = Math.floor(Date.now() / 1000) + seconds;

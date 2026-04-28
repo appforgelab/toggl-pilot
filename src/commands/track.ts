@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import { parseDuration, buildStartTime } from '../utils.js';
+import { parseDuration, buildStartTime, parseOrExit } from '../utils.js';
 
 interface Project {
   id: number;
@@ -61,14 +61,7 @@ export function parseArgs(args: string[]): {
 }
 
 export async function track(args: string[]) {
-  let parsed;
-  try {
-    parsed = parseArgs(args);
-  } catch (e) {
-    console.log((e as Error).message);
-    process.exit(1);
-  }
-  const { description, project: projectName, tags, at, dur } = parsed;
+  const { description, project: projectName, tags, at, dur } = parseOrExit(() => parseArgs(args));
   const wsId = await config.getWorkspaceId();
 
   let projectId: number | null = null;

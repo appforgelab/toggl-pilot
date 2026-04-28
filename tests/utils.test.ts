@@ -6,6 +6,7 @@ import {
   formatTime,
   buildStartTime,
   parseDateArg,
+  parseOrExit,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -127,5 +128,30 @@ describe('parseDateArg', () => {
 
   it('throws on invalid date', () => {
     expect(() => parseDateArg(['-d', 'not-a-date'])).toThrow('Invalid date');
+  });
+});
+
+describe('parseOrExit', () => {
+  it('returns the value on success', () => {
+    const result = parseOrExit(() => 42);
+    expect(result).toBe(42);
+  });
+
+  it('writes error to stderr and exits on throw', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit');
+    });
+
+    expect(() =>
+      parseOrExit(() => {
+        throw new Error('bad input');
+      })
+    ).toThrow('process.exit');
+    expect(errorSpy).toHaveBeenCalledWith('bad input');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    errorSpy.mockRestore();
+    exitSpy.mockRestore();
   });
 });
