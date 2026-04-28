@@ -36,7 +36,7 @@ describe('entryEdit command', () => {
       description: 'Updated',
     });
 
-    await entryEdit(['entry-edit', '100', '-d', 'Updated']);
+    await entryEdit(['100', '-d', 'Updated']);
 
     expect(mockedPut).toHaveBeenCalledWith(
       '/workspaces/123/time_entries/100',
@@ -59,7 +59,7 @@ describe('entryEdit command', () => {
       project_name: 'NewProject',
     });
 
-    await entryEdit(['entry-edit', '100', '-p', 'NewProject']);
+    await entryEdit(['100', '-p', 'NewProject']);
 
     expect(mockedPut).toHaveBeenCalledWith(
       '/workspaces/123/time_entries/100',
@@ -76,7 +76,7 @@ describe('entryEdit command', () => {
       tags: ['review', 'bug'],
     });
 
-    await entryEdit(['entry-edit', '100', '-t', 'review,bug']);
+    await entryEdit(['100', '-t', 'review,bug']);
 
     expect(mockedPut).toHaveBeenCalledWith(
       '/workspaces/123/time_entries/100',
@@ -90,7 +90,7 @@ describe('entryEdit command', () => {
     mockedGet.mockRejectedValue(new Error('404'));
 
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    await entryEdit(['entry-edit', '999', '-d', 'Test']);
+    await entryEdit(['999', '-d', 'Test']);
 
     expect(logSpy).toHaveBeenCalledWith('Entry 999 not found.');
     logSpy.mockRestore();
@@ -105,7 +105,7 @@ describe('entryEdit command', () => {
       throw new Error('exit');
     });
 
-    await expect(entryEdit(['entry-edit', '100', '-p', 'Missing'])).rejects.toThrow('exit');
+    await expect(entryEdit(['100', '-p', 'Missing'])).rejects.toThrow('exit');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();

@@ -10,7 +10,7 @@ interface TimeEntry {
 }
 
 export async function entryDelete(args: string[]) {
-  const id = args.slice(1).find((a) => !a.startsWith('-'));
+  const id = args.find((a) => !a.startsWith('-'));
   if (!id) {
     console.log('Usage: tsx src/index.ts entry-delete <entry_id>');
     process.exit(1);

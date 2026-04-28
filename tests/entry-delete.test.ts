@@ -31,7 +31,7 @@ describe('entryDelete command', () => {
     });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await expect(entryDelete(['entry-delete'])).rejects.toThrow('exit');
+    await expect(entryDelete([])).rejects.toThrow('exit');
 
     expect(logSpy).toHaveBeenCalledWith('Usage: tsx src/index.ts entry-delete <entry_id>');
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -43,7 +43,7 @@ describe('entryDelete command', () => {
     mockedGet.mockRejectedValue(new Error('404'));
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await entryDelete(['entry-delete', '999']);
+    await entryDelete(['999']);
 
     expect(logSpy).toHaveBeenCalledWith('Entry 999 not found.');
     logSpy.mockRestore();
@@ -54,7 +54,7 @@ describe('entryDelete command', () => {
     mockedDel.mockResolvedValue(undefined);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await entryDelete(['entry-delete', '100']);
+    await entryDelete(['100']);
 
     expect(mockedDel).toHaveBeenCalledWith('/workspaces/123/time_entries/100');
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Deleted: Test entry'));
@@ -66,7 +66,7 @@ describe('entryDelete command', () => {
     mockedDel.mockRejectedValue(new Error('Toggl API 400: Bad Request'));
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await entryDelete(['entry-delete', '100']);
+    await entryDelete(['100']);
 
     expect(logSpy).toHaveBeenCalledWith('Entry 100 not found or already deleted.');
     logSpy.mockRestore();
@@ -77,7 +77,7 @@ describe('entryDelete command', () => {
     mockedDel.mockRejectedValue(new Error('Toggl API 404: Not Found'));
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await entryDelete(['entry-delete', '100']);
+    await entryDelete(['100']);
 
     expect(logSpy).toHaveBeenCalledWith('Entry 100 not found or already deleted.');
     logSpy.mockRestore();
@@ -87,7 +87,7 @@ describe('entryDelete command', () => {
     mockedGet.mockResolvedValue({ ...baseEntry });
     mockedDel.mockRejectedValue(new Error('Toggl API 500: Server Error'));
 
-    await expect(entryDelete(['entry-delete', '100'])).rejects.toThrow('500');
+    await expect(entryDelete(['100'])).rejects.toThrow('500');
   });
 
   it('shows fallback for entry without description or project', async () => {
@@ -99,7 +99,7 @@ describe('entryDelete command', () => {
     mockedDel.mockResolvedValue(undefined);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await entryDelete(['entry-delete', '100']);
+    await entryDelete(['100']);
 
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('(no description)'));
     expect(logSpy).toHaveBeenCalledWith(expect.not.stringContaining('['));

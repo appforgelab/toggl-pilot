@@ -21,7 +21,7 @@ async function me() {
 }
 
 const command = process.argv[2];
-const args = process.argv.slice(2);
+const args = process.argv.slice(3);
 
 switch (command) {
   case 'me':
@@ -37,7 +37,7 @@ switch (command) {
     entryDelete(args);
     break;
   case 'track':
-    track(args.slice(1));
+    track(args);
     break;
   case 'stop':
     stop();
