@@ -1,4 +1,5 @@
 import { get, put } from '../api.js';
+import { parseOrExit } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -61,14 +62,12 @@ export function parseArgs(args: string[]): {
 }
 
 export async function entryEdit(args: string[]) {
-  let parsed;
-  try {
-    parsed = parseArgs(args.slice(1));
-  } catch (e) {
-    console.log((e as Error).message);
-    process.exit(1);
-  }
-  const { id, description, project: projectName, tags: newTags } = parsed;
+  const {
+    id,
+    description,
+    project: projectName,
+    tags: newTags,
+  } = parseOrExit(() => parseArgs(args.slice(1)));
 
   let entry: TimeEntry;
   try {

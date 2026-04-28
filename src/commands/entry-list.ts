@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatTime, formatDuration, parseDateArg } from '../utils.js';
+import { formatDate, formatTime, formatDuration, parseDateArg, parseOrExit } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -15,13 +15,7 @@ interface TimeEntry {
 }
 
 export async function entryList(args: string[]) {
-  let date;
-  try {
-    date = parseDateArg(args);
-  } catch (e) {
-    console.log((e as Error).message);
-    process.exit(1);
-  }
+  const date = parseOrExit(() => parseDateArg(args));
   const dayStr = formatDate(date);
   const nextDay = formatDate(new Date(date.getTime() + 86400000));
 
