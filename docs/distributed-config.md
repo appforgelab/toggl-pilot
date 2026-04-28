@@ -14,12 +14,20 @@ Support both environment variables and a config file, with env vars taking prior
 
 1. **Environment variables** (`TOGGL_API_TOKEN`, `TOGGL_WORKSPACE_ID`)
    — for CI/CD, scripting, `~/.zshrc`
-2. **Config file** (`~/.tgt.env`) — for interactive daily use,
-   same dotenv format
+2. **Config file** — for interactive daily use, same dotenv format
 
-### Config File Location
+### Paths (cross-platform)
 
-`~/.tgt.env`
+Resolved by `src/paths.ts` — no external dependencies.
+
+|                 | Config                     | Cache                       |
+| --------------- | -------------------------- | --------------------------- |
+| **macOS/Linux** | `~/.config/tgt/config.env` | `~/.cache/tgt/`             |
+| **Windows**     | `%APPDATA%\tgt\config.env` | `%LOCALAPPDATA%\tgt\Cache\` |
+
+### Config File
+
+Example (`~/.config/tgt/config.env`):
 
 ```env
 TOGGL_API_TOKEN=your_token_here
@@ -36,21 +44,25 @@ $ tgt
   Get your token at https://track.toggl.com/profile
 
 $ tgt auth my_api_token_here
-  Config saved to ~/.tgt.env
+  Config saved to ~/.config/tgt/config.env
+  Authenticated as Stefano Locati (user@domain.com)
 
 $ tgt me
-  ✓ Authenticated as Stefano Locati (user@domain.com)
+  Authenticated as: Stefano Locati (user@domain.com)
+  Default workspace: 123456
 ```
 
-### Changes Needed
+### Implementation
 
-- `config.ts`: check env vars first, then fall back to `~/.tgt.env`
-- New `auth` command: validate token via API, save to `~/.tgt.env`
-- Remove `.env` dependency on project directory
+- `src/paths.ts`: cross-platform config/cache directory resolution
+- `config.ts`: check env vars first, then fall back to config file via `paths.ts`
+- `src/commands/auth.ts`: validate token via API (`getWithToken`), save to config file
+- `api.ts`: `getWithToken()` for making API calls with an explicit token (needed by auth before config exists)
+- Remove `dotenv` dependency — config file is parsed manually
 - Keep `.env.example` in repo for contributors who clone
 
 ### Notes
 
 - Config file is plain text — avoid storing anything beyond the API token
-- `tgt auth` without a token could prompt interactively (see interactive-mode.md)
-- Consider warning if config file has overly permissive permissions (e.g. `chmod 600`)
+- `tgt auth` warns if config file has overly permissive permissions (suggests `chmod 600` on macOS/Linux)
+- Config file is created with mode `0o600`

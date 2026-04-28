@@ -24,9 +24,6 @@
     "test:watch": "vitest",
     "pre-commit": "tsx scripts/pre-commit.ts"
   },
-  "dependencies": {
-    "dotenv": "^17.4.2"
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.6.0",

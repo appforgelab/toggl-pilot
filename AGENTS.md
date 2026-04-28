@@ -8,7 +8,7 @@ CLI tool for Toggl Track time management. TypeScript, runs via `tsx`.
 
 - Node 22 + TypeScript (strict mode, ES modules)
 - `tsx` for running TS directly
-- `dotenv` for env config
+- Config via `~/.config/tgt/config.env` (macOS/Linux) or `%APPDATA%\tgt\config.env` (Windows)
 - No framework — plain `fetch` for HTTP, no CLI parser yet
 
 ## Commands
@@ -16,6 +16,8 @@ CLI tool for Toggl Track time management. TypeScript, runs via `tsx`.
 See README.md for available commands and usage.
 
 ## Guidelines
+
+- **Never commit directly to `main`** — always create a feature branch first
 
 This file describes common mistakes and confusion points that an agent may encounter as
 they work on this project. If you ever encounter something that surprises you or

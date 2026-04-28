@@ -1,4 +1,5 @@
 import { get } from './api.js';
+import { hasConfig, ConfigNotFoundError } from './config.js';
 import { entryList } from './commands/entry-list.js';
 import { projectList } from './commands/project-list.js';
 import { entryDelete } from './commands/entry-delete.js';
@@ -6,6 +7,7 @@ import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
 import { tagList } from './commands/tag-list.js';
 import { entryEdit } from './commands/entry-edit.js';
+import { auth } from './commands/auth.js';
 
 interface Me {
   id: number;
@@ -23,34 +25,41 @@ async function me() {
 const command = process.argv[2];
 const args = process.argv.slice(3);
 
-switch (command) {
-  case 'me':
-    me();
-    break;
-  case 'entry-list':
-    entryList(args);
-    break;
-  case 'project-list':
-    projectList();
-    break;
-  case 'entry-delete':
-    entryDelete(args);
-    break;
-  case 'track':
-    track(args);
-    break;
-  case 'stop':
-    stop();
-    break;
-  case 'tag-list':
-    tagList();
-    break;
-  case 'entry-edit':
-    entryEdit(args);
-    break;
-  default:
-    console.error('Usage: tsx src/index.ts <command>');
-    console.error(
-      'Commands: me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
-    );
+if (command === 'auth') {
+  auth(args);
+} else if (!hasConfig()) {
+  console.error(new ConfigNotFoundError().message);
+  process.exit(1);
+} else {
+  switch (command) {
+    case 'me':
+      me();
+      break;
+    case 'entry-list':
+      entryList(args);
+      break;
+    case 'project-list':
+      projectList();
+      break;
+    case 'entry-delete':
+      entryDelete(args);
+      break;
+    case 'track':
+      track(args);
+      break;
+    case 'stop':
+      stop();
+      break;
+    case 'tag-list':
+      tagList();
+      break;
+    case 'entry-edit':
+      entryEdit(args);
+      break;
+    default:
+      console.error('Usage: tgt <command>');
+      console.error(
+        'Commands: auth, me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
+      );
+  }
 }
