@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "auth": "tsx src/index.ts auth",
+    "track": "tsx src/index.ts track",
     "me": "tsx src/index.ts me",
     "entry-list": "tsx src/index.ts entry-list",
     "project-list": "tsx src/index.ts project-list",
