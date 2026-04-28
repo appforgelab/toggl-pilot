@@ -15,7 +15,13 @@ interface TimeEntry {
 }
 
 export async function entryList(args: string[]) {
-  const date = parseDateArg(args);
+  let date;
+  try {
+    date = parseDateArg(args);
+  } catch (e) {
+    console.log((e as Error).message);
+    process.exit(1);
+  }
   const dayStr = formatDate(date);
   const nextDay = formatDate(new Date(date.getTime() + 86400000));
 

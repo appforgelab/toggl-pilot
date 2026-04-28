@@ -61,7 +61,14 @@ export function parseArgs(args: string[]): {
 }
 
 export async function track(args: string[]) {
-  const { description, project: projectName, tags, at, dur } = parseArgs(args);
+  let parsed;
+  try {
+    parsed = parseArgs(args);
+  } catch (e) {
+    console.log((e as Error).message);
+    process.exit(1);
+  }
+  const { description, project: projectName, tags, at, dur } = parsed;
   const wsId = await config.getWorkspaceId();
 
   let projectId: number | null = null;
