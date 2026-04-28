@@ -61,7 +61,14 @@ export function parseArgs(args: string[]): {
 }
 
 export async function entryEdit(args: string[]) {
-  const { id, description, project: projectName, tags: newTags } = parseArgs(args.slice(1));
+  let parsed;
+  try {
+    parsed = parseArgs(args.slice(1));
+  } catch (e) {
+    console.log((e as Error).message);
+    process.exit(1);
+  }
+  const { id, description, project: projectName, tags: newTags } = parsed;
 
   let entry: TimeEntry;
   try {

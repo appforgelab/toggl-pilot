@@ -37,7 +37,7 @@ switch (command) {
     entryDelete(args);
     break;
   case 'track':
-    track(args);
+    track(args.slice(1));
     break;
   case 'stop':
     stop();
