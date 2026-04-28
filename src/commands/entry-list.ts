@@ -41,7 +41,7 @@ function parseDateArg(args: string[]): Date {
   return new Date();
 }
 
-export async function entries(args: string[]) {
+export async function entryList(args: string[]) {
   const date = parseDateArg(args);
   const dayStr = formatDate(date);
   const nextDay = formatDate(new Date(date.getTime() + 86400000));

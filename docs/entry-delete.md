@@ -1,11 +1,11 @@
-# `delete` — Delete a Time Entry
+# `entry-delete` — Delete a Time Entry
 
-Deletes a time entry by its ID. Find the ID using `npm run entries`.
+Deletes a time entry by its ID. Find the ID using `npm run entry-list`.
 
 ## Usage
 
 ```bash
-npm run delete -- <entry_id>
+npm run entry-delete -- <entry_id>
 ```
 
 The `--` is required so npm passes the argument to the script.
@@ -13,10 +13,10 @@ The `--` is required so npm passes the argument to the script.
 ## Example
 
 ```bash
-npm run entries
+npm run entry-list
 #   4383678597   20:02-20:13   0h10m   Ch 15 wrap up   Learning
 
-npm run delete -- 4383678597
+npm run entry-delete -- 4383678597
 #   Deleted: Ch 15 wrap up (20:02-20:13) [Learning]
 ```
 

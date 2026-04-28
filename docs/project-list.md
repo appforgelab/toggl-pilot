@@ -1,11 +1,11 @@
-# `projects` — List Projects
+# `project-list` — List Projects
 
 Lists all projects in your workspace with IDs, names, clients, and status.
 
 ## Usage
 
 ```bash
-npm run projects
+npm run project-list
 ```
 
 ## Output

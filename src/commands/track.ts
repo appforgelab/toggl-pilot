@@ -88,7 +88,9 @@ export async function track(args: string[]) {
     const projects = await get<Project[]>(`/workspaces/${wsId}/projects`);
     const matches = projects.filter((p) => p.name.toLowerCase() === projectName.toLowerCase());
     if (matches.length === 0) {
-      console.log(`Project "${projectName}" not found. Use "npm run projects" to list available projects.`);
+      console.log(
+        `Project "${projectName}" not found. Use "npm run project-list" to list available projects.`
+      );
       process.exit(1);
     }
     if (matches.length > 1) {

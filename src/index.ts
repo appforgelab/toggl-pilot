@@ -1,11 +1,11 @@
 import { get } from './api.js';
-import { entries } from './commands/entries.js';
-import { projects } from './commands/projects.js';
-import { deleteEntry } from './commands/delete.js';
+import { entryList } from './commands/entry-list.js';
+import { projectList } from './commands/project-list.js';
+import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
-import { tags } from './commands/tags.js';
-import { edit } from './commands/edit.js';
+import { tagList } from './commands/tag-list.js';
+import { entryEdit } from './commands/entry-edit.js';
 
 interface Me {
   id: number;
@@ -27,14 +27,14 @@ switch (command) {
   case 'me':
     me();
     break;
-  case 'entries':
-    entries(args);
+  case 'entry-list':
+    entryList(args);
     break;
-  case 'projects':
-    projects();
+  case 'project-list':
+    projectList();
     break;
-  case 'delete':
-    deleteEntry(args);
+  case 'entry-delete':
+    entryDelete(args);
     break;
   case 'track':
     track(args);
@@ -42,13 +42,15 @@ switch (command) {
   case 'stop':
     stop();
     break;
-  case 'tags':
-    tags();
+  case 'tag-list':
+    tagList();
     break;
-  case 'edit':
-    edit(args);
+  case 'entry-edit':
+    entryEdit(args);
     break;
   default:
     console.log('Usage: tsx src/index.ts <command>');
-    console.log('Commands: me, entries [-d DATE], projects, delete <entry_id>, track, stop, tags, edit');
+    console.log(
+      'Commands: me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
+    );
 }

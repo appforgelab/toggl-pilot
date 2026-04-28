@@ -11,7 +11,7 @@ interface Project {
   status: string;
 }
 
-export async function projects() {
+export async function projectList() {
   const wsId = await config.getWorkspaceId();
   const list = await get<Project[]>(`/workspaces/${wsId}/projects`);
 

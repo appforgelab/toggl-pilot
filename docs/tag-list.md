@@ -1,11 +1,11 @@
-# `tags` — List Tags
+# `tag-list` — List Tags
 
 Lists all tags in your workspace.
 
 ## Usage
 
 ```bash
-npm run tags
+npm run tag-list
 ```
 
 ## Output
