@@ -62,12 +62,7 @@ export function parseArgs(args: string[]): {
 }
 
 export async function entryEdit(args: string[]) {
-  const {
-    id,
-    description,
-    project: projectName,
-    tags: newTags,
-  } = parseOrExit(() => parseArgs(args.slice(1)));
+  const { id, description, project: projectName, tags: newTags } = parseOrExit(() => parseArgs(args));
 
   let entry: TimeEntry;
   try {
