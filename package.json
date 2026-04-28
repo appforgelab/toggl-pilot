@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
-    "track": "tsx src/index.ts track",
+    "auth": "tsx src/index.ts auth",
     "me": "tsx src/index.ts me",
     "entry-list": "tsx src/index.ts entry-list",
     "project-list": "tsx src/index.ts project-list",
@@ -23,9 +23,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "pre-commit": "tsx scripts/pre-commit.ts"
-  },
-  "dependencies": {
-    "dotenv": "^17.4.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
