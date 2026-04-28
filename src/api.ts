@@ -43,13 +43,13 @@ export async function getWithToken<T>(path: string, token: string): Promise<T> {
 }
 
 export function post<T>(path: string, body: unknown): Promise<T> {
-  return request<T>(path, { method: 'POST', body: JSON.stringify(body) });
+  return requestWithConfig<T>(path, { method: 'POST', body: JSON.stringify(body) });
 }
 
 export function del<T>(path: string): Promise<T> {
-  return request<T>(path, { method: 'DELETE' });
+  return requestWithConfig<T>(path, { method: 'DELETE' });
 }
 
 export function put<T>(path: string, body: unknown): Promise<T> {
-  return request<T>(path, { method: 'PUT', body: JSON.stringify(body) });
+  return requestWithConfig<T>(path, { method: 'PUT', body: JSON.stringify(body) });
 }

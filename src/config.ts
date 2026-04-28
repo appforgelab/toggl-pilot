@@ -13,7 +13,10 @@ class ConfigNotFoundError extends Error {
   }
 }
 
+let cachedConfig: Record<string, string> | null = null;
+
 function loadConfigFile(): Record<string, string> {
+  if (cachedConfig) return cachedConfig;
   const file = getConfigFile();
   if (!existsSync(file)) return {};
   const content = readFileSync(file, 'utf-8');
@@ -24,9 +27,13 @@ function loadConfigFile(): Record<string, string> {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
     result[key] = val;
   }
+  cachedConfig = result;
   return result;
 }
 
