@@ -12,6 +12,7 @@
     "entry-delete": "tsx src/index.ts entry-delete",
     "tag-list": "tsx src/index.ts tag-list",
     "entry-edit": "tsx src/index.ts entry-edit",
+    "stop": "tsx src/index.ts stop",
     "format": "prettier --write \"**/*.{ts,md,mdx}\"",
     "format:md": "prettier --write \"**/*.{md,mdx}\"",
     "format:check": "prettier --check \"**/*.{ts,md,mdx}\"",
@@ -19,6 +20,8 @@
     "lint": "eslint src",
     "lint:md": "markdownlint \"**/*.{md,mdx}\" --ignore-path .markdownlintignore",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "pre-commit": "tsx scripts/pre-commit.ts"
   },
   "dependencies": {
@@ -32,6 +35,7 @@
     "prettier": "^3.8.3",
     "tsx": "^4.19.3",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.0"
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^4.1.5"
   }
 }

@@ -20,7 +20,7 @@ interface Project {
 
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description']);
 
-function parseArgs(args: string[]): {
+export function parseArgs(args: string[]): {
   id: string;
   description: string | null;
   project: string | null;
@@ -33,9 +33,7 @@ function parseArgs(args: string[]): {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      console.log(`Unknown flag: ${args[i]}`);
-      console.log('Valid flags: -d/--description, -p/--project, -t/--tags');
-      process.exit(1);
+      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -d/--description, -p/--project, -t/--tags`);
     }
 
     if ((args[i] === '-d' || args[i] === '--description') && args[i + 1]) {
@@ -50,15 +48,13 @@ function parseArgs(args: string[]): {
   }
 
   if (!id) {
-    console.log(
+    throw new Error(
       'Usage: tsx src/index.ts entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]'
     );
-    process.exit(1);
   }
 
   if (!description && !project && !tags) {
-    console.log('Nothing to edit. Provide at least one of: -d, -p, -t');
-    process.exit(1);
+    throw new Error('Nothing to edit. Provide at least one of: -d, -p, -t');
   }
 
   return { id: id!, description, project, tags };

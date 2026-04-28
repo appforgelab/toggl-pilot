@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
+import { parseDuration, buildStartTime } from '../utils.js';
 
 interface Project {
   id: number;
@@ -19,7 +20,7 @@ interface TimeEntry {
 
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur']);
 
-function parseArgs(args: string[]): {
+export function parseArgs(args: string[]): {
   description: string;
   project: string | null;
   tags: string[];
@@ -34,9 +35,7 @@ function parseArgs(args: string[]): {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      console.log(`Unknown flag: ${args[i]}`);
-      console.log('Valid flags: -p/--project, -t/--tags, --at, --dur');
-      process.exit(1);
+      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -p/--project, -t/--tags, --at, --dur`);
     }
 
     if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
@@ -53,30 +52,12 @@ function parseArgs(args: string[]): {
   }
 
   if (!description) {
-    console.log(
+    throw new Error(
       'Usage: tsx src/index.ts track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
     );
-    process.exit(1);
   }
 
   return { description, project, tags, at, dur };
-}
-
-function parseDuration(dur: string): number {
-  const match = dur.match(/^(\d+)h(\d+)m$/);
-  if (match) return parseInt(match[1]) * 3600 + parseInt(match[2]) * 60;
-  const hours = dur.match(/^(\d+)h$/);
-  if (hours) return parseInt(hours[1]) * 3600;
-  const mins = dur.match(/^(\d+)m$/);
-  if (mins) return parseInt(mins[1]) * 60;
-  throw new Error(`Invalid duration: ${dur}. Use format like 1h30m, 2h, 45m`);
-}
-
-function buildStartTime(at: string): string {
-  const today = new Date().toISOString().split('T')[0];
-  const d = new Date(`${today}T${at}:00`);
-  if (isNaN(d.getTime())) throw new Error(`Invalid time: ${at}. Use HH:MM format.`);
-  return d.toISOString();
 }
 
 export async function track(args: string[]) {

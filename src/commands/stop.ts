@@ -1,4 +1,5 @@
 import { get, put } from '../api.js';
+import { formatDuration } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -31,10 +32,4 @@ export async function stop() {
   const projectLabel = stopped.project_name ? ` [${stopped.project_name}]` : '';
   const dur = formatDuration(stopped.duration);
   console.log(`Stopped: ${stopped.description || '(no description)'}${projectLabel} (${dur})`);
-}
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  return `${h}h${String(m).padStart(2, '0')}m`;
 }
