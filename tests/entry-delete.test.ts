@@ -29,7 +29,7 @@ describe('entryDelete command', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');
     });
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await expect(entryDelete([])).rejects.toThrow('exit');
 
@@ -41,7 +41,7 @@ describe('entryDelete command', () => {
 
   it('prints not found when GET fails', async () => {
     mockedGet.mockRejectedValue(new Error('404'));
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await entryDelete(['999']);
 
@@ -64,7 +64,7 @@ describe('entryDelete command', () => {
   it('handles 400 error during delete', async () => {
     mockedGet.mockResolvedValue({ ...baseEntry });
     mockedDel.mockRejectedValue(new Error('Toggl API 400: Bad Request'));
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await entryDelete(['100']);
 
@@ -75,7 +75,7 @@ describe('entryDelete command', () => {
   it('handles 404 error during delete', async () => {
     mockedGet.mockResolvedValue({ ...baseEntry });
     mockedDel.mockRejectedValue(new Error('Toggl API 404: Not Found'));
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await entryDelete(['100']);
 

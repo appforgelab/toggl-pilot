@@ -12,7 +12,7 @@ interface TimeEntry {
 export async function entryDelete(args: string[]) {
   const id = args.find((a) => !a.startsWith('-'));
   if (!id) {
-    console.log('Usage: tsx src/index.ts entry-delete <entry_id>');
+    console.error('Usage: tsx src/index.ts entry-delete <entry_id>');
     process.exit(1);
   }
 
@@ -20,7 +20,7 @@ export async function entryDelete(args: string[]) {
   try {
     entry = await get<TimeEntry>(`/me/time_entries/${id}`);
   } catch {
-    console.log(`Entry ${id} not found.`);
+    console.error(`Entry ${id} not found.`);
     return;
   }
 
@@ -42,7 +42,7 @@ export async function entryDelete(args: string[]) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes('400') || msg.includes('404')) {
-      console.log(`Entry ${id} not found or already deleted.`);
+      console.error(`Entry ${id} not found or already deleted.`);
       return;
     }
     throw e;

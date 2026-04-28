@@ -89,7 +89,7 @@ describe('entryEdit command', () => {
   it('prints not found when entry does not exist', async () => {
     mockedGet.mockRejectedValue(new Error('404'));
 
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     await entryEdit(['999', '-d', 'Test']);
 
     expect(logSpy).toHaveBeenCalledWith('Entry 999 not found.');
