@@ -8,6 +8,7 @@ import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
 import { tagList } from './commands/tag-list.js';
 import { entryEdit } from './commands/entry-edit.js';
+import { projectRename } from './commands/project-rename.js';
 import { auth } from './commands/auth.js';
 import { version } from './commands/version.js';
 
@@ -60,10 +61,13 @@ if (command === 'auth') {
     case 'entry-edit':
       entryEdit(args);
       break;
+    case 'project-rename':
+      projectRename(args);
+      break;
     default:
       console.error('Usage: tgt <command>');
       console.error(
-        'Commands: auth, version, me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
+        'Commands: auth, version, me, entry-list [-d DATE], project-list, project-rename <project_id> "New Name", entry-delete <entry_id>, track, stop, tag-list, entry-edit'
       );
   }
 }

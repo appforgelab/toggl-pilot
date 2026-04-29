@@ -49,9 +49,7 @@ export function parseArgs(args: string[]): {
   }
 
   if (!id) {
-    throw new Error(
-      'Usage: tsx src/index.ts entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]'
-    );
+    throw new Error('Usage: tgt entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]');
   }
 
   if (!description && !project && !tags) {

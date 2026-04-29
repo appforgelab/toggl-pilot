@@ -53,7 +53,7 @@ export function parseArgs(args: string[]): {
 
   if (!description) {
     throw new Error(
-      'Usage: tsx src/index.ts track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
+      'Usage: tgt track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
     );
   }
 

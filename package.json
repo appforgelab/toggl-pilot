@@ -32,6 +32,7 @@
     "me": "tsx src/index.ts me",
     "entry-list": "tsx src/index.ts entry-list",
     "project-list": "tsx src/index.ts project-list",
+    "project-rename": "tsx src/index.ts project-rename",
     "entry-delete": "tsx src/index.ts entry-delete",
     "tag-list": "tsx src/index.ts tag-list",
     "entry-edit": "tsx src/index.ts entry-edit",
