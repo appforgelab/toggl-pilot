@@ -15,10 +15,24 @@ export async function projectRename(args: string[]) {
     process.exit(1);
   }
 
-  const wsId = await config.getWorkspaceId();
-  const updated = await put<Project>(`/workspaces/${wsId}/projects/${projectId}`, {
-    name: newName,
-  });
+  if (isNaN(Number(projectId))) {
+    console.error(`Invalid project ID: "${projectId}". Must be a number.`);
+    process.exit(1);
+  }
 
-  console.log(`Project ${updated.id} renamed to "${updated.name}"`);
+  const wsId = await config.getWorkspaceId();
+
+  try {
+    const updated = await put<Project>(`/workspaces/${wsId}/projects/${projectId}`, {
+      name: newName,
+    });
+    console.log(`Project ${updated.id} renamed to "${updated.name}"`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes('404')) {
+      console.error(`Project ${projectId} not found.`);
+      return;
+    }
+    throw e;
+  }
 }
