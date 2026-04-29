@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { get } from './api.js';
 import { hasConfig, ConfigNotFoundError } from './config.js';
 import { entryList } from './commands/entry-list.js';
