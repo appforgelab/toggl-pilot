@@ -6,7 +6,8 @@
   "author": "Stefano Locati",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/appforgelab/toggl-pilot.git"
+    "url": "git+https://github.com/appforgelab/toggl-pilot.git",
+    "name": "appforgelab/toggl-pilot"
   },
   "keywords": [
     "toggl",
@@ -16,7 +17,7 @@
   ],
   "type": "module",
   "bin": {
-    "tgt": "./dist/index.js"
+    "tgt": "dist/index.js"
   },
   "files": [
     "dist",
