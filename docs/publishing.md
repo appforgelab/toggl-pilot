@@ -5,17 +5,33 @@
 - **npm package**: `toggl-pilot`
 - **Binary command**: `tgt`
 
-## Before Publishing Checklist
+## Releasing
 
-- [ ] Add `bin` field to package.json: `{ "tgt": "./dist/index.js" }`
-- [ ] Add build step (compile TS to JS)
-- [ ] Add shebang `#!/usr/bin/env node` to entry point
-- [ ] Add keywords to package.json (`toggl`, `toggl-track`, `time-tracking`, `cli`)
-- [ ] Add `.npmignore` or `files` field to control published contents
-- [ ] Implement `auth` command (see distributed-config.md)
-- [ ] Update AGENTS.md project name
-- [ ] Test `npm pack` to verify published contents
-- [ ] `npm publish`
+### PR Title Convention
+
+Prefix PR titles with the type of change:
+
+- `feat:` — new feature or enhancement (included in release notes)
+- `fix:` — bug fix (included in release notes)
+- `chore:`, `docs:`, `refactor:`, `test:` — excluded from release notes
+
+### Version Bump
+
+```bash
+npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
+npm version minor   # 0.1.0 → 0.2.0 (new features)
+npm version major   # 0.1.0 → 1.0.0 (breaking changes)
+```
+
+This bumps `package.json`, creates a git commit and tag (e.g. `v0.2.0`). Then push:
+
+```bash
+git push --follow-tags
+```
+
+### Release Notes
+
+Release notes are auto-generated from `feat:` and `fix:` commits between tags. This will be set up in CI when a `v*` tag is pushed.
 
 ## Future Interface Expansion
 
