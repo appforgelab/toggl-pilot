@@ -18,6 +18,7 @@ See README.md for available commands and usage.
 ## Guidelines
 
 - **Never commit directly to `main`** — always create a feature branch first
+- **Keep commits small and focused** — one logical change per commit
 - **Never amend commits** that have been pushed to remote — create a new commit instead
 - **After merging a PR**, switch to `main`, run `git pull && git fetch --prune`,
   then delete the local branch (`git branch -D <branch>` — use `-D` since squash
@@ -61,6 +62,10 @@ Prefix PR titles with the type of change using conventional commit format:
 This matters because CI will use `feat:` and `fix:` PRs for auto-generated release notes, while other types are excluded.
 
 Example PR title: `feat: set up version management and workflow (#42)`
+
+## Code Conventions
+
+- **Usage messages** should use `tgt <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
 
 ## API Quota (Free Plan)
 
