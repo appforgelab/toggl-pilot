@@ -22,7 +22,11 @@ tgt stop
 tgt entry-list
 ```
 
-Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll to API Token section).
+Get your API token from your [Toggl Profile](https://track.toggl.com/profile) (scroll to API Token section).
+
+Running `tgt auth` saves your token so you don't need to pass it every time.
+You can also set the `TOGGL_API_TOKEN` environment variable, which takes
+priority over the saved config.
 
 ## Commands
 
@@ -42,63 +46,12 @@ Get your API token from [Toggl Profile](https://track.toggl.com/profile) (scroll
 ## Configuration
 
 Config is saved to `~/.config/tgt/config.env` (macOS/Linux) or
-`%APPDATA%\tgt\config.env` (Windows). You can also set `TOGGL_API_TOKEN`
-as an environment variable, which takes priority over the config file.
-
-## Environment Variables
+`%APPDATA%\tgt\config.env` (Windows).
 
 | Variable             | Required | Description                        |
 | -------------------- | -------- | ---------------------------------- |
 | `TOGGL_API_TOKEN`    | Yes      | Your Toggl Track API token         |
 | `TOGGL_WORKSPACE_ID` | No       | Defaults to your primary workspace |
-
-## Releasing
-
-### PR Title Convention
-
-Prefix PR titles with the type of change:
-
-- `feat:` — new feature or enhancement (included in release notes)
-- `fix:` — bug fix (included in release notes)
-- `chore:`, `docs:`, `refactor:`, `test:` — excluded from release notes
-
-### Version Bump
-
-```bash
-npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
-npm version minor   # 0.1.0 → 0.2.0 (new features)
-npm version major   # 0.1.0 → 1.0.0 (breaking changes)
-```
-
-This bumps `package.json`, creates a git commit and tag (e.g. `v0.2.0`). Then push:
-
-```bash
-git push --follow-tags
-```
-
-### Release Notes
-
-Release notes are auto-generated from `feat:` and `fix:` commits between tags. This will be set up in CI when a `v*` tag is pushed.
-
-## Architecture
-
-```text
-src/
-  paths.ts            # Cross-platform config/cache directory resolution
-  config.ts           # Config loading (env vars > config file)
-  api.ts              # HTTP client with auth
-  index.ts            # CLI entry point
-  commands/
-    auth.ts           # Save API token (tgt auth)
-    version.ts        # Show CLI version (tgt version)
-    entry-list.ts     # List time entries + totals
-    project-list.ts   # List workspace projects
-    entry-delete.ts   # Delete a time entry
-    track.ts          # Start timer or log completed entry
-    stop.ts           # Stop running timer
-    tag-list.ts       # List workspace tags
-    entry-edit.ts     # Edit time entry (desc, project, tags)
-```
 
 ## License
 
