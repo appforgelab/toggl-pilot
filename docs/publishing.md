@@ -47,8 +47,9 @@ The release uses two manual workflows.
 
 ### Prerequisites
 
+- npm trusted publisher configured on npmjs.com for this repo and `publish.yaml` workflow
 - `NPM_TOKEN` must be configured as a GitHub Actions secret
-  (npmjs.com → Access Tokens → Generate New Token → publish type)
+  (npmjs.com → Access Tokens → Generate New Token → Automation type)
 
 ## Future Interface Expansion
 
