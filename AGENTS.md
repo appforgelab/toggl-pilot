@@ -22,6 +22,10 @@ See README.md for available commands and usage.
 - **After merging a PR**, switch to `main`, run `git pull && git fetch --prune`,
   then delete the local branch (`git branch -D <branch>` — use `-D` since squash
   merges require force delete)
+- **When squash-merging a PR**, use `--subject` and `--body` to keep a clean commit
+  message. The default includes all commit titles as bullet points in the body, which
+  is messy. Example:
+  `gh pr merge <number> --squash --subject "feat: add project-rename (#21)" --body "" --delete-branch`
 
 This file describes common mistakes and confusion points that an agent may encounter as
 they work on this project. If you ever encounter something that surprises you or
@@ -57,6 +61,10 @@ Prefix PR titles with the type of change using conventional commit format:
 This matters because CI will use `feat:` and `fix:` PRs for auto-generated release notes, while other types are excluded.
 
 Example PR title: `feat: set up version management and workflow (#42)`
+
+## Code Conventions
+
+- **Usage messages** should use `tgt <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
 
 ## API Quota (Free Plan)
 
