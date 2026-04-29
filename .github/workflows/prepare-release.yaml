@@ -71,7 +71,9 @@ jobs:
           if [ -z "$NOTES" ]; then
             NOTES="No notable changes.\n\n"
           fi
-          NOTES="${NOTES}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.bump.outputs.tag }}"
+          if [ -n "$PREV_TAG" ]; then
+            NOTES="${NOTES}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.bump.outputs.tag }}"
+          fi
 
           echo "notes<<EOF" >> "$GITHUB_OUTPUT"
           echo -e "$NOTES" >> "$GITHUB_OUTPUT"
