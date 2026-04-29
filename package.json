@@ -6,7 +6,7 @@
   "author": "Stefano Locati",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stivlo/toggl-pilot.git"
+    "url": "git+https://github.com/appforgelab/toggl-pilot.git"
   },
   "keywords": [
     "toggl",
@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "start": "tsx src/index.ts",
-    "build": "tsup",
+    "build": "tsup && tsx scripts/add-shebang.ts",
     "auth": "tsx src/index.ts auth",
     "version": "tsx src/index.ts version",
     "track": "tsx src/index.ts track",

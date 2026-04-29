@@ -1,6 +1,8 @@
 # toggl-pilot
 
-[![npm version](https://img.shields.io/npm/v/toggl-pilot.svg)](https://www.npmjs.com/package/toggl-pilot) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/toggl-pilot.svg)](https://www.npmjs.com/package/toggl-pilot)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-toggl--pilot-blue?logo=github)](https://github.com/appforgelab/toggl-pilot)
 
 Unofficial CLI for [Toggl Track](https://toggl.com/) time management, using the [Toggl Track API v9](https://developers.track.toggl.com/docs/).
 
@@ -28,6 +30,8 @@ Running `tgt auth` saves your token so you don't need to pass it every time.
 You can also set the `TOGGL_API_TOKEN` environment variable, which takes
 priority over the saved config.
 
+Run `tgt` without arguments to see all available commands.
+
 ## Commands
 
 | Command                                 | Description                 | Docs                                         |
@@ -45,8 +49,12 @@ priority over the saved config.
 
 ## Configuration
 
-Config is saved to `~/.config/tgt/config.env` (macOS/Linux) or
+Run `tgt auth <token>` to save your API token to
+`~/.config/tgt/config.env` (macOS/Linux) or
 `%APPDATA%\tgt\config.env` (Windows).
+
+You can also set environment variables, which take priority over the config
+file:
 
 | Variable             | Required | Description                        |
 | -------------------- | -------- | ---------------------------------- |
