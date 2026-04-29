@@ -61,23 +61,27 @@ jobs:
           FEAT_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^feat:" 2>/dev/null || true)
           FIX_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^fix:" 2>/dev/null || true)
 
-          NOTES=""
-          if [ -n "$FEAT_COMMITS" ]; then
-            NOTES="${NOTES}## What's New\n\n${FEAT_COMMITS}\n\n"
-          fi
-          if [ -n "$FIX_COMMITS" ]; then
-            NOTES="${NOTES}## Bug Fixes\n\n${FIX_COMMITS}\n\n"
-          fi
-          if [ -z "$NOTES" ]; then
-            NOTES="No notable changes.\n\n"
-          fi
-          if [ -n "$PREV_TAG" ]; then
-            NOTES="${NOTES}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.bump.outputs.tag }}"
-          fi
-
-          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$NOTES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            if [ -n "$FEAT_COMMITS" ]; then
+              echo "## What's New"
+              echo ""
+              echo "$FEAT_COMMITS"
+              echo ""
+            fi
+            if [ -n "$FIX_COMMITS" ]; then
+              echo "## Bug Fixes"
+              echo ""
+              echo "$FIX_COMMITS"
+              echo ""
+            fi
+            if [ -z "$FEAT_COMMITS" ] && [ -z "$FIX_COMMITS" ]; then
+              echo "No notable changes."
+              echo ""
+            fi
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.bump.outputs.tag }}"
+            fi
+          } > release-notes.md
 
       - name: Create release branch and commit
         run: |
@@ -88,23 +92,19 @@ jobs:
           git commit -m "chore: release ${{ steps.bump.outputs.tag }}"
           git push origin ${{ steps.bump.outputs.branch }}
 
-      - name: Write release notes to file
-        run: |
-          printf '%s' '${{ steps.notes.outputs.notes }}' > release-notes.md
-
       - name: Write PR body to file
         run: |
-          cat > pr-body.md <<'EOF'
-          ## Release ${{ steps.bump.outputs.tag }}
-
-          Version bump from \`${{ github.event.inputs.bump-type }}\`. Review and merge to proceed with publishing.
-
-          After merging, run the **Publish** workflow to publish to npm.
-
-          ---
-
-          ${{ steps.notes.outputs.notes }}
-          EOF
+          {
+            echo "## Release ${{ steps.bump.outputs.tag }}"
+            echo ""
+            echo "Version bump from \`${{ github.event.inputs.bump-type }}\`. Review and merge to proceed with publishing."
+            echo ""
+            echo "After merging, run the **Publish** workflow to publish to npm."
+            echo ""
+            echo "---"
+            echo ""
+            cat release-notes.md
+          } > pr-body.md
 
       - name: Create Pull Request
         run: |
