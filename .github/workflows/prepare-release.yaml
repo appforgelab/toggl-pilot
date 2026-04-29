@@ -58,8 +58,8 @@ jobs:
             RANGE="--all"
           fi
 
-          FEAT_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^feat" 2>/dev/null || true)
-          FIX_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^fix" 2>/dev/null || true)
+          FEAT_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^feat[(:(]" 2>/dev/null || true)
+          FIX_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^fix[(:(]" 2>/dev/null || true)
 
           NOTES=""
           if [ -n "$FEAT_COMMITS" ]; then
