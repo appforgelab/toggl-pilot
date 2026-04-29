@@ -9,6 +9,7 @@ import { stop } from './commands/stop.js';
 import { tagList } from './commands/tag-list.js';
 import { entryEdit } from './commands/entry-edit.js';
 import { auth } from './commands/auth.js';
+import { version } from './commands/version.js';
 
 interface Me {
   id: number;
@@ -28,6 +29,8 @@ const args = process.argv.slice(3);
 
 if (command === 'auth') {
   auth(args);
+} else if (command === 'version') {
+  version();
 } else if (!hasConfig()) {
   console.error(new ConfigNotFoundError().message);
   process.exit(1);
@@ -60,7 +63,7 @@ if (command === 'auth') {
     default:
       console.error('Usage: tgt <command>');
       console.error(
-        'Commands: auth, me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
+        'Commands: auth, version, me, entry-list [-d DATE], project-list, entry-delete <entry_id>, track, stop, tag-list, entry-edit'
       );
   }
 }

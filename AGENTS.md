@@ -42,6 +42,21 @@ Examples:
 - `fix/typo-in-help-text`
 - `chore/update-deps`
 
+## PR Title Convention
+
+Prefix PR titles with the type of change using conventional commit format:
+
+- `feat:` — new feature or enhancement
+- `fix:` — bug fix
+- `chore:` — maintenance, tooling, dependency updates
+- `docs:` — documentation changes
+- `refactor:` — code restructuring without behavior change
+- `test:` — adding or updating tests
+
+This matters because CI will use `feat:` and `fix:` PRs for auto-generated release notes, while other types are excluded.
+
+Example PR title: `feat: set up version management and workflow (#42)`
+
 ## API Quota (Free Plan)
 
 30 requests per hour, per user, per organization. When developing/testing, be mindful

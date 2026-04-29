@@ -1,6 +1,6 @@
 {
   "name": "toggl-pilot",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
@@ -13,6 +13,7 @@
     "start": "tsx src/index.ts",
     "build": "tsup",
     "auth": "tsx src/index.ts auth",
+    "version": "tsx src/index.ts version",
     "track": "tsx src/index.ts track",
     "me": "tsx src/index.ts me",
     "entry-list": "tsx src/index.ts entry-list",

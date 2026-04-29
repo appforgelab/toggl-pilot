@@ -21,6 +21,7 @@ as an environment variable, which takes priority over the config file.
 | Command                                 | Description                 | Docs                                         |
 | --------------------------------------- | --------------------------- | -------------------------------------------- |
 | `tgt auth <token>`                      | Save API token              |                                              |
+| `tgt version`                           | Show CLI version            |                                              |
 | `tgt me`                                | Verify authentication       | [docs/me.md](docs/me.md)                     |
 | `tgt entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
 | `tgt project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md) |
@@ -37,6 +38,34 @@ as an environment variable, which takes priority over the config file.
 | `TOGGL_API_TOKEN`    | Yes      | Your Toggl Track API token         |
 | `TOGGL_WORKSPACE_ID` | No       | Defaults to your primary workspace |
 
+## Releasing
+
+### PR Title Convention
+
+Prefix PR titles with the type of change:
+
+- `feat:` — new feature or enhancement (included in release notes)
+- `fix:` — bug fix (included in release notes)
+- `chore:`, `docs:`, `refactor:`, `test:` — excluded from release notes
+
+### Version Bump
+
+```bash
+npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
+npm version minor   # 0.1.0 → 0.2.0 (new features)
+npm version major   # 0.1.0 → 1.0.0 (breaking changes)
+```
+
+This bumps `package.json`, creates a git commit and tag (e.g. `v0.2.0`). Then push:
+
+```bash
+git push --follow-tags
+```
+
+### Release Notes
+
+Release notes are auto-generated from `feat:` and `fix:` commits between tags. This will be set up in CI when a `v*` tag is pushed.
+
 ## Architecture
 
 ```text
@@ -47,6 +76,7 @@ src/
   index.ts            # CLI entry point
   commands/
     auth.ts           # Save API token (tgt auth)
+    version.ts        # Show CLI version (tgt version)
     entry-list.ts     # List time entries + totals
     project-list.ts   # List workspace projects
     entry-delete.ts   # Delete a time entry
