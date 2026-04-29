@@ -8,4 +8,5 @@ export default defineConfig({
   bundle: true,
   splitting: false,
   sourcemap: true,
+  banner: { js: '#!/usr/bin/env node' },
 });
