@@ -18,6 +18,7 @@ See README.md for available commands and usage.
 ## Guidelines
 
 - **Never commit directly to `main`** — always create a feature branch first
+- **Never amend commits** that have been pushed to remote — create a new commit instead
 - **After merging a PR**, switch to `main`, run `git pull && git fetch --prune`,
   then delete the local branch (`git branch -D <branch>` — use `-D` since squash
   merges require force delete)
