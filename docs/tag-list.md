@@ -5,7 +5,7 @@ Lists all tags in your workspace.
 ## Usage
 
 ```bash
-npm run tag-list
+tgt tag-list
 ```
 
 ## Output
@@ -20,4 +20,4 @@ Tags in workspace 21355416
   123458       review
 ```
 
-Tags are created automatically when you use them with `npm run track -- -t tagname`. There's no need to create them separately.
+Tags are created automatically when you use them with `tgt track -t tagname`. There's no need to create them separately.

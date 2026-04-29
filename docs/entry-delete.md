@@ -1,22 +1,20 @@
 # `entry-delete` — Delete a Time Entry
 
-Deletes a time entry by its ID. Find the ID using `npm run entry-list`.
+Deletes a time entry by its ID. Find the ID using `tgt entry-list`.
 
 ## Usage
 
 ```bash
-npm run entry-delete -- <entry_id>
+tgt entry-delete <entry_id>
 ```
-
-The `--` is required so npm passes the argument to the script.
 
 ## Example
 
 ```bash
-npm run entry-list
+tgt entry-list
 #   4383678597   20:02-20:13   0h10m   Ch 15 wrap up   Learning
 
-npm run entry-delete -- 4383678597
+tgt entry-delete 4383678597
 #   Deleted: Ch 15 wrap up (20:02-20:13) [Learning]
 ```
 

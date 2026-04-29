@@ -3,7 +3,7 @@
 Verifies your API token and shows your Toggl user info.
 
 ```bash
-npm run me
+tgt me
 ```
 
 **Output:**

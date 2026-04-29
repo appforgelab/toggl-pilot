@@ -5,7 +5,7 @@ Stops the currently running timer. No arguments needed — it auto-detects the r
 ## Usage
 
 ```bash
-npm run stop
+tgt stop
 ```
 
 ## Output
