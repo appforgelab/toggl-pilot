@@ -34,18 +34,19 @@ Run `tgt` without arguments to see all available commands.
 
 ## Commands
 
-| Command                                 | Description                 | Docs                                         |
-| --------------------------------------- | --------------------------- | -------------------------------------------- |
-| `tgt auth <token>`                      | Save API token              |                                              |
-| `tgt version`                           | Show CLI version            |                                              |
-| `tgt me`                                | Verify authentication       | [docs/me.md](docs/me.md)                     |
-| `tgt entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
-| `tgt project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md) |
-| `tgt entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md) |
-| `tgt track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)               |
-| `tgt stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                 |
-| `tgt tag-list`                          | List workspace tags         | [docs/tag-list.md](docs/tag-list.md)         |
-| `tgt entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)     |
+| Command                                 | Description                 | Docs                                             |
+| --------------------------------------- | --------------------------- | ------------------------------------------------ |
+| `tgt auth <token>`                      | Save API token              |                                                  |
+| `tgt version`                           | Show CLI version            |                                                  |
+| `tgt me`                                | Verify authentication       | [docs/me.md](docs/me.md)                         |
+| `tgt entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)         |
+| `tgt project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md)     |
+| `tgt project-rename <id> "New Name"`    | Rename a project            | [docs/project-rename.md](docs/project-rename.md) |
+| `tgt entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md)     |
+| `tgt track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)                   |
+| `tgt stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                     |
+| `tgt tag-list`                          | List workspace tags         | [docs/tag-list.md](docs/tag-list.md)             |
+| `tgt entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)         |
 
 ## Configuration
 
