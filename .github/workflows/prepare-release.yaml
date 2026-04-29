@@ -88,22 +88,29 @@ jobs:
           git commit -m "chore: release ${{ steps.bump.outputs.tag }}"
           git push origin ${{ steps.bump.outputs.branch }}
 
-      - name: Create Pull Request
+      - name: Write release notes to file
         run: |
-          gh pr create \
-            --title "chore: release ${{ steps.bump.outputs.tag }}" \
-            --body "$(cat <<'PRBODY'
+          echo "${{ steps.notes.outputs.notes }}" > release-notes.md
+
+      - name: Write PR body to file
+        run: |
+          cat > pr-body.md <<EOF
           ## Release ${{ steps.bump.outputs.tag }}
 
-          Version bump from `${{ github.event.inputs.bump-type }}`. Review and merge to proceed with publishing.
+          Version bump from \`${{ github.event.inputs.bump-type }}\`. Review and merge to proceed with publishing.
 
           After merging, run the **Publish** workflow to publish to npm.
 
           ---
 
           ${{ steps.notes.outputs.notes }}
-          PRBODY
-          )" \
+          EOF
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "chore: release ${{ steps.bump.outputs.tag }}" \
+            --body-file pr-body.md \
             --base main \
             --head ${{ steps.bump.outputs.branch }}
         env:
@@ -114,6 +121,6 @@ jobs:
           gh release create ${{ steps.bump.outputs.tag }} \
             --draft \
             --title "${{ steps.bump.outputs.tag }}" \
-            --notes "${{ steps.notes.outputs.notes }}"
+            --notes-file release-notes.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
