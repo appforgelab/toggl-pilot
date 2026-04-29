@@ -39,7 +39,7 @@ The release uses two manual workflows.
 1. Go to **Actions → Publish → Run workflow**
 2. The workflow reads the version from `package.json` — no input needed
 3. The workflow will:
-   - Verify the version matches package.json
+   - Read the version from `package.json`
    - Run all checks (typecheck, lint, test, format)
    - Create and push the git tag
    - Build and publish to npm
