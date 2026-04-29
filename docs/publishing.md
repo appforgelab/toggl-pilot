@@ -15,23 +15,40 @@ Prefix PR titles with the type of change:
 - `fix:` — bug fix (included in release notes)
 - `chore:`, `docs:`, `refactor:`, `test:` — excluded from release notes
 
-### Version Bump
+### Release Process (via GitHub Actions)
 
-```bash
-npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
-npm version minor   # 0.1.0 → 0.2.0 (new features)
-npm version major   # 0.1.0 → 1.0.0 (breaking changes)
-```
+The release uses two manual workflows.
 
-This bumps `package.json`, creates a git commit and tag (e.g. `v0.2.0`). Then push:
+#### Step 1: Prepare Release
 
-```bash
-git push --follow-tags
-```
+1. Go to **Actions → Prepare Release → Run workflow**
+2. Select bump type: `patch`, `minor`, or `major`
+3. The workflow will:
+   - Create a `release/vX.Y.Z` branch with the version bump
+   - Create a PR with auto-generated release notes from `feat:`/`fix:` commits
+   - Create a **draft** GitHub Release
 
-### Release Notes
+#### Step 2: Review & Merge
 
-Release notes are auto-generated from `feat:` and `fix:` commits between tags. This will be set up in CI when a `v*` tag is pushed.
+1. Review the PR (package.json + package-lock.json version bump)
+2. Edit the draft release notes if needed (at Releases → draft)
+3. Merge the PR
+
+#### Step 3: Publish
+
+1. Go to **Actions → Publish → Run workflow**
+2. Enter the version number (e.g. `0.2.0`)
+3. The workflow will:
+   - Verify the version matches package.json
+   - Run all checks (typecheck, lint, test, format)
+   - Create and push the git tag
+   - Build and publish to npm
+   - Mark the draft GitHub Release as published
+
+### Prerequisites
+
+- `NPM_TOKEN` must be configured as a GitHub Actions secret
+  (npmjs.com → Access Tokens → Generate New Token → publish type)
 
 ## Future Interface Expansion
 

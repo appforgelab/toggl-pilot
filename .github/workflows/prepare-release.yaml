@@ -1,0 +1,117 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump-type:
+        description: Version bump type
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        id: bump
+        run: |
+          npm version ${{ github.event.inputs.bump-type }} --no-git-tag-version
+          NEW_VERSION=$(jq -r .version package.json)
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "branch=release/v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="$PREV_TAG..HEAD"
+          else
+            RANGE="--all"
+          fi
+
+          FEAT_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^feat" 2>/dev/null || true)
+          FIX_COMMITS=$(git log $RANGE --pretty=format:"- %s" --grep="^fix" 2>/dev/null || true)
+
+          NOTES=""
+          if [ -n "$FEAT_COMMITS" ]; then
+            NOTES="${NOTES}## What's New\n\n${FEAT_COMMITS}\n\n"
+          fi
+          if [ -n "$FIX_COMMITS" ]; then
+            NOTES="${NOTES}## Bug Fixes\n\n${FIX_COMMITS}\n\n"
+          fi
+          if [ -z "$NOTES" ]; then
+            NOTES="No notable changes.\n\n"
+          fi
+          NOTES="${NOTES}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.bump.outputs.tag }}"
+
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create release branch and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${{ steps.bump.outputs.branch }}
+          git add package.json package-lock.json
+          git commit -m "chore: release ${{ steps.bump.outputs.tag }}"
+          git push origin ${{ steps.bump.outputs.branch }}
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "chore: release ${{ steps.bump.outputs.tag }}" \
+            --body "$(cat <<'PRBODY'
+          ## Release ${{ steps.bump.outputs.tag }}
+
+          Version bump from `${{ github.event.inputs.bump-type }}`. Review and merge to proceed with publishing.
+
+          After merging, run the **Publish** workflow to publish to npm.
+
+          ---
+
+          ${{ steps.notes.outputs.notes }}
+          PRBODY
+          )" \
+            --base main \
+            --head ${{ steps.bump.outputs.branch }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create draft GitHub Release
+        run: |
+          gh release create ${{ steps.bump.outputs.tag }} \
+            --draft \
+            --title "${{ steps.bump.outputs.tag }}" \
+            --notes "${{ steps.notes.outputs.notes }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
