@@ -18,6 +18,7 @@ See README.md for available commands and usage.
 ## Guidelines
 
 - **Never commit directly to `main`** — always create a feature branch first
+- **After merging a PR**, switch to `main`, run `git pull && git fetch --prune`, then delete the local branch (`git branch -d <branch>`)
 
 This file describes common mistakes and confusion points that an agent may encounter as
 they work on this project. If you ever encounter something that surprises you or
