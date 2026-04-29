@@ -37,7 +37,7 @@ The release uses two manual workflows.
 #### Step 3: Publish
 
 1. Go to **Actions → Publish → Run workflow**
-2. Enter the version number (e.g. `0.2.0`)
+2. The workflow reads the version from `package.json` — no input needed
 3. The workflow will:
    - Verify the version matches package.json
    - Run all checks (typecheck, lint, test, format)

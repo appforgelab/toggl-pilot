@@ -2,11 +2,6 @@ name: Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: Version to publish (e.g. 0.2.0)
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -24,13 +19,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify version matches package.json
+      - name: Read version from package.json
+        id: version
         run: |
-          PACKAGE_VERSION=$(jq -r .version package.json)
-          if [ "$PACKAGE_VERSION" != "${{ github.event.inputs.version }}" ]; then
-            echo "Error: package.json has version $PACKAGE_VERSION but expected ${{ github.event.inputs.version }}"
-            exit 1
-          fi
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -60,7 +54,7 @@ jobs:
 
       - name: Create and push git tag
         run: |
-          TAG="v${{ github.event.inputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
           if git tag -l "$TAG" | grep -q .; then
             echo "Error: tag $TAG already exists"
             exit 1
@@ -80,7 +74,6 @@ jobs:
 
       - name: Publish GitHub Release
         run: |
-          TAG="v${{ github.event.inputs.version }}"
-          gh release edit "$TAG" --draft=false
+          gh release edit "${{ steps.version.outputs.tag }}" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
