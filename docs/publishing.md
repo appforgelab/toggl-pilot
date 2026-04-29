@@ -5,19 +5,6 @@
 - **npm package**: `toggl-pilot`
 - **Binary command**: `tgt`
 
-## Before Publishing Checklist
-
-- [x] Add `bin` field to package.json: `{ "tgt": "./dist/index.js" }`
-- [x] Add build step (compile TS to JS)
-- [x] Add shebang `#!/usr/bin/env node` to entry point
-- [x] Add keywords to package.json (`toggl`, `toggl-track`, `time-tracking`, `cli`)
-- [x] Add `files` field to control published contents
-- [x] Add `prepublishOnly` script to ensure build runs before publish
-- [x] Implement `auth` command (see distributed-config.md)
-- [x] Update AGENTS.md project name
-- [x] Test `npm pack` to verify published contents
-- [ ] `npm publish --access public`
-
 ## Releasing
 
 ### PR Title Convention
