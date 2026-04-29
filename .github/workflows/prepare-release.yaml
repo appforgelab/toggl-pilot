@@ -90,11 +90,11 @@ jobs:
 
       - name: Write release notes to file
         run: |
-          echo "${{ steps.notes.outputs.notes }}" > release-notes.md
+          printf '%s' '${{ steps.notes.outputs.notes }}' > release-notes.md
 
       - name: Write PR body to file
         run: |
-          cat > pr-body.md <<EOF
+          cat > pr-body.md <<'EOF'
           ## Release ${{ steps.bump.outputs.tag }}
 
           Version bump from \`${{ github.event.inputs.bump-type }}\`. Review and merge to proceed with publishing.
