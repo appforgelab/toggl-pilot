@@ -69,7 +69,9 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          unset NODE_AUTH_TOKEN
+          npm publish --access public
 
       - name: Publish GitHub Release
         run: |
