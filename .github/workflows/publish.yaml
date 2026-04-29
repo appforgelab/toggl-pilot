@@ -34,7 +34,6 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
           registry-url: https://registry.npmjs.org
-          provenance: true
 
       - name: Install dependencies
         run: npm ci
@@ -70,9 +69,7 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Publish GitHub Release
         run: |
