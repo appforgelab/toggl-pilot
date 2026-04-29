@@ -1,11 +1,22 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { join, dirname } from 'node:path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function getVersion(): string {
+  if (process.env.npm_package_version) return process.env.npm_package_version;
+  const candidates = [join(__dirname, '..', '..', 'package.json'), join(__dirname, '..', 'package.json')];
+  for (const p of candidates) {
+    try {
+      return JSON.parse(readFileSync(p, 'utf-8')).version;
+    } catch {
+      continue;
+    }
+  }
+  return 'unknown';
+}
 
 export function version() {
-  console.log(`tgt v${pkg.version}`);
+  console.log(`tgt v${getVersion()}`);
 }
