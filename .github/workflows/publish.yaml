@@ -68,7 +68,10 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          rm -f .npmrc ~/.npmrc
+          npm config delete _authToken || true
+          npm publish --access public
 
       - name: Publish GitHub Release
         run: |
