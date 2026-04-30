@@ -10,7 +10,7 @@ interface Me {
 export async function auth(args: string[]) {
   const token = args[0];
   if (!token) {
-    console.error('Usage: tgt auth <api-token>');
+    console.error('Usage: tgp auth <api-token>');
     console.error('Get your token at https://track.toggl.com/profile');
     process.exit(1);
   }

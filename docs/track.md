@@ -5,7 +5,7 @@ Starts a running timer or logs a completed time entry with project and tags.
 ## Usage
 
 ```bash
-tgt track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]
+tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]
 ```
 
 ## Running Timer
@@ -13,9 +13,9 @@ tgt track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1
 Omit `--at` and `--dur` to start a running timer:
 
 ```bash
-tgt track "Fixing login bug"
-tgt track "Code review" -p "Dev-Pilot"
-tgt track "Sprint planning" -p "Client-X" -t meeting,planning
+tgp track "Fixing login bug"
+tgp track "Code review" -p "Dev-Pilot"
+tgp track "Sprint planning" -p "Client-X" -t meeting,planning
 ```
 
 ## Log Completed Entry
@@ -23,9 +23,9 @@ tgt track "Sprint planning" -p "Client-X" -t meeting,planning
 Provide both `--at` and `--dur` to create a completed entry:
 
 ```bash
-tgt track "Morning standup" --at 09:00 --dur 30m
-tgt track "Code review" -p "Dev-Pilot" --at 10:00 --dur 1h
-tgt track "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
+tgp track "Morning standup" --at 09:00 --dur 30m
+tgp track "Code review" -p "Dev-Pilot" --at 10:00 --dur 1h
+tgp track "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
 ```
 
 ## Options
@@ -40,7 +40,7 @@ tgt track "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
 ## Project Lookup
 
 Projects are looked up by name (case-insensitive). If no match is found, you'll get an
-error. Use `tgt project-list` to see available names. If multiple projects share the
+error. Use `tgp project-list` to see available names. If multiple projects share the
 same name, the ambiguous matches are listed.
 
 ## Output

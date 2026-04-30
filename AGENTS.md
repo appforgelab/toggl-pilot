@@ -8,7 +8,7 @@ CLI tool for Toggl Track time management. TypeScript, runs via `tsx`.
 
 - Node 22 + TypeScript (strict mode, ES modules)
 - `tsx` for running TS directly
-- Config via `~/.config/tgt/config.env` (macOS/Linux) or `%APPDATA%\tgt\config.env` (Windows)
+- Config via `~/.config/tgp/config.env` (macOS/Linux) or `%APPDATA%\tgp\config.env` (Windows)
 - No framework — plain `fetch` for HTTP, no CLI parser yet
 
 ## Commands
@@ -64,7 +64,7 @@ Example PR title: `feat: set up version management and workflow (#42)`
 
 ## Code Conventions
 
-- **Usage messages** should use `tgt <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
+- **Usage messages** should use `tgp <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
 
 ## API Quota (Free Plan)
 

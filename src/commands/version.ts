@@ -18,5 +18,5 @@ function getVersion(): string {
 }
 
 export function version() {
-  console.log(`tgt v${getVersion()}`);
+  console.log(`tgp v${getVersion()}`);
 }

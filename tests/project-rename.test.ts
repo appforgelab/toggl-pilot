@@ -28,7 +28,7 @@ describe('projectRename command', () => {
 
     await expect(projectRename([])).rejects.toThrow('exit');
 
-    expect(logSpy).toHaveBeenCalledWith('Usage: tgt project-rename <project_id> "New Name"');
+    expect(logSpy).toHaveBeenCalledWith('Usage: tgp project-rename <project_id> "New Name"');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     logSpy.mockRestore();
@@ -42,7 +42,7 @@ describe('projectRename command', () => {
 
     await expect(projectRename(['123'])).rejects.toThrow('exit');
 
-    expect(logSpy).toHaveBeenCalledWith('Usage: tgt project-rename <project_id> "New Name"');
+    expect(logSpy).toHaveBeenCalledWith('Usage: tgp project-rename <project_id> "New Name"');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     logSpy.mockRestore();

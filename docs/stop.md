@@ -5,7 +5,7 @@ Stops the currently running timer. No arguments needed — it auto-detects the r
 ## Usage
 
 ```bash
-tgt stop
+tgp stop
 ```
 
 ## Output

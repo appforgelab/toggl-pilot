@@ -5,7 +5,7 @@ import { getConfigFile } from './paths.js';
 class ConfigNotFoundError extends Error {
   constructor() {
     super(
-      'No config found. Run: tgt auth <api-token>\n' +
+      'No config found. Run: tgp auth <api-token>\n' +
         'Or set TOGGL_API_TOKEN in your environment.\n' +
         'Get your token at https://track.toggl.com/profile'
     );

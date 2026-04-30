@@ -11,7 +11,7 @@ export async function projectRename(args: string[]) {
   const newName = args[1];
 
   if (!projectId || !newName) {
-    console.error('Usage: tgt project-rename <project_id> "New Name"');
+    console.error('Usage: tgp project-rename <project_id> "New Name"');
     process.exit(1);
   }
 

@@ -49,7 +49,7 @@ export function parseArgs(args: string[]): {
   }
 
   if (!id) {
-    throw new Error('Usage: tgt entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]');
+    throw new Error('Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]');
   }
 
   if (!description && !project && !tags) {
@@ -77,7 +77,7 @@ export async function entryEdit(args: string[]) {
     const projects = await get<Project[]>(`/workspaces/${wsId}/projects`);
     const matches = projects.filter((p) => p.name.toLowerCase() === projectName.toLowerCase());
     if (matches.length === 0) {
-      console.error(`Project "${projectName}" not found. Use "tgt project-list" to list available projects.`);
+      console.error(`Project "${projectName}" not found. Use "tgp project-list" to list available projects.`);
       process.exit(1);
     }
     if (matches.length > 1) {

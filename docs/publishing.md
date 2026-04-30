@@ -3,7 +3,7 @@
 ## Identity
 
 - **npm package**: `toggl-pilot`
-- **Binary command**: `tgt`
+- **Binary command**: `tgp`
 
 ## Releasing
 
@@ -54,6 +54,6 @@ The release uses two manual workflows.
 
 The `toggl-pilot` name scales beyond CLI:
 
-- `tgt` — CLI mode (current)
-- `tgt` — TUI mode (just `tgt` with no args, see interactive-mode.md)
+- `tgp` — CLI mode (current)
+- `tgp` — TUI mode (just `tgp` with no args, see interactive-mode.md)
 - Desktop app — `toggl-pilot` works as an app name too

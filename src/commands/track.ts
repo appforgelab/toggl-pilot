@@ -53,7 +53,7 @@ export function parseArgs(args: string[]): {
 
   if (!description) {
     throw new Error(
-      'Usage: tgt track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
+      'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
     );
   }
 
@@ -69,7 +69,7 @@ export async function track(args: string[]) {
     const projects = await get<Project[]>(`/workspaces/${wsId}/projects`);
     const matches = projects.filter((p) => p.name.toLowerCase() === projectName.toLowerCase());
     if (matches.length === 0) {
-      console.error(`Project "${projectName}" not found. Use "tgt project-list" to list available projects.`);
+      console.error(`Project "${projectName}" not found. Use "tgp project-list" to list available projects.`);
       process.exit(1);
     }
     if (matches.length > 1) {

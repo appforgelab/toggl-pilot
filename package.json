@@ -17,7 +17,7 @@
   ],
   "type": "module",
   "bin": {
-    "tgt": "dist/index.js"
+    "tgp": "dist/index.js"
   },
   "files": [
     "dist",

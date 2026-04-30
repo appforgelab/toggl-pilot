@@ -5,7 +5,7 @@ Renames an existing project in your workspace.
 ## Usage
 
 ```bash
-tgt project-rename <project_id> "New Name"
+tgp project-rename <project_id> "New Name"
 ```
 
 ## Output
@@ -24,5 +24,5 @@ Project 1234567890 renamed to "New Name"
 ## Examples
 
 ```bash
-tgt project-rename 1234567890 "Website Redesign"
+tgp project-rename 1234567890 "Website Redesign"
 ```

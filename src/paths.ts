@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-const APP_NAME = 'tgt';
+const APP_NAME = 'tgp';
 
 function isWindows(): boolean {
   return process.platform === 'win32';
