@@ -17,7 +17,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
 
 jobs:
   prepare-release:
