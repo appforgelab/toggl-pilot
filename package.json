@@ -1,6 +1,6 @@
 {
   "name": "toggl-pilot",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Unofficial CLI for Toggl Track time management",
   "license": "MIT",
   "author": "Stefano Locati",
