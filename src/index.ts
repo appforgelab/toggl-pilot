@@ -71,7 +71,11 @@ if (command === 'auth') {
     default:
       console.error('Usage: tgp <command>');
       console.error(
-        'Commands: auth, version, me, entry-list [-d DATE], project-list, project-rename <project_id> "New Name", entry-delete <entry_id>, track, stop, tag-list, tag-rename <tag_id> "New Name", entry-edit'
+        [
+          'Commands: auth, version, me,',
+          'track, stop, entry-edit, entry-list [-d DATE], entry-delete <entry_id>,',
+          'project-list, project-rename <project_id> "New Name", tag-list, tag-rename <tag_id> "New Name"',
+        ].join('\n')
       );
   }
 }
