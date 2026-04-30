@@ -34,19 +34,31 @@ Run `tgp` without arguments to see all available commands.
 
 ## Commands
 
-| Command                                 | Description                 | Docs                                             |
-| --------------------------------------- | --------------------------- | ------------------------------------------------ |
-| `tgp auth <token>`                      | Save API token              |                                                  |
-| `tgp version`                           | Show CLI version            |                                                  |
-| `tgp me`                                | Verify authentication       | [docs/me.md](docs/me.md)                         |
-| `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)         |
-| `tgp project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md)     |
-| `tgp project-rename <id> "New Name"`    | Rename a project            | [docs/project-rename.md](docs/project-rename.md) |
-| `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md)     |
-| `tgp track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)                   |
-| `tgp stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                     |
-| `tgp tag-list`                          | List workspace tags         | [docs/tag-list.md](docs/tag-list.md)             |
-| `tgp entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)         |
+### General
+
+| Command            | Description           | Docs                     |
+| ------------------ | --------------------- | ------------------------ |
+| `tgp auth <token>` | Save API token        |                          |
+| `tgp version`      | Show CLI version      |                          |
+| `tgp me`           | Verify authentication | [docs/me.md](docs/me.md) |
+
+### Entries
+
+| Command                                 | Description                 | Docs                                         |
+| --------------------------------------- | --------------------------- | -------------------------------------------- |
+| `tgp track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)               |
+| `tgp stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                 |
+| `tgp entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)     |
+| `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
+| `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md) |
+
+### Projects & Tags
+
+| Command                              | Description             | Docs                                             |
+| ------------------------------------ | ----------------------- | ------------------------------------------------ |
+| `tgp project-list`                   | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
+| `tgp project-rename <id> "New Name"` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
+| `tgp tag-list`                       | List workspace tags     | [docs/tag-list.md](docs/tag-list.md)             |
 
 ## Configuration
 
