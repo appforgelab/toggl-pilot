@@ -5,7 +5,7 @@ Lists all projects in your workspace with IDs, names, clients, and status.
 ## Usage
 
 ```bash
-tgt project-list
+tgp project-list
 ```
 
 ## Output

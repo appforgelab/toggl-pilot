@@ -65,7 +65,7 @@ if (command === 'auth') {
       projectRename(args);
       break;
     default:
-      console.error('Usage: tgt <command>');
+      console.error('Usage: tgp <command>');
       console.error(
         'Commands: auth, version, me, entry-list [-d DATE], project-list, project-rename <project_id> "New Name", entry-delete <entry_id>, track, stop, tag-list, entry-edit'
       );

@@ -33,7 +33,7 @@ describe('entryDelete command', () => {
 
     await expect(entryDelete([])).rejects.toThrow('exit');
 
-    expect(logSpy).toHaveBeenCalledWith('Usage: tgt entry-delete <entry_id>');
+    expect(logSpy).toHaveBeenCalledWith('Usage: tgp entry-delete <entry_id>');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     logSpy.mockRestore();

@@ -12,7 +12,7 @@ Add shell tab completion for commands, flags, and dynamic data (project names, t
 
 ## Caching Strategy
 
-Cache file: `~/.tgt-cache.json`
+Cache file: `~/.tgp-cache.json`
 
 ```json
 {

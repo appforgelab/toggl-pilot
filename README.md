@@ -17,42 +17,42 @@ npm install -g toggl-pilot
 ## Quick Start
 
 ```bash
-tgt auth <your-api-token>
-tgt me
-tgt track "Working on feature" -p "My Project"
-tgt stop
-tgt entry-list
+tgp auth <your-api-token>
+tgp me
+tgp track "Working on feature" -p "My Project"
+tgp stop
+tgp entry-list
 ```
 
 Get your API token from your [Toggl Profile](https://track.toggl.com/profile) (scroll to API Token section).
 
-Running `tgt auth` saves your token so you don't need to pass it every time.
+Running `tgp auth` saves your token so you don't need to pass it every time.
 You can also set the `TOGGL_API_TOKEN` environment variable, which takes
 priority over the saved config.
 
-Run `tgt` without arguments to see all available commands.
+Run `tgp` without arguments to see all available commands.
 
 ## Commands
 
 | Command                                 | Description                 | Docs                                             |
 | --------------------------------------- | --------------------------- | ------------------------------------------------ |
-| `tgt auth <token>`                      | Save API token              |                                                  |
-| `tgt version`                           | Show CLI version            |                                                  |
-| `tgt me`                                | Verify authentication       | [docs/me.md](docs/me.md)                         |
-| `tgt entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)         |
-| `tgt project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md)     |
-| `tgt project-rename <id> "New Name"`    | Rename a project            | [docs/project-rename.md](docs/project-rename.md) |
-| `tgt entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md)     |
-| `tgt track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)                   |
-| `tgt stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                     |
-| `tgt tag-list`                          | List workspace tags         | [docs/tag-list.md](docs/tag-list.md)             |
-| `tgt entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)         |
+| `tgp auth <token>`                      | Save API token              |                                                  |
+| `tgp version`                           | Show CLI version            |                                                  |
+| `tgp me`                                | Verify authentication       | [docs/me.md](docs/me.md)                         |
+| `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)         |
+| `tgp project-list`                      | List workspace projects     | [docs/project-list.md](docs/project-list.md)     |
+| `tgp project-rename <id> "New Name"`    | Rename a project            | [docs/project-rename.md](docs/project-rename.md) |
+| `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md)     |
+| `tgp track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)                   |
+| `tgp stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                     |
+| `tgp tag-list`                          | List workspace tags         | [docs/tag-list.md](docs/tag-list.md)             |
+| `tgp entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)         |
 
 ## Configuration
 
-Run `tgt auth <token>` to save your API token to
-`~/.config/tgt/config.env` (macOS/Linux) or
-`%APPDATA%\tgt\config.env` (Windows).
+Run `tgp auth <token>` to save your API token to
+`~/.config/tgp/config.env` (macOS/Linux) or
+`%APPDATA%\tgp\config.env` (Windows).
 
 You can also set environment variables, which take priority over the config
 file:

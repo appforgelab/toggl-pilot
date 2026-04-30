@@ -22,12 +22,12 @@ Resolved by `src/paths.ts` — no external dependencies.
 
 |                 | Config                     | Cache                       |
 | --------------- | -------------------------- | --------------------------- |
-| **macOS/Linux** | `~/.config/tgt/config.env` | `~/.cache/tgt/`             |
-| **Windows**     | `%APPDATA%\tgt\config.env` | `%LOCALAPPDATA%\tgt\Cache\` |
+| **macOS/Linux** | `~/.config/tgp/config.env` | `~/.cache/tgp/`             |
+| **Windows**     | `%APPDATA%\tgp\config.env` | `%LOCALAPPDATA%\tgp\Cache\` |
 
 ### Config File
 
-Example (`~/.config/tgt/config.env`):
+Example (`~/.config/tgp/config.env`):
 
 ```env
 TOGGL_API_TOKEN=your_token_here
@@ -38,16 +38,16 @@ TOGGL_WORKSPACE_ID=123456
 
 ```text
 $ npm i -g toggl-pilot
-$ tgt
-  No config found. Run: tgt auth <api-token>
+$ tgp
+  No config found. Run: tgp auth <api-token>
   Or set TOGGL_API_TOKEN in your environment.
   Get your token at https://track.toggl.com/profile
 
-$ tgt auth my_api_token_here
-  Config saved to ~/.config/tgt/config.env
+$ tgp auth my_api_token_here
+  Config saved to ~/.config/tgp/config.env
   Authenticated as Stefano Locati (user@domain.com)
 
-$ tgt me
+$ tgp me
   Authenticated as: Stefano Locati (user@domain.com)
   Default workspace: 123456
 ```
@@ -64,5 +64,5 @@ $ tgt me
 ### Notes
 
 - Config file is plain text — avoid storing anything beyond the API token
-- `tgt auth` warns if config file has overly permissive permissions (suggests `chmod 600` on macOS/Linux)
+- `tgp auth` warns if config file has overly permissive permissions (suggests `chmod 600` on macOS/Linux)
 - Config file is created with mode `0o600`

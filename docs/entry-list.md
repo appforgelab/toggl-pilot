@@ -5,9 +5,9 @@ Lists all time entries for a given day with totals by project.
 ## Usage
 
 ```bash
-tgt entry-list                        # today
-tgt entry-list -d 2026-04-29          # specific date
-tgt entry-list --date 2026-04-29      # long form
+tgp entry-list                        # today
+tgp entry-list -d 2026-04-29          # specific date
+tgp entry-list --date 2026-04-29      # long form
 ```
 
 ## Output
