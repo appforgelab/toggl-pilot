@@ -59,6 +59,7 @@ Run `tgp` without arguments to see all available commands.
 | `tgp project-list`                   | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
 | `tgp project-rename <id> "New Name"` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
 | `tgp tag-list`                       | List workspace tags     | [docs/tag-list.md](docs/tag-list.md)             |
+| `tgp tag-rename <id> "New Name"`     | Rename a tag            | [docs/tag-rename.md](docs/tag-rename.md)         |
 
 ## Configuration
 

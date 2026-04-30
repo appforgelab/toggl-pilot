@@ -36,6 +36,7 @@
     "project-rename": "tsx src/index.ts project-rename",
     "entry-delete": "tsx src/index.ts entry-delete",
     "tag-list": "tsx src/index.ts tag-list",
+    "tag-rename": "tsx src/index.ts tag-rename",
     "entry-edit": "tsx src/index.ts entry-edit",
     "stop": "tsx src/index.ts stop",
     "format": "prettier --write \"**/*.{ts,md,mdx}\"",

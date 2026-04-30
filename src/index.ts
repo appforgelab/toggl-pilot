@@ -7,6 +7,7 @@ import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
 import { tagList } from './commands/tag-list.js';
+import { tagRename } from './commands/tag-rename.js';
 import { entryEdit } from './commands/entry-edit.js';
 import { projectRename } from './commands/project-rename.js';
 import { auth } from './commands/auth.js';
@@ -58,6 +59,9 @@ if (command === 'auth') {
     case 'tag-list':
       tagList();
       break;
+    case 'tag-rename':
+      tagRename(args);
+      break;
     case 'entry-edit':
       entryEdit(args);
       break;
@@ -67,7 +71,7 @@ if (command === 'auth') {
     default:
       console.error('Usage: tgp <command>');
       console.error(
-        'Commands: auth, version, me, entry-list [-d DATE], project-list, project-rename <project_id> "New Name", entry-delete <entry_id>, track, stop, tag-list, entry-edit'
+        'Commands: auth, version, me, entry-list [-d DATE], project-list, project-rename <project_id> "New Name", entry-delete <entry_id>, track, stop, tag-list, tag-rename <tag_id> "New Name", entry-edit'
       );
   }
 }
