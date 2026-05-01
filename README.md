@@ -52,16 +52,25 @@ Run `tgp` without arguments to see all available commands.
 | `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
 | `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md) |
 
-### Projects & Tags
+### Clients
+
+Coming soon — `client-list`, `client-add`, `client-rename`, `client-delete`.
+
+### Projects
 
 | Command                              | Description             | Docs                                             |
 | ------------------------------------ | ----------------------- | ------------------------------------------------ |
 | `tgp project-list`                   | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
 | `tgp project-rename <id> "New Name"` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
-| `tgp tag-list`                       | List workspace tags     | [docs/tag-list.md](docs/tag-list.md)             |
-| `tgp tag-create "Tag Name"`          | Create a tag            | [docs/tag-create.md](docs/tag-create.md)         |
-| `tgp tag-rename <id> "New Name"`     | Rename a tag            | [docs/tag-rename.md](docs/tag-rename.md)         |
-| `tgp tag-delete <id>`                | Delete a tag            | [docs/tag-delete.md](docs/tag-delete.md)         |
+
+### Tags
+
+| Command                          | Description  | Docs                                     |
+| -------------------------------- | ------------ | ---------------------------------------- |
+| `tgp tag-list`                   | List tags    | [docs/tag-list.md](docs/tag-list.md)     |
+| `tgp tag-create "Tag Name"`      | Create a tag | [docs/tag-create.md](docs/tag-create.md) |
+| `tgp tag-rename <id> "New Name"` | Rename a tag | [docs/tag-rename.md](docs/tag-rename.md) |
+| `tgp tag-delete <id>`            | Delete a tag | [docs/tag-delete.md](docs/tag-delete.md) |
 
 ## Configuration
 
