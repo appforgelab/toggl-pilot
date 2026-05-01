@@ -7,6 +7,7 @@ import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
 import { tagList } from './commands/tag-list.js';
+import { tagCreate } from './commands/tag-create.js';
 import { tagRename } from './commands/tag-rename.js';
 import { tagDelete } from './commands/tag-delete.js';
 import { entryEdit } from './commands/entry-edit.js';
@@ -60,6 +61,9 @@ if (command === 'auth') {
     case 'tag-list':
       tagList();
       break;
+    case 'tag-create':
+      tagCreate(args);
+      break;
     case 'tag-rename':
       tagRename(args);
       break;
@@ -78,7 +82,7 @@ if (command === 'auth') {
         [
           'Commands: auth, version, me,',
           'track, stop, entry-edit, entry-list [-d DATE], entry-delete <entry_id>,',
-          'project-list, project-rename <project_id> "New Name", tag-list, tag-rename <tag_id> "New Name", tag-delete <tag_id>',
+          'project-list, project-rename <project_id> "New Name", tag-list, tag-create "Tag Name", tag-rename <tag_id> "New Name", tag-delete <tag_id>',
         ].join('\n')
       );
   }
