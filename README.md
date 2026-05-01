@@ -60,6 +60,7 @@ Run `tgp` without arguments to see all available commands.
 | `tgp project-rename <id> "New Name"` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
 | `tgp tag-list`                       | List workspace tags     | [docs/tag-list.md](docs/tag-list.md)             |
 | `tgp tag-rename <id> "New Name"`     | Rename a tag            | [docs/tag-rename.md](docs/tag-rename.md)         |
+| `tgp tag-delete <id>`                | Delete a tag            | [docs/tag-delete.md](docs/tag-delete.md)         |
 
 ## Configuration
 
