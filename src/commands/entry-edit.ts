@@ -1,5 +1,5 @@
 import { get, put } from '../api.js';
-import { parseOrExit } from '../utils.js';
+import { parseDuration, parseOrExit } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -19,22 +19,26 @@ interface Project {
   name: string;
 }
 
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description']);
+const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description', '--dur']);
 
 export function parseArgs(args: string[]): {
   id: string;
   description: string | null;
   project: string | null;
   tags: string[] | null;
+  dur: string | null;
 } {
   let id: string | null = null;
   let description: string | null = null;
   let project: string | null = null;
   let tags: string[] | null = null;
+  let dur: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -d/--description, -p/--project, -t/--tags`);
+      throw new Error(
+        `Unknown flag: ${args[i]}. Valid flags: -d/--description, -p/--project, -t/--tags, --dur`
+      );
     }
 
     if ((args[i] === '-d' || args[i] === '--description') && args[i + 1]) {
@@ -42,25 +46,30 @@ export function parseArgs(args: string[]): {
     } else if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
       project = args[++i];
     } else if ((args[i] === '-t' || args[i] === '--tags') && args[i + 1]) {
-      tags = args[++i].split(',').map((t) => t.trim());
+      tags = args[i + 1].split(',').map((t) => t.trim());
+      i++;
+    } else if (args[i] === '--dur' && args[i + 1]) {
+      dur = args[++i];
     } else if (!args[i].startsWith('-') && !id) {
       id = args[i];
     }
   }
 
   if (!id) {
-    throw new Error('Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2]');
+    throw new Error(
+      'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m]'
+    );
   }
 
-  if (!description && !project && !tags) {
-    throw new Error('Nothing to edit. Provide at least one of: -d, -p, -t');
+  if (!description && !project && !tags && !dur) {
+    throw new Error('Nothing to edit. Provide at least one of: -d, -p, -t, --dur');
   }
 
-  return { id: id!, description, project, tags };
+  return { id: id!, description, project, tags, dur };
 }
 
 export async function entryEdit(args: string[]) {
-  const { id, description, project: projectName, tags: newTags } = parseOrExit(() => parseArgs(args));
+  const { id, description, project: projectName, tags: newTags, dur } = parseOrExit(() => parseArgs(args));
 
   let entry: TimeEntry;
   try {
@@ -88,11 +97,20 @@ export async function entryEdit(args: string[]) {
     projectId = matches[0].id;
   }
 
+  let newDuration = entry.duration;
+  let newStop = entry.stop;
+  if (dur) {
+    newDuration = parseDuration(dur);
+    newStop = new Date(new Date(entry.start).getTime() + newDuration * 1000).toISOString();
+  }
+
   const updated = await put<TimeEntry>(`/workspaces/${wsId}/time_entries/${entry.id}`, {
     ...entry,
     description: description ?? entry.description,
     project_id: projectId,
     tags: newTags ?? entry.tags,
+    duration: newDuration,
+    stop: newStop,
   });
 
   const projectLabel = updated.project_name ? ` [${updated.project_name}]` : '';

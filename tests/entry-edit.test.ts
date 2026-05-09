@@ -110,4 +110,54 @@ describe('entryEdit command', () => {
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
   });
+
+  it('edits duration only, recomputes stop from start', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+    mockedPut.mockResolvedValue({
+      ...baseEntry,
+      duration: 7200,
+      stop: '2025-06-15T12:00:00Z',
+    });
+
+    await entryEdit(['100', '--dur', '2h']);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        duration: 7200,
+        stop: '2025-06-15T12:00:00.000Z',
+        start: '2025-06-15T10:00:00Z',
+        description: 'Original',
+        project_id: 10,
+        tags: ['dev'],
+      })
+    );
+  });
+
+  it('edits duration combined with description', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+    mockedPut.mockResolvedValue({
+      ...baseEntry,
+      description: 'New desc',
+      duration: 5400,
+      stop: '2025-06-15T11:30:00.000Z',
+    });
+
+    await entryEdit(['100', '-d', 'New desc', '--dur', '1h30m']);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        description: 'New desc',
+        duration: 5400,
+        stop: '2025-06-15T11:30:00.000Z',
+      })
+    );
+  });
+
+  it('throws on invalid duration format', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+
+    await expect(entryEdit(['100', '--dur', 'abc'])).rejects.toThrow('Invalid duration: abc');
+  });
 });
