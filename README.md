@@ -58,10 +58,11 @@ Coming soon — `client-list`, `client-add`, `client-rename`, `client-delete`.
 
 ### Projects
 
-| Command                              | Description             | Docs                                             |
-| ------------------------------------ | ----------------------- | ------------------------------------------------ |
-| `tgp project-list`                   | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
-| `tgp project-rename <id> "New Name"` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
+| Command                          | Description             | Docs                                             |
+| -------------------------------- | ----------------------- | ------------------------------------------------ |
+| `tgp project-list`               | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
+| `tgp project-create`             | Create a project        | [docs/project-create.md](docs/project-create.md) |
+| `tgp project-rename <id> <name>` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
 
 ### Tags
 
