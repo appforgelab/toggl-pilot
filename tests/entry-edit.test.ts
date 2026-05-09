@@ -160,4 +160,21 @@ describe('entryEdit command', () => {
 
     await expect(entryEdit(['100', '--dur', 'abc'])).rejects.toThrow('Invalid duration: abc');
   });
+
+  it('rejects --dur on running timer', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(entryEdit(['100', '--dur', '1h'])).rejects.toThrow('exit');
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'Cannot change duration of a running timer. Stop it first with: tgp stop'
+    );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    logSpy.mockRestore();
+  });
 });

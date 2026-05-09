@@ -46,8 +46,7 @@ export function parseArgs(args: string[]): {
     } else if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
       project = args[++i];
     } else if ((args[i] === '-t' || args[i] === '--tags') && args[i + 1]) {
-      tags = args[i + 1].split(',').map((t) => t.trim());
-      i++;
+      tags = args[++i].split(',').map((t) => t.trim());
     } else if (args[i] === '--dur' && args[i + 1]) {
       dur = args[++i];
     } else if (!args[i].startsWith('-') && !id) {
@@ -100,6 +99,10 @@ export async function entryEdit(args: string[]) {
   let newDuration = entry.duration;
   let newStop = entry.stop;
   if (dur) {
+    if (!entry.stop) {
+      console.error('Cannot change duration of a running timer. Stop it first with: tgp stop');
+      process.exit(1);
+    }
     newDuration = parseDuration(dur);
     newStop = new Date(new Date(entry.start).getTime() + newDuration * 1000).toISOString();
   }
