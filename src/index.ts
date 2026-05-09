@@ -12,6 +12,7 @@ import { tagRename } from './commands/tag-rename.js';
 import { tagDelete } from './commands/tag-delete.js';
 import { entryEdit } from './commands/entry-edit.js';
 import { projectRename } from './commands/project-rename.js';
+import { projectCreate } from './commands/project-create.js';
 import { auth } from './commands/auth.js';
 import { version } from './commands/version.js';
 
@@ -73,6 +74,9 @@ if (command === 'auth') {
     case 'entry-edit':
       entryEdit(args);
       break;
+    case 'project-create':
+      projectCreate(args);
+      break;
     case 'project-rename':
       projectRename(args);
       break;
@@ -82,7 +86,7 @@ if (command === 'auth') {
         [
           'Commands: auth, version, me,',
           'track, stop, entry-edit, entry-list [-d DATE], entry-delete <entry_id>,',
-          'project-list, project-rename <project_id> "New Name", tag-list, tag-create "Tag Name", tag-rename <tag_id> "New Name", tag-delete <tag_id>',
+          'project-list, project-create "Name" [-c "Client"] [--color "#hex"] [--public], project-rename <project_id> "New Name", tag-list, tag-create "Tag Name", tag-rename <tag_id> "New Name", tag-delete <tag_id>',
         ].join('\n')
       );
   }
