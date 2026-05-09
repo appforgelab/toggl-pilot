@@ -48,7 +48,7 @@ Run `tgp` without arguments to see all available commands.
 | --------------------------------------- | --------------------------- | -------------------------------------------- |
 | `tgp track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)               |
 | `tgp stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                 |
-| `tgp entry-edit <id> -d/-p/-t`          | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)     |
+| `tgp entry-edit <id> -d/-p/-t/--dur`    | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)     |
 | `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
 | `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md) |
 

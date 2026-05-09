@@ -9,6 +9,7 @@ describe('entry-edit parseArgs', () => {
       description: 'New description',
       project: null,
       tags: null,
+      dur: null,
     });
   });
 
@@ -30,6 +31,7 @@ describe('entry-edit parseArgs', () => {
       description: 'Updated',
       project: 'Project',
       tags: ['review'],
+      dur: null,
     });
   });
 
@@ -52,5 +54,16 @@ describe('entry-edit parseArgs', () => {
 
   it('throws on empty args', () => {
     expect(() => parseArgs([])).toThrow('Usage');
+  });
+
+  it('parses --dur', () => {
+    const result = parseArgs(['12345', '--dur', '1h30m']);
+    expect(result.dur).toBe('1h30m');
+  });
+
+  it('parses --dur with other flags', () => {
+    const result = parseArgs(['12345', '-d', 'Desc', '--dur', '45m']);
+    expect(result.description).toBe('Desc');
+    expect(result.dur).toBe('45m');
   });
 });
