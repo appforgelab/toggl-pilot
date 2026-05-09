@@ -116,6 +116,17 @@ describe('projectCreate command', () => {
     logSpy.mockRestore();
   });
 
+  it('treats hex-like client input as a name, not a number', async () => {
+    mockedGet.mockResolvedValue([{ id: 16, name: '0x10', wid: 123 }]);
+    mockedPost.mockResolvedValue({ id: 106, name: 'Test', client_id: 16, client_name: '0x10' });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await projectCreate(['Test', '-c', '0x10']);
+
+    expect(mockedGet).toHaveBeenCalledWith('/workspaces/123/clients');
+    logSpy.mockRestore();
+  });
+
   it('creates project with all options combined', async () => {
     mockedGet.mockResolvedValue([{ id: 50, name: 'Acme Corp', wid: 123 }]);
     mockedPost.mockResolvedValue({ id: 105, name: 'Full', client_id: 50, client_name: 'Acme Corp' });
@@ -197,6 +208,34 @@ describe('projectCreate command', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       'Unknown flag: --unknown. Valid flags: -c/--client, --color, --public'
     );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when --color has no value', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '--color'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('--color requires a value.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when -c has no value', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '-c'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('--client requires a value.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();

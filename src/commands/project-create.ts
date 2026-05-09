@@ -28,9 +28,11 @@ function parseArgs(args: string[]) {
       throw new Error(`Unknown flag: ${args[i]}. Valid flags: -c/--client, --color, --public`);
     }
 
-    if ((args[i] === '-c' || args[i] === '--client') && args[i + 1]) {
+    if (args[i] === '-c' || args[i] === '--client') {
+      if (!args[i + 1]) throw new Error('--client requires a value.');
       client = args[++i];
-    } else if (args[i] === '--color' && args[i + 1]) {
+    } else if (args[i] === '--color') {
+      if (!args[i + 1]) throw new Error('--color requires a value.');
       color = args[++i];
     } else if (args[i] === '--public') {
       isPublic = true;
@@ -49,7 +51,7 @@ function parseArgs(args: string[]) {
 }
 
 async function resolveClientId(wsId: number, clientInput: string): Promise<number> {
-  if (!isNaN(Number(clientInput))) {
+  if (/^\d+$/.test(clientInput)) {
     return Number(clientInput);
   }
 

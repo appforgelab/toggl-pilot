@@ -84,11 +84,11 @@ if (command === 'auth') {
       console.error('Usage: tgp <command>');
       console.error(
         [
-          'Commands: auth, version, me, track, stop, entry-edit, ',
-          'entry-list [-d DATE], entry-delete <entry_id>, project-list, ',
-          'project-create "Name" [-c "Client"] [--color "#hex"] [--public], ',
-          'project-rename <project_id> "New Name", tag-list, ',
-          'tag-create "Tag Name", tag-rename <tag_id> "New Name", tag-delete <tag_id>',
+          'Commands: auth, version, me, track, stop, entry-edit,',
+          '  entry-list [-d DATE], entry-delete <entry_id>, project-list,',
+          '  project-create "Name" [-c "Client"] [--color "#hex"] [--public],',
+          '  project-rename <project_id> "New Name", tag-list,',
+          '  tag-create "Tag Name", tag-rename <tag_id> "New Name", tag-delete <tag_id>',
         ].join('\n')
       );
   }
