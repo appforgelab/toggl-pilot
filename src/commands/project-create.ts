@@ -76,6 +76,7 @@ export async function projectCreate(args: string[]) {
   const body: Record<string, unknown> = {
     name,
     workspace_id: wsId,
+    active: true,
     is_private: !isPublic,
   };
 
