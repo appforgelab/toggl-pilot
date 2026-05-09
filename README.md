@@ -63,6 +63,7 @@ Coming soon — `client-list`, `client-add`, `client-rename`, `client-delete`.
 | `tgp project-list`               | List workspace projects | [docs/project-list.md](docs/project-list.md)     |
 | `tgp project-create`             | Create a project        | [docs/project-create.md](docs/project-create.md) |
 | `tgp project-rename <id> <name>` | Rename a project        | [docs/project-rename.md](docs/project-rename.md) |
+| `tgp project-delete <id>`        | Delete a project        | [docs/project-delete.md](docs/project-delete.md) |
 
 ### Tags
 

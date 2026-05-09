@@ -13,6 +13,7 @@ import { tagDelete } from './commands/tag-delete.js';
 import { entryEdit } from './commands/entry-edit.js';
 import { projectRename } from './commands/project-rename.js';
 import { projectCreate } from './commands/project-create.js';
+import { projectDelete } from './commands/project-delete.js';
 import { auth } from './commands/auth.js';
 import { version } from './commands/version.js';
 
@@ -80,12 +81,15 @@ if (command === 'auth') {
     case 'project-rename':
       projectRename(args);
       break;
+    case 'project-delete':
+      projectDelete(args);
+      break;
     default:
       console.error('Usage: tgp <command>');
       console.error('Commands:');
       console.error('  auth           version         me');
       console.error('  track          stop            entry-edit      entry-list      entry-delete');
-      console.error('  project-list   project-create  project-rename');
+      console.error('  project-list   project-create  project-rename  project-delete');
       console.error('  tag-list       tag-create      tag-rename      tag-delete');
   }
 }
