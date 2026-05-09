@@ -47,6 +47,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'New Project',
       workspace_id: 123,
+      active: true,
       is_private: true,
     });
     expect(logSpy).toHaveBeenCalledWith('Project 100 created: "New Project"');
@@ -62,6 +63,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Open Project',
       workspace_id: 123,
+      active: true,
       is_private: false,
     });
     logSpy.mockRestore();
@@ -76,6 +78,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Colored',
       workspace_id: 123,
+      active: true,
       is_private: true,
       color: '#0b83d9',
     });
@@ -93,6 +96,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Big Project',
       workspace_id: 123,
+      active: true,
       is_private: true,
       client_id: 50,
     });
@@ -110,6 +114,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Direct ID',
       workspace_id: 123,
+      active: true,
       is_private: true,
       client_id: 99,
     });
@@ -137,6 +142,7 @@ describe('projectCreate command', () => {
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Full',
       workspace_id: 123,
+      active: true,
       is_private: false,
       client_id: 50,
       color: '#ff0000',
