@@ -2,6 +2,7 @@
 import { get } from './api.js';
 import { hasConfig, ConfigNotFoundError } from './config.js';
 import { entryList } from './commands/entry-list.js';
+import { week } from './commands/week.js';
 import { projectList } from './commands/project-list.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
@@ -48,6 +49,9 @@ if (command === 'auth') {
     case 'entry-list':
       entryList(args);
       break;
+    case 'week':
+      week();
+      break;
     case 'project-list':
       projectList();
       break;
@@ -89,6 +93,7 @@ if (command === 'auth') {
       console.error('Commands:');
       console.error('  auth           version         me');
       console.error('  track          stop            entry-edit      entry-list      entry-delete');
+      console.error('  week');
       console.error('  project-list   project-create  project-rename  project-delete');
       console.error('  tag-list       tag-create      tag-rename      tag-delete');
   }
