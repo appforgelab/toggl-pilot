@@ -5,7 +5,7 @@ import {
   buildProjectDayMap,
   renderVerboseMatrix,
 } from '../src/commands/week.js';
-import { NONE } from '../src/utils.js';
+import { DASH } from '../src/utils.js';
 
 describe('getWeekBounds', () => {
   it('returns same Monday when given a Monday', () => {
@@ -186,8 +186,8 @@ describe('buildProjectDayMap', () => {
     const entries = [makeEntry(1, '2026-05-04T09:00:00Z', 3600, null)];
     const projectMap = new Map<number, string>();
     const result = buildProjectDayMap(entries, projectMap);
-    expect(result.has(NONE)).toBe(true);
-    expect(result.get(NONE)![0]).toBe(3600);
+    expect(result.has(DASH)).toBe(true);
+    expect(result.get(DASH)![0]).toBe(3600);
   });
 
   it('maps Sunday to index 6', () => {
@@ -245,14 +245,14 @@ describe('renderVerboseMatrix', () => {
 
   it('places — row last', () => {
     const projectDayMap = new Map<string, number[]>([
-      [NONE, [3600, 0, 0, 0, 0, 0, 0]],
+      [DASH, [3600, 0, 0, 0, 0, 0, 0]],
       ['Alpha', [1800, 0, 0, 0, 0, 0, 0]],
     ]);
     const monday = new Date('2026-05-04T12:00:00Z');
     const sunday = new Date('2026-05-10T12:00:00Z');
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
     const alphaIdx = output.indexOf('Alpha');
-    const dashIdx = output.indexOf(NONE);
+    const dashIdx = output.indexOf(DASH);
     expect(dashIdx).toBeGreaterThan(alphaIdx);
   });
 
