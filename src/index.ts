@@ -50,7 +50,7 @@ if (command === 'auth') {
       entryList(args);
       break;
     case 'week':
-      week();
+      week(args);
       break;
     case 'project-list':
       projectList();
