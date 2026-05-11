@@ -1,6 +1,6 @@
 # `week` — Weekly Summary
 
-Shows project totals for the current week (Monday–Sunday) or a selected week.
+Shows project totals for any week (Monday–Sunday). Defaults to the current week.
 
 ## Usage
 
