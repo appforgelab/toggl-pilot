@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration } from '../utils.js';
+import { formatDate, formatDuration, parseDateArg, parseOrExit } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -41,8 +41,44 @@ function formatShortDate(date: Date): string {
   return `${MONTHS[date.getUTCMonth()]} ${String(date.getUTCDate()).padStart(2, '0')}`;
 }
 
-export async function week() {
-  const { monday, sunday, weekNumber } = getWeekBounds(new Date());
+function findFlag(args: string[], ...flags: string[]): number {
+  for (const f of flags) {
+    const idx = args.indexOf(f);
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+export function parseWeekArgs(args: string[]): Date {
+  const dateIdx = findFlag(args, '--date', '-d');
+  const weekIdx = findFlag(args, '--week', '-w');
+
+  if (dateIdx !== -1 && weekIdx !== -1) {
+    throw new Error('Cannot use both --date and --week');
+  }
+
+  if (weekIdx !== -1) {
+    const val = args[weekIdx + 1];
+    if (!val) throw new Error('Missing value for --week');
+    const offset = parseInt(val, 10);
+    if (isNaN(offset)) throw new Error(`Invalid week: ${val}`);
+    const { monday: currentMonday } = getWeekBounds(new Date());
+    const targetMonday = new Date(currentMonday);
+    targetMonday.setUTCDate(currentMonday.getUTCDate() + offset * 7);
+    return targetMonday;
+  }
+
+  if (dateIdx !== -1) {
+    if (!args[dateIdx + 1]) throw new Error('Missing value for --date');
+    return parseDateArg(args);
+  }
+
+  return new Date();
+}
+
+export async function week(args: string[]) {
+  const refDate = parseOrExit(() => parseWeekArgs(args));
+  const { monday, sunday, weekNumber } = getWeekBounds(refDate);
   const startStr = formatDate(monday);
   const endStr = formatDate(new Date(sunday.getTime() + 86400000));
 
