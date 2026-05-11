@@ -1,3 +1,5 @@
+export const DASH = '—';
+
 export function parseOrExit<T>(fn: () => T): T {
   try {
     return fn();
