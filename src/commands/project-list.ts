@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { NONE } from '../utils.js';
+import { DASH } from '../utils.js';
 
 interface Project {
   id: number;
@@ -27,7 +27,7 @@ export async function projectList() {
 
   for (const p of list) {
     const status = p.active ? 'active' : 'archived';
-    const client = p.client_name ?? NONE;
+    const client = p.client_name ?? DASH;
     const line = `  ${String(p.id).padEnd(12)} ${p.name.slice(0, 30).padEnd(30)} ${client.slice(0, 20).padEnd(20)} ${status}`;
     console.log(line);
   }

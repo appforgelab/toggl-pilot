@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration, parseDateArg, parseOrExit, NONE } from '../utils.js';
+import { formatDate, formatDuration, parseDateArg, parseOrExit, DASH } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -98,8 +98,8 @@ export function buildProjectDayMap(
       entry.duration < 0 ? Math.floor((Date.now() - new Date(entry.start).getTime()) / 1000) : entry.duration;
     const dayIdx = getDayIndex(entry.start);
     const projectName = entry.project_id
-      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? NONE)
-      : NONE;
+      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? DASH)
+      : DASH;
     ensure(projectName);
     map.get(projectName)![dayIdx] += durationSec;
   }
@@ -130,8 +130,8 @@ export function renderVerboseMatrix(
   lines.push(`\nWeek ${weekNumber} (${formatShortDate(monday)} – ${formatShortDate(sunday)})\n`);
 
   const projectNames = [...projectDayMap.keys()].sort((a, b) => {
-    if (a === NONE) return 1;
-    if (b === NONE) return -1;
+    if (a === DASH) return 1;
+    if (b === DASH) return -1;
     return a.localeCompare(b);
   });
 
@@ -229,10 +229,10 @@ export async function week(args: string[]) {
       entry.duration < 0 ? Math.floor((Date.now() - new Date(entry.start).getTime()) / 1000) : entry.duration;
 
     const projectName = entry.project_id
-      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? NONE)
-      : NONE;
+      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? DASH)
+      : DASH;
 
-    if (projectName !== NONE) {
+    if (projectName !== DASH) {
       totals.set(projectName, (totals.get(projectName) ?? 0) + durationSec);
     }
     grandTotal += durationSec;
