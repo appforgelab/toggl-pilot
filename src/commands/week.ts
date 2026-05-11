@@ -245,11 +245,12 @@ export async function week(args: string[]) {
       [...totals.keys()].reduce((m, n) => Math.max(m, n.length), 0),
       'Total'.length
     );
+    const maxDurLen = Math.max(...[...totals.values(), grandTotal].map((s) => formatDuration(s).length));
     for (const [name, secs] of totals) {
-      console.log(`${name.padEnd(maxNameLen + 2)}${formatDuration(secs)}`);
+      console.log(`${name.padEnd(maxNameLen + 2)}${formatDuration(secs).padStart(maxDurLen)}`);
     }
-    console.log(`${'─'.repeat(maxNameLen + 6)}`);
-    console.log(`${'Total'.padEnd(maxNameLen + 2)}${formatDuration(grandTotal)}`);
+    console.log(`${'─'.repeat(maxNameLen + 2 + maxDurLen)}`);
+    console.log(`${'Total'.padEnd(maxNameLen + 2)}${formatDuration(grandTotal).padStart(maxDurLen)}`);
   } else {
     console.log(`Total ${formatDuration(grandTotal)}`);
   }
