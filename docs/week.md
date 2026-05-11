@@ -45,7 +45,7 @@ Week 19 (May 05 – May 11)
                  Mon    Tue    Wed    Thu    Fri    Sat    Sun    Total
 Project Alpha   2h30m  3h00m  1h00m  2h00m  4h00m      -      -   12h30m
 Project Beta    1h15m  2h00m  3h00m      -  2h00m      -      -    8h15m
-(no project)        -  1h00m      -  1h30m      -      -      -    2h30m
+—                   -  1h00m      -  1h30m      -      -      -    2h30m
 ──────────────────────────────────────────────────────────────────────────
 Daily Total     3h45m  5h00m  4h00m  3h30m  7h30m      -      -   23h45m
 ```
@@ -56,5 +56,5 @@ Daily Total     3h45m  5h00m  4h00m  3h30m  7h30m      -      -   23h45m
 - Displays ISO week number and date range
 - Running timers are included with a live-calculated duration
 - Entries without a project are excluded from per-project totals but included in the grand total
-- In verbose mode, entries without a project appear as `(no project)` and are sorted last
+- In verbose mode, entries without a project appear as `—` and are sorted last
 - Column widths are calculated dynamically based on the widest value in each column

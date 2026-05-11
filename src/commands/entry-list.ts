@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatTime, formatDuration, parseDateArg, parseOrExit } from '../utils.js';
+import { formatDate, formatTime, formatDuration, parseDateArg, parseOrExit, NONE } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -45,7 +45,7 @@ export async function entryList(args: string[]) {
   const rows: { line: string; isRunning: boolean }[] = [];
 
   const tagColWidth = timeEntries.reduce((max, entry) => {
-    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : '—';
+    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : NONE;
     return Math.max(max, tagStr.length);
   }, 0);
 
@@ -64,14 +64,14 @@ export async function entryList(args: string[]) {
     const dur = formatDuration(durationSec);
 
     const projectName = entry.project_id
-      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? '—')
-      : '—';
+      ? (projectMap.get(entry.project_id) ?? entry.project_name ?? NONE)
+      : NONE;
 
-    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : '—';
+    const tagStr = entry.tags?.length ? `{${entry.tags.join(',')}}` : NONE;
     const line = `  ${id.padEnd(12)} ${start}-${stop.padEnd(5)}  ${dur.padEnd(7)} ${(entry.description || '(no description)').slice(0, 22).padEnd(22)} ${tagStr.padEnd(tagColWidth + 1)} ${projectName}${isRunning ? '  ● running' : ''}`;
     rows.push({ line, isRunning });
 
-    if (projectName !== '—') {
+    if (projectName !== NONE) {
       totals.set(projectName, (totals.get(projectName) ?? 0) + durationSec);
     }
     grandTotal += durationSec;
