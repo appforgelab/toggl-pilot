@@ -24,6 +24,16 @@ describe('entry-edit parseArgs', () => {
     expect(result.tags).toEqual(['dev', 'bug']);
   });
 
+  it('parses empty tags as a clear request', () => {
+    const result = parseArgs(['12345', '-t', '']);
+    expect(result.tags).toEqual([]);
+  });
+
+  it('trims tags and removes blanks and duplicates', () => {
+    const result = parseArgs(['12345', '-t', ' dev, ,bug,DEV ']);
+    expect(result.tags).toEqual(['dev', 'bug']);
+  });
+
   it('parses id with all flags', () => {
     const result = parseArgs(['12345', '-d', 'Updated', '-p', 'Project', '-t', 'review']);
     expect(result).toEqual({

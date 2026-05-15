@@ -43,9 +43,10 @@ describe('entryEdit command', () => {
       expect.objectContaining({
         description: 'Updated',
         project_id: 10,
-        tags: ['dev'],
       })
     );
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tags');
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tag_action');
   });
 
   it('edits project by name', async () => {
@@ -69,21 +70,51 @@ describe('entryEdit command', () => {
     );
   });
 
-  it('edits tags', async () => {
-    mockedGet.mockResolvedValue({ ...baseEntry });
+  it('replaces tags', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev', 'sysadm'] });
     mockedPut.mockResolvedValue({
       ...baseEntry,
-      tags: ['review', 'bug'],
+      tags: ['dev', 'dart'],
     });
 
-    await entryEdit(['100', '-t', 'review,bug']);
+    await entryEdit(['100', '-t', 'dev,dart']);
 
     expect(mockedPut).toHaveBeenCalledWith(
       '/workspaces/123/time_entries/100',
       expect.objectContaining({
-        tags: ['review', 'bug'],
+        tags: ['dev', 'dart'],
       })
     );
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tag_action');
+  });
+
+  it('does not call update when requested tags already match', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev', 'dart'] });
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await entryEdit(['100', '-t', 'dev,dart']);
+
+    expect(mockedPut).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith('No changes.');
+    logSpy.mockRestore();
+  });
+
+  it('clears tags', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev'] });
+    mockedPut.mockResolvedValue({
+      ...baseEntry,
+      tags: null,
+    });
+
+    await entryEdit(['100', '-t', '']);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        tags: [],
+      })
+    );
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tag_action');
   });
 
   it('prints not found when entry does not exist', async () => {
@@ -129,9 +160,9 @@ describe('entryEdit command', () => {
         start: '2025-06-15T10:00:00Z',
         description: 'Original',
         project_id: 10,
-        tags: ['dev'],
       })
     );
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tags');
   });
 
   it('edits duration combined with description', async () => {

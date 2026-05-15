@@ -19,7 +19,63 @@ interface Project {
   name: string;
 }
 
+interface TimeEntryUpdate {
+  description: string;
+  project_id: number | null;
+  start: string;
+  stop: string | null;
+  duration: number;
+  workspace_id: number;
+  billable: boolean;
+  tags?: string[];
+}
+
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description', '--dur']);
+
+function normalizeTags(tags: string[] | null): string[] {
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+
+  for (const rawTag of tags ?? []) {
+    const tag = rawTag.trim();
+    const key = tag.toLowerCase();
+
+    if (!tag || seen.has(key)) continue;
+    seen.add(key);
+    normalized.push(tag);
+  }
+
+  return normalized;
+}
+
+function tagKey(tag: string): string {
+  return tag.toLowerCase();
+}
+
+function diffTags(source: string[], target: string[]): string[] {
+  const targetKeys = new Set(target.map(tagKey));
+  return source.filter((tag) => !targetKeys.has(tagKey(tag)));
+}
+
+function buildUpdateBody(
+  entry: TimeEntry,
+  description: string,
+  projectId: number | null,
+  duration: number,
+  stop: string | null,
+  tags?: string[]
+): TimeEntryUpdate {
+  return {
+    description,
+    project_id: projectId,
+    start: entry.start,
+    stop,
+    duration,
+    workspace_id: entry.workspace_id,
+    billable: entry.billable,
+    ...(tags !== undefined ? { tags } : {}),
+  };
+}
 
 export function parseArgs(args: string[]): {
   id: string;
@@ -45,8 +101,8 @@ export function parseArgs(args: string[]): {
       description = args[++i];
     } else if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
       project = args[++i];
-    } else if ((args[i] === '-t' || args[i] === '--tags') && args[i + 1]) {
-      tags = args[++i].split(',').map((t) => t.trim());
+    } else if ((args[i] === '-t' || args[i] === '--tags') && i + 1 < args.length) {
+      tags = normalizeTags(args[++i].split(','));
     } else if (args[i] === '--dur' && args[i + 1]) {
       dur = args[++i];
     } else if (!args[i].startsWith('-') && !id) {
@@ -107,14 +163,33 @@ export async function entryEdit(args: string[]) {
     newStop = new Date(new Date(entry.start).getTime() + newDuration * 1000).toISOString();
   }
 
-  const updated = await put<TimeEntry>(`/workspaces/${wsId}/time_entries/${entry.id}`, {
-    ...entry,
-    description: description ?? entry.description,
-    project_id: projectId,
-    tags: newTags ?? entry.tags,
-    duration: newDuration,
-    stop: newStop,
-  });
+  const nextDescription = description ?? entry.description;
+  const hasEntryChanges = description !== null || projectName !== null || dur !== null;
+  const hasTagChanges =
+    newTags !== null &&
+    (diffTags(normalizeTags(entry.tags), newTags).length > 0 ||
+      diffTags(newTags, normalizeTags(entry.tags)).length > 0);
+
+  let updated = entry;
+
+  if (hasEntryChanges || hasTagChanges) {
+    updated = await put<TimeEntry>(
+      `/workspaces/${wsId}/time_entries/${entry.id}`,
+      buildUpdateBody(
+        entry,
+        nextDescription,
+        projectId,
+        newDuration,
+        newStop,
+        newTags !== null ? newTags : undefined
+      )
+    );
+  }
+
+  if (!hasEntryChanges && !hasTagChanges) {
+    console.log('No changes.');
+    return;
+  }
 
   const projectLabel = updated.project_name ? ` [${updated.project_name}]` : '';
   const tagLabel = updated.tags?.length ? ` {${updated.tags.join(', ')}}` : '';
