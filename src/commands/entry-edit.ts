@@ -173,7 +173,7 @@ export async function entryEdit(args: string[]) {
   let updated = entry;
 
   if (hasEntryChanges || hasTagChanges) {
-    await put<TimeEntry>(
+    updated = await put<TimeEntry>(
       `/workspaces/${wsId}/time_entries/${entry.id}`,
       buildUpdateBody(
         entry,
@@ -184,7 +184,11 @@ export async function entryEdit(args: string[]) {
         newTags !== null ? newTags : undefined
       )
     );
-    updated = await get<TimeEntry>(`/me/time_entries/${id}`);
+  }
+
+  if (!hasEntryChanges && !hasTagChanges) {
+    console.log('No changes.');
+    return;
   }
 
   const projectLabel = updated.project_name ? ` [${updated.project_name}]` : '';

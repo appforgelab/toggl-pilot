@@ -71,10 +71,7 @@ describe('entryEdit command', () => {
   });
 
   it('replaces tags', async () => {
-    mockedGet.mockResolvedValueOnce({ ...baseEntry, tags: ['dev', 'sysadm'] }).mockResolvedValueOnce({
-      ...baseEntry,
-      tags: ['dev', 'dart'],
-    });
+    mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev', 'sysadm'] });
     mockedPut.mockResolvedValue({
       ...baseEntry,
       tags: ['dev', 'dart'],
@@ -89,22 +86,21 @@ describe('entryEdit command', () => {
       })
     );
     expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('tag_action');
-    expect(mockedGet).toHaveBeenLastCalledWith('/me/time_entries/100');
   });
 
   it('does not call update when requested tags already match', async () => {
     mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev', 'dart'] });
 
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     await entryEdit(['100', '-t', 'dev,dart']);
 
     expect(mockedPut).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith('No changes.');
+    logSpy.mockRestore();
   });
 
   it('clears tags', async () => {
-    mockedGet.mockResolvedValueOnce({ ...baseEntry, tags: ['dev'] }).mockResolvedValueOnce({
-      ...baseEntry,
-      tags: null,
-    });
+    mockedGet.mockResolvedValue({ ...baseEntry, tags: ['dev'] });
     mockedPut.mockResolvedValue({
       ...baseEntry,
       tags: null,
