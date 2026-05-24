@@ -14,10 +14,10 @@ tgp workspace-list
 ## Output
 
 ```text
-ID           Name
-──────────── ────────────────────
-12345        My Workspace
-67890        Client Workspace
+  ID           Name
+  ──────────── ────────────────────
+  12345        My Workspace
+  67890        Client Workspace
 ```
 
 ## Columns

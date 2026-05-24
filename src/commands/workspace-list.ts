@@ -14,10 +14,10 @@ export async function workspaceList() {
     return;
   }
 
-  console.log(`${'ID'.padEnd(12)} Name`);
-  console.log(`${''.padEnd(12, '─')} ${''.padEnd(20, '─')}`);
+  console.log(`  ${'ID'.padEnd(12)} Name`);
+  console.log(`  ${''.padEnd(12, '─')} ${''.padEnd(20, '─')}`);
 
   for (const workspace of list) {
-    console.log(`${String(workspace.id).padEnd(12)} ${workspace.name}`);
+    console.log(`  ${String(workspace.id).padEnd(12)} ${workspace.name}`);
   }
 }

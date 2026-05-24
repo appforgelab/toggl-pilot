@@ -24,10 +24,10 @@ describe('workspaceList command', () => {
     await workspaceList();
 
     expect(mockedGet).toHaveBeenCalledWith('/me/workspaces');
-    expect(logSpy).toHaveBeenCalledWith('ID           Name');
-    expect(logSpy).toHaveBeenCalledWith('──────────── ────────────────────');
-    expect(logSpy).toHaveBeenCalledWith('12345        My Workspace');
-    expect(logSpy).toHaveBeenCalledWith('67890        Client Workspace');
+    expect(logSpy).toHaveBeenCalledWith('  ID           Name');
+    expect(logSpy).toHaveBeenCalledWith('  ──────────── ────────────────────');
+    expect(logSpy).toHaveBeenCalledWith('  12345        My Workspace');
+    expect(logSpy).toHaveBeenCalledWith('  67890        Client Workspace');
     logSpy.mockRestore();
   });
 
