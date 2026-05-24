@@ -36,11 +36,12 @@ Run `tgp` without arguments to see all available commands.
 
 ### General
 
-| Command            | Description           | Docs                     |
-| ------------------ | --------------------- | ------------------------ |
-| `tgp auth <token>` | Save API token        |                          |
-| `tgp version`      | Show CLI version      |                          |
-| `tgp me`           | Verify authentication | [docs/me.md](docs/me.md) |
+| Command              | Description           | Docs                                             |
+| -------------------- | --------------------- | ------------------------------------------------ |
+| `tgp auth <token>`   | Save API token        |                                                  |
+| `tgp version`        | Show CLI version      |                                                  |
+| `tgp me`             | Verify authentication | [docs/me.md](docs/me.md)                         |
+| `tgp workspace-list` | List workspaces       | [docs/workspace-list.md](docs/workspace-list.md) |
 
 ### Entries
 

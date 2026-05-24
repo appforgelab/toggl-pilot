@@ -4,6 +4,7 @@ import { hasConfig, ConfigNotFoundError } from './config.js';
 import { entryList } from './commands/entry-list.js';
 import { week } from './commands/week.js';
 import { projectList } from './commands/project-list.js';
+import { workspaceList } from './commands/workspace-list.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
@@ -55,6 +56,9 @@ if (command === 'auth') {
     case 'project-list':
       projectList();
       break;
+    case 'workspace-list':
+      workspaceList();
+      break;
     case 'entry-delete':
       entryDelete(args);
       break;
@@ -92,6 +96,7 @@ if (command === 'auth') {
       console.error('Usage: tgp <command>');
       console.error('Commands:');
       console.error('  auth           version         me');
+      console.error('  workspace-list');
       console.error('  track          stop            entry-edit      entry-list      entry-delete');
       console.error('  week');
       console.error('  project-list   project-create  project-rename  project-delete');
