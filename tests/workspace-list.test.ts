@@ -16,8 +16,8 @@ describe('workspaceList command', () => {
 
   it('lists workspaces', async () => {
     mockedGet.mockResolvedValue([
-      { id: 12345, name: 'My Workspace', organization_id: 1 },
-      { id: 67890, name: 'Client Workspace', organization_id: 2 },
+      { id: 12345, name: 'My Workspace' },
+      { id: 67890, name: 'Client Workspace' },
     ]);
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 

@@ -3,7 +3,6 @@ import { get } from '../api.js';
 interface Workspace {
   id: number;
   name: string;
-  organization_id: number;
 }
 
 export async function workspaceList() {
