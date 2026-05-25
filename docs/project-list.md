@@ -11,6 +11,17 @@ tgp project-list --all
 tgp project-list -a
 ```
 
+## Output
+
+```text
+Projects in workspace 21355416
+
+  ID           Name                            Client                Status
+  ──────────── ────────────────────────────── ──────────────────── ────────
+  1234567890   Dev-Pilot                       —                     active
+  1234567891   Client-X                        Acme Corp             active
+```
+
 ## Output with `--all`
 
 ```text
