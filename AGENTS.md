@@ -26,6 +26,8 @@ See README.md for available commands and usage.
   message. The default includes all commit titles as bullet points in the body, which
   is messy. Example:
   `gh pr merge <number> --squash --subject "feat: add project-rename (#21)" --body "" --delete-branch`
+- **Run `gh` commands outside the sandbox**. Sandboxed `gh` may report invalid auth
+  or fail to reach GitHub even when the host keychain token is valid.
 
 This file describes common mistakes and confusion points that an agent may encounter as
 they work on this project. If you ever encounter something that surprises you or

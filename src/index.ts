@@ -56,7 +56,7 @@ if (command === 'auth') {
       week(args);
       break;
     case 'project-list':
-      projectList();
+      projectList(args);
       break;
     case 'workspace-list':
       workspaceList();
