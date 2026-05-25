@@ -103,12 +103,12 @@ if (command === 'auth') {
     default:
       console.error('Usage: tgp <command>');
       console.error('Commands:');
-      console.error('  auth           version         me');
+      console.error('  auth             version          me');
       console.error('  workspace-list');
-      console.error('  track          stop            entry-edit      entry-list      entry-delete');
+      console.error('  track            stop             entry-edit       entry-list       entry-delete');
       console.error('  week');
-      console.error('  project-list   project-create  project-rename  project-delete');
-      console.error('  project-archive  project-restore');
-      console.error('  tag-list       tag-create      tag-rename      tag-delete');
+      console.error('  project-list     project-create   project-rename   project-archive  project-restore');
+      console.error('  project-delete');
+      console.error('  tag-list         tag-create       tag-rename       tag-delete');
   }
 }
