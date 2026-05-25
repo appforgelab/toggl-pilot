@@ -40,14 +40,15 @@ describe('projectEdit command', () => {
     await expect(projectEdit([])).rejects.toThrow('exit');
 
     expect(errorSpy).toHaveBeenCalledWith(
-      'Usage: tgp project-edit <project_id> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]'
+      'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]'
     );
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
   });
 
-  it('exits with error when project ID is not numeric', async () => {
+  it('exits when project name is not found', async () => {
+    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');
     });
@@ -55,7 +56,7 @@ describe('projectEdit command', () => {
 
     await expect(projectEdit(['abc', '-n', 'New Project'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Invalid project ID: "abc". Must be a number.');
+    expect(errorSpy).toHaveBeenCalledWith('Project "abc" not found.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -127,10 +128,25 @@ describe('projectEdit command', () => {
 
     await projectEdit(['456', '-n', 'New Project']);
 
+    expect(mockedGet).not.toHaveBeenCalled();
     expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {
       name: 'New Project',
     });
     expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('is_private');
+    logSpy.mockRestore();
+  });
+
+  it('updates project by name', async () => {
+    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
+    mockedPut.mockResolvedValue(updatedProject);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await projectEdit(['Backend', '-n', 'New Project']);
+
+    expect(mockedGet).toHaveBeenCalledWith('/workspaces/123/projects');
+    expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {
+      name: 'New Project',
+    });
     logSpy.mockRestore();
   });
 
@@ -267,6 +283,26 @@ describe('projectEdit command', () => {
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Multiple clients match "Acme Corp":\n  50  Acme Corp\n  51  acme corp'
+    );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits on ambiguous project name match', async () => {
+    mockedGet.mockResolvedValue([
+      { id: 456, name: 'Backend' },
+      { id: 789, name: 'backend' },
+    ]);
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectEdit(['Backend', '-n', 'New Project'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Multiple projects match "Backend". Use the numeric project ID:\n  456  Backend\n  789  backend'
     );
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();

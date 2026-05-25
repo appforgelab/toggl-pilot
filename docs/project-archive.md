@@ -1,12 +1,16 @@
 # `project-archive` — Archive a Project
 
-Archives an active project in your workspace. Find the project ID using `tgp project-list`.
+Archives an active project in your workspace.
 
 ## Usage
 
 ```bash
-tgp project-archive <project_id>
+tgp project-archive <project>
 ```
+
+`<project>` can be a numeric project ID or an exact project name. Quotes are
+only needed when your shell requires them, such as names containing spaces or
+special characters.
 
 ## Output
 
@@ -16,9 +20,9 @@ Project 1234567890 archived.
 
 ## Arguments
 
-| Argument     | Description                 |
-| ------------ | --------------------------- |
-| `project_id` | Toggl project ID to archive |
+| Argument  | Description                                 |
+| --------- | ------------------------------------------- |
+| `project` | Project ID or exact project name to archive |
 
 ## Examples
 
@@ -29,8 +33,17 @@ tgp project-list
 
 tgp project-archive 1234567890
 #   Project 1234567890 archived.
+
+tgp project-archive Frontend
+#   Project 9876543210 archived.
 ```
 
 ## Errors
 
-- `Project <id> not found.` — project does not exist in the workspace
+- `Project <id> not found.` — project ID does not exist in the workspace
+- `Project "<name>" not found.` — no project has that exact name
+- `Multiple projects match "<name>". Use the numeric project ID:` — more than
+  one project matches case-insensitively, including names that differ only by
+  case
+- Numeric-looking project names are interpreted as IDs and cannot be targeted by
+  name

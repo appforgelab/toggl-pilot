@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../src/api.js', () => ({
+  get: vi.fn(),
   put: vi.fn(),
 }));
 
@@ -10,9 +11,10 @@ vi.mock('../src/config.js', () => ({
   },
 }));
 
-import { put } from '../src/api.js';
+import { get, put } from '../src/api.js';
 import { projectArchive } from '../src/commands/project-archive.js';
 
+const mockedGet = vi.mocked(get);
 const mockedPut = vi.mocked(put);
 
 describe('projectArchive command', () => {
@@ -28,13 +30,14 @@ describe('projectArchive command', () => {
 
     await expect(projectArchive([])).rejects.toThrow('exit');
 
-    expect(logSpy).toHaveBeenCalledWith('Usage: tgp project-archive <project_id>');
+    expect(logSpy).toHaveBeenCalledWith('Usage: tgp project-archive <project>');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     logSpy.mockRestore();
   });
 
-  it('exits on non-numeric project ID', async () => {
+  it('exits when project name is not found', async () => {
+    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');
     });
@@ -42,7 +45,7 @@ describe('projectArchive command', () => {
 
     await expect(projectArchive(['abc'])).rejects.toThrow('exit');
 
-    expect(logSpy).toHaveBeenCalledWith('Invalid project ID: "abc". Must be a number.');
+    expect(logSpy).toHaveBeenCalledWith('Project "abc" not found.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     logSpy.mockRestore();
@@ -54,11 +57,47 @@ describe('projectArchive command', () => {
 
     await projectArchive(['456']);
 
+    expect(mockedGet).not.toHaveBeenCalled();
     expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {
       active: false,
     });
     expect(logSpy).toHaveBeenCalledWith('Project 456 archived.');
     logSpy.mockRestore();
+  });
+
+  it('archives project by name', async () => {
+    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
+    mockedPut.mockResolvedValue({ id: 456 });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await projectArchive(['Backend']);
+
+    expect(mockedGet).toHaveBeenCalledWith('/workspaces/123/projects');
+    expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {
+      active: false,
+    });
+    expect(logSpy).toHaveBeenCalledWith('Project 456 archived.');
+    logSpy.mockRestore();
+  });
+
+  it('exits on ambiguous project name', async () => {
+    mockedGet.mockResolvedValue([
+      { id: 456, name: 'Backend' },
+      { id: 789, name: 'backend' },
+    ]);
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectArchive(['Backend'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Multiple projects match "Backend". Use the numeric project ID:\n  456  Backend\n  789  backend'
+    );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
   it('handles 404 error gracefully', async () => {
