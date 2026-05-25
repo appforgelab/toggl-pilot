@@ -170,6 +170,20 @@ describe('projectEdit command', () => {
     logSpy.mockRestore();
   });
 
+  it('updates multiple project fields together', async () => {
+    mockedPut.mockResolvedValue({ ...updatedProject, name: 'Combined', color: '#ff0000' });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await projectEdit(['456', '-n', 'Combined', '--color', '#ff0000', '--public']);
+
+    expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {
+      name: 'Combined',
+      color: '#ff0000',
+      is_private: false,
+    });
+    logSpy.mockRestore();
+  });
+
   it('rejects both visibility flags', async () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');
