@@ -90,6 +90,20 @@ describe('clientList command', () => {
     logSpy.mockRestore();
   });
 
+  it('prints a dash for null or missing notes', async () => {
+    mockedGet.mockResolvedValue([
+      { id: 456, name: 'Null Notes', notes: null, wid: 123, archived: false, at: '' },
+      { id: 457, name: 'Missing Notes', wid: 123, archived: false, at: '' },
+    ]);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await clientList([]);
+
+    expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/Null Notes\s+—\s+active/));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/Missing Notes\s+—\s+active/));
+    logSpy.mockRestore();
+  });
+
   it('prints a message when no clients are rendered', async () => {
     mockedGet.mockResolvedValue([
       { id: 789, name: 'Old Client', notes: null, wid: 123, archived: true, at: '' },
