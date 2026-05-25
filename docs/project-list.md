@@ -1,14 +1,17 @@
 # `project-list` — List Projects
 
-Lists all projects in your workspace with IDs, names, clients, and status.
+Lists active projects in your workspace with IDs, names, clients, and status.
+Pass `--all` or `-a` to include archived projects.
 
 ## Usage
 
 ```bash
 tgp project-list
+tgp project-list --all
+tgp project-list -a
 ```
 
-## Output
+## Output with `--all`
 
 ```text
 Projects in workspace 21355416
