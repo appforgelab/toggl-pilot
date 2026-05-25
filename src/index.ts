@@ -13,6 +13,7 @@ import { tagCreate } from './commands/tag-create.js';
 import { tagRename } from './commands/tag-rename.js';
 import { tagDelete } from './commands/tag-delete.js';
 import { entryEdit } from './commands/entry-edit.js';
+import { projectEdit } from './commands/project-edit.js';
 import { projectRename } from './commands/project-rename.js';
 import { projectCreate } from './commands/project-create.js';
 import { projectDelete } from './commands/project-delete.js';
@@ -88,6 +89,9 @@ if (command === 'auth') {
     case 'project-create':
       projectCreate(args);
       break;
+    case 'project-edit':
+      projectEdit(args);
+      break;
     case 'project-rename':
       projectRename(args);
       break;
@@ -107,8 +111,8 @@ if (command === 'auth') {
       console.error('  workspace-list');
       console.error('  track            stop             entry-edit       entry-list       entry-delete');
       console.error('  week');
-      console.error('  project-list     project-create   project-rename   project-archive  project-restore');
-      console.error('  project-delete');
+      console.error('  project-list     project-create   project-edit     project-rename   project-archive');
+      console.error('  project-restore  project-delete');
       console.error('  tag-list         tag-create       tag-rename       tag-delete');
   }
 }
