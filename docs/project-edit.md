@@ -5,10 +5,13 @@ Edits an existing project in your workspace.
 ## Usage
 
 ```bash
-tgp project-edit <project_id> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]
+tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]
 ```
 
 At least one edit flag is required.
+`<project>` can be a numeric project ID or an exact project name. Quotes are
+only needed when your shell requires them, such as names containing spaces or
+special characters.
 
 ## Output
 
@@ -18,9 +21,9 @@ Project 1234567890 updated: name="Project Name" client="Acme Corp" color=#0b83d9
 
 ## Arguments
 
-| Argument     | Description              |
-| ------------ | ------------------------ |
-| `project_id` | Toggl project ID to edit |
+| Argument  | Description                              |
+| --------- | ---------------------------------------- |
+| `project` | Project ID or exact project name to edit |
 
 ## Flags
 
@@ -37,7 +40,16 @@ Project 1234567890 updated: name="Project Name" client="Acme Corp" color=#0b83d9
 
 ```bash
 tgp project-edit 1234567890 -n "Website Redesign"
-tgp project-edit 1234567890 -c "Acme Corp"
+tgp project-edit Backend -c "Acme Corp"
 tgp project-edit 1234567890 --client ""
-tgp project-edit 1234567890 --color "#ff0000" --public
+tgp project-edit "Old Project" --color "#ff0000" --public
 ```
+
+## Errors
+
+- `Project "<name>" not found.` — no project has that exact name
+- `Multiple projects match "<name>". Use the numeric project ID:` — more than
+  one project matches case-insensitively, including names that differ only by
+  case
+- Numeric-looking project names are interpreted as IDs and cannot be targeted by
+  name

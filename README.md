@@ -60,15 +60,15 @@ Coming soon — `client-list`, `client-add`, `client-rename`, `client-delete`.
 
 ### Projects
 
-| Command                          | Description             | Docs                                               |
-| -------------------------------- | ----------------------- | -------------------------------------------------- |
-| `tgp project-list`               | List workspace projects | [docs/project-list.md](docs/project-list.md)       |
-| `tgp project-create`             | Create a project        | [docs/project-create.md](docs/project-create.md)   |
-| `tgp project-edit <id>`          | Edit a project          | [docs/project-edit.md](docs/project-edit.md)       |
-| `tgp project-rename <id> <name>` | Rename a project        | [docs/project-rename.md](docs/project-rename.md)   |
-| `tgp project-delete <id>`        | Delete a project        | [docs/project-delete.md](docs/project-delete.md)   |
-| `tgp project-archive <id>`       | Archive a project       | [docs/project-archive.md](docs/project-archive.md) |
-| `tgp project-restore <id>`       | Restore a project       | [docs/project-restore.md](docs/project-restore.md) |
+| Command                               | Description             | Docs                                               |
+| ------------------------------------- | ----------------------- | -------------------------------------------------- |
+| `tgp project-list`                    | List workspace projects | [docs/project-list.md](docs/project-list.md)       |
+| `tgp project-create`                  | Create a project        | [docs/project-create.md](docs/project-create.md)   |
+| `tgp project-edit <project>`          | Edit a project          | [docs/project-edit.md](docs/project-edit.md)       |
+| `tgp project-rename <project> <name>` | Rename a project        | [docs/project-rename.md](docs/project-rename.md)   |
+| `tgp project-delete <project>`        | Delete a project        | [docs/project-delete.md](docs/project-delete.md)   |
+| `tgp project-archive <project>`       | Archive a project       | [docs/project-archive.md](docs/project-archive.md) |
+| `tgp project-restore <project>`       | Restore a project       | [docs/project-restore.md](docs/project-restore.md) |
 
 ### Tags
 

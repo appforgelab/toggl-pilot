@@ -1,6 +1,7 @@
 import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
+import { resolveProjectId } from '../projects.js';
 import { parseOrExit } from '../utils.js';
 
 interface Project {
@@ -13,7 +14,7 @@ interface Project {
 }
 
 interface ParsedArgs {
-  projectId: string;
+  project: string;
   name: string | null;
   client: string | null;
   color: string | null;
@@ -21,7 +22,7 @@ interface ParsedArgs {
 }
 
 const USAGE =
-  'Usage: tgp project-edit <project_id> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
+  'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
 const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
 
 function requireValue(args: string[], index: number, flagName: string): string {
@@ -32,18 +33,14 @@ function requireValue(args: string[], index: number, flagName: string): string {
 }
 
 export function parseArgs(args: string[]): ParsedArgs {
-  const projectId = args[0];
+  const project = args[0];
   let name: string | null = null;
   let client: string | null = null;
   let color: string | null = null;
   let isPrivate: boolean | null = null;
 
-  if (!projectId) {
+  if (!project) {
     throw new Error(USAGE);
-  }
-
-  if (isNaN(Number(projectId))) {
-    throw new Error(`Invalid project ID: "${projectId}". Must be a number.`);
   }
 
   for (let i = 1; i < args.length; i++) {
@@ -81,13 +78,21 @@ export function parseArgs(args: string[]): ParsedArgs {
     throw new Error('Nothing to edit. Provide at least one of: -n, -c, --color, --public, --private');
   }
 
-  return { projectId, name, client, color, isPrivate };
+  return { project, name, client, color, isPrivate };
 }
 
 export async function projectEdit(args: string[]) {
-  const { projectId, name, client, color, isPrivate } = parseOrExit(() => parseArgs(args));
+  const { project: projectInput, name, client, color, isPrivate } = parseOrExit(() => parseArgs(args));
   const wsId = await config.getWorkspaceId();
   const body: Record<string, unknown> = {};
+  let projectId: number;
+
+  try {
+    projectId = await resolveProjectId(wsId, projectInput);
+  } catch (e) {
+    console.error((e as Error).message);
+    process.exit(1);
+  }
 
   if (name !== null) {
     body.name = name;
@@ -120,7 +125,7 @@ export async function projectEdit(args: string[]) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes('404')) {
-      console.error(`Project ${projectId} not found.`);
+      console.error(`Project ${projectInput} not found.`);
       return;
     }
     throw e;
