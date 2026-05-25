@@ -17,7 +17,7 @@ interface ParsedArgs {
   name: string | null;
   client: string | null;
   color: string | null;
-  visibility: boolean | null;
+  isPrivate: boolean | null;
 }
 
 const USAGE =
@@ -36,7 +36,7 @@ export function parseArgs(args: string[]): ParsedArgs {
   let name: string | null = null;
   let client: string | null = null;
   let color: string | null = null;
-  let visibility: boolean | null = null;
+  let isPrivate: boolean | null = null;
 
   if (!projectId) {
     throw new Error(USAGE);
@@ -63,29 +63,29 @@ export function parseArgs(args: string[]): ParsedArgs {
       color = requireValue(args, i, '--color');
       i++;
     } else if (args[i] === '--public') {
-      if (visibility === true) {
+      if (isPrivate === true) {
         throw new Error('Cannot use both --public and --private.');
       }
-      visibility = false;
+      isPrivate = false;
     } else if (args[i] === '--private') {
-      if (visibility === false) {
+      if (isPrivate === false) {
         throw new Error('Cannot use both --public and --private.');
       }
-      visibility = true;
+      isPrivate = true;
     } else {
       throw new Error(`Unexpected argument: ${args[i]}.`);
     }
   }
 
-  if (name === null && client === null && color === null && visibility === null) {
+  if (name === null && client === null && color === null && isPrivate === null) {
     throw new Error('Nothing to edit. Provide at least one of: -n, -c, --color, --public, --private');
   }
 
-  return { projectId, name, client, color, visibility };
+  return { projectId, name, client, color, isPrivate };
 }
 
 export async function projectEdit(args: string[]) {
-  const { projectId, name, client, color, visibility } = parseOrExit(() => parseArgs(args));
+  const { projectId, name, client, color, isPrivate } = parseOrExit(() => parseArgs(args));
   const wsId = await config.getWorkspaceId();
   const body: Record<string, unknown> = {};
 
@@ -106,8 +106,8 @@ export async function projectEdit(args: string[]) {
     body.color = color;
   }
 
-  if (visibility !== null) {
-    body.is_private = visibility;
+  if (isPrivate !== null) {
+    body.is_private = isPrivate;
   }
 
   try {
