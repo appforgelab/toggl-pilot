@@ -56,7 +56,9 @@ Run `tgp` without arguments to see all available commands.
 
 ### Clients
 
-Coming soon — `client-list`, `client-add`, `client-rename`, `client-delete`.
+| Command           | Description            | Docs                                       |
+| ----------------- | ---------------------- | ------------------------------------------ |
+| `tgp client-list` | List workspace clients | [docs/client-list.md](docs/client-list.md) |
 
 ### Projects
 

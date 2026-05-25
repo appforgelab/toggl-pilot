@@ -4,6 +4,7 @@ import { hasConfig, ConfigNotFoundError } from './config.js';
 import { entryList } from './commands/entry-list.js';
 import { week } from './commands/week.js';
 import { projectList } from './commands/project-list.js';
+import { clientList } from './commands/client-list.js';
 import { workspaceList } from './commands/workspace-list.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
@@ -59,6 +60,9 @@ if (command === 'auth') {
     case 'project-list':
       projectList(args);
       break;
+    case 'client-list':
+      clientList(args);
+      break;
     case 'workspace-list':
       workspaceList();
       break;
@@ -111,6 +115,7 @@ if (command === 'auth') {
       console.error('  workspace-list');
       console.error('  track            stop             entry-edit       entry-list       entry-delete');
       console.error('  week');
+      console.error('  client-list');
       console.error('  project-list     project-create   project-edit     project-rename   project-archive');
       console.error('  project-restore  project-delete');
       console.error('  tag-list         tag-create       tag-rename       tag-delete');
