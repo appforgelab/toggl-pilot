@@ -16,6 +16,8 @@ import { entryEdit } from './commands/entry-edit.js';
 import { projectRename } from './commands/project-rename.js';
 import { projectCreate } from './commands/project-create.js';
 import { projectDelete } from './commands/project-delete.js';
+import { projectArchive } from './commands/project-archive.js';
+import { projectRestore } from './commands/project-restore.js';
 import { auth } from './commands/auth.js';
 import { version } from './commands/version.js';
 
@@ -92,14 +94,21 @@ if (command === 'auth') {
     case 'project-delete':
       projectDelete(args);
       break;
+    case 'project-archive':
+      projectArchive(args);
+      break;
+    case 'project-restore':
+      projectRestore(args);
+      break;
     default:
       console.error('Usage: tgp <command>');
       console.error('Commands:');
-      console.error('  auth           version         me');
+      console.error('  auth             version          me');
       console.error('  workspace-list');
-      console.error('  track          stop            entry-edit      entry-list      entry-delete');
+      console.error('  track            stop             entry-edit       entry-list       entry-delete');
       console.error('  week');
-      console.error('  project-list   project-create  project-rename  project-delete');
-      console.error('  tag-list       tag-create      tag-rename      tag-delete');
+      console.error('  project-list     project-create   project-rename   project-archive  project-restore');
+      console.error('  project-delete');
+      console.error('  tag-list         tag-create       tag-rename       tag-delete');
   }
 }
