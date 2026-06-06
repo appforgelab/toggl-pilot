@@ -28,10 +28,13 @@ export function getWeekBounds(refDate: Date): { monday: Date; sunday: Date; week
 }
 
 function getISOWeekNumber(date: Date): number {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const dayNum = d.getDay() || 7;
-  d.setDate(d.getDate() + 4 - dayNum);
-  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const day = date.getDate();
+  const d = new Date(Date.UTC(y, m, day));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
