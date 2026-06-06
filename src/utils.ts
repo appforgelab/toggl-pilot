@@ -46,12 +46,28 @@ export function buildStartTime(at: string, date?: string): string {
   return d.toISOString();
 }
 
+export function localYesterdayDate(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  d.setHours(12, 0, 0, 0);
+  return d;
+}
+
+export function formatLocalDate(d: Date): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function parseDateArg(args: string[]): Date {
   const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
   if (idx !== -1 && args[idx + 1]) {
-    const d = new Date(args[idx + 1] + 'T12:00:00');
+    const val = args[idx + 1];
+    if (val === 'yesterday') return localYesterdayDate();
+    const d = new Date(val + 'T12:00:00');
     if (!isNaN(d.getTime())) return d;
-    throw new Error(`Invalid date: ${args[idx + 1]}`);
+    throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD or "yesterday".`);
   }
   return new Date();
 }
