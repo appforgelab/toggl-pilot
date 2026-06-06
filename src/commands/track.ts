@@ -69,7 +69,10 @@ export function parseArgs(args: string[]): {
       at = args[++i];
     } else if (args[i] === '--dur' && args[i + 1]) {
       dur = args[++i];
-    } else if ((args[i] === '-d' || args[i] === '--date') && args[i + 1]) {
+    } else if (args[i] === '-d' || args[i] === '--date') {
+      if (!args[i + 1] || args[i + 1].startsWith('-')) {
+        throw new Error(`Missing value for ${args[i]}. Use YYYY-MM-DD or "yesterday".`);
+      }
       date = args[++i];
     } else if (!args[i].startsWith('-')) {
       description = args[i];

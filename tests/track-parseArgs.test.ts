@@ -97,6 +97,18 @@ describe('track parseArgs', () => {
     });
   });
 
+  it('throws on --date with no value', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '30m', '--date'])).toThrow(
+      'Missing value for --date'
+    );
+  });
+
+  it('throws on -d followed by another flag', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '30m', '-d', '-p', 'X'])).toThrow(
+      'Missing value for -d'
+    );
+  });
+
   it('throws on unknown flag', () => {
     expect(() => parseArgs(['Work', '--unknown'])).toThrow('Unknown flag');
   });
