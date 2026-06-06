@@ -1,5 +1,5 @@
 import { get, put } from '../api.js';
-import { parseDuration, parseOrExit } from '../utils.js';
+import { parseDuration, parseOrExit, requireFlagValue } from '../utils.js';
 
 interface TimeEntry {
   id: number;
@@ -97,14 +97,18 @@ export function parseArgs(args: string[]): {
       );
     }
 
-    if ((args[i] === '-d' || args[i] === '--description') && args[i + 1]) {
-      description = args[++i];
-    } else if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
-      project = args[++i];
-    } else if ((args[i] === '-t' || args[i] === '--tags') && i + 1 < args.length) {
-      tags = normalizeTags(args[++i].split(','));
-    } else if (args[i] === '--dur' && args[i + 1]) {
-      dur = args[++i];
+    if (args[i] === '-d' || args[i] === '--description') {
+      description = requireFlagValue(args, i, args[i]);
+      i++;
+    } else if (args[i] === '-p' || args[i] === '--project') {
+      project = requireFlagValue(args, i, args[i]);
+      i++;
+    } else if (args[i] === '-t' || args[i] === '--tags') {
+      tags = normalizeTags(requireFlagValue(args, i, args[i]).split(','));
+      i++;
+    } else if (args[i] === '--dur') {
+      dur = requireFlagValue(args, i, args[i]);
+      i++;
     } else if (!args[i].startsWith('-') && !id) {
       id = args[i];
     }

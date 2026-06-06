@@ -86,7 +86,49 @@ describe('projectEdit command', () => {
 
     await expect(projectEdit(['456', '--color'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('--color requires a value.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when flag value is another flag (--color --name)', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectEdit(['456', '--color', '--name', 'foo'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when -n is followed by another flag', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectEdit(['456', '-n', '--public'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -n.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when --client is followed by another flag', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectEdit(['456', '--client', '--color', 'red'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --client.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();

@@ -120,4 +120,40 @@ describe('track parseArgs', () => {
   it('throws on empty args', () => {
     expect(() => parseArgs([])).toThrow('Usage');
   });
+
+  it('throws on -p with no value', () => {
+    expect(() => parseArgs(['Work', '-p'])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on --project with no value', () => {
+    expect(() => parseArgs(['Work', '--project'])).toThrow('Missing value for --project.');
+  });
+
+  it('throws on -t with no value', () => {
+    expect(() => parseArgs(['Work', '-t'])).toThrow('Missing value for -t.');
+  });
+
+  it('throws on --tags with no value', () => {
+    expect(() => parseArgs(['Work', '--tags'])).toThrow('Missing value for --tags.');
+  });
+
+  it('throws on --at with no value', () => {
+    expect(() => parseArgs(['Work', '--at'])).toThrow('Missing value for --at.');
+  });
+
+  it('throws on --dur with no value', () => {
+    expect(() => parseArgs(['Work', '--dur'])).toThrow('Missing value for --dur.');
+  });
+
+  it('throws on -p followed by another flag', () => {
+    expect(() => parseArgs(['Work', '-p', '-t', 'foo'])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on --at followed by --dur (issue example)', () => {
+    expect(() => parseArgs(['Work', '--at', '--dur', '30m'])).toThrow('Missing value for --at.');
+  });
+
+  it('throws on --dur followed by another flag', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '--at'])).toThrow('Missing value for --dur.');
+  });
 });
