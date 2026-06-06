@@ -16,29 +16,29 @@ interface TimeEntry {
 
 export function getWeekBounds(refDate: Date): { monday: Date; sunday: Date; weekNumber: number } {
   const d = new Date(refDate);
-  d.setUTCHours(12, 0, 0, 0);
-  const dayOfWeek = d.getUTCDay();
+  d.setHours(12, 0, 0, 0);
+  const dayOfWeek = d.getDay();
   const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(d);
-  monday.setUTCDate(d.getUTCDate() + offsetToMonday);
+  monday.setDate(d.getDate() + offsetToMonday);
   const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
+  sunday.setDate(monday.getDate() + 6);
   const weekNumber = getISOWeekNumber(monday);
   return { monday, sunday, weekNumber };
 }
 
 function getISOWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayNum = d.getDay() || 7;
+  d.setDate(d.getDate() + 4 - dayNum);
+  const yearStart = new Date(d.getFullYear(), 0, 1);
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function formatShortDate(date: Date): string {
-  return `${MONTHS[date.getUTCMonth()]} ${String(date.getUTCDate()).padStart(2, '0')}`;
+  return `${MONTHS[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function findFlag(args: string[], ...flags: string[]): number {
@@ -65,7 +65,7 @@ export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean
     if (isNaN(offset)) throw new Error(`Invalid week: ${val}`);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const targetMonday = new Date(currentMonday);
-    targetMonday.setUTCDate(currentMonday.getUTCDate() + offset * 7);
+    targetMonday.setDate(currentMonday.getDate() + offset * 7);
     return { refDate: targetMonday, verbose };
   }
 
@@ -80,7 +80,7 @@ export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function getDayIndex(isoStart: string): number {
-  const dow = new Date(isoStart).getUTCDay();
+  const dow = new Date(isoStart).getDay();
   return dow === 0 ? 6 : dow - 1;
 }
 
