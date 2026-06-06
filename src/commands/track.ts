@@ -2,6 +2,15 @@ import { config } from '../config.js';
 import { get, post } from '../api.js';
 import { parseDuration, buildStartTime, parseOrExit } from '../utils.js';
 
+function formatLocalYesterday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 interface Project {
   id: number;
   name: string;
@@ -104,8 +113,7 @@ export async function track(args: string[]) {
     process.exit(1);
   }
 
-  const resolvedDate =
-    rawDate === 'yesterday' ? new Date(Date.now() - 86400000).toISOString().split('T')[0] : rawDate;
+  const resolvedDate = rawDate === 'yesterday' ? formatLocalYesterday() : rawDate;
 
   if (resolvedDate !== null) {
     const d = new Date(resolvedDate + 'T12:00:00');

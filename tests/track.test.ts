@@ -218,4 +218,33 @@ describe('track command', () => {
 
     vi.useRealTimers();
   });
+
+  it('yesterday resolves correctly around midnight (local calendar)', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T00:30:00'));
+
+    mockedPost.mockResolvedValue({
+      id: 3002,
+      description: 'Late work',
+      start: expect.any(String),
+      duration: 1800,
+      project_id: null,
+      project_name: null,
+      tags: null,
+      workspace_id: 123,
+    });
+
+    await track(['Late work', '--at', '23:30', '--dur', '30m', '-d', 'yesterday']);
+
+    expect(mockedPost).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries',
+      expect.objectContaining({
+        start: new Date('2025-06-14T23:30:00').toISOString(),
+        duration: 30 * 60,
+        description: 'Late work',
+      })
+    );
+
+    vi.useRealTimers();
+  });
 });
