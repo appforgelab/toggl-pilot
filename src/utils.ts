@@ -56,10 +56,28 @@ export function localYesterdayDate(): Date {
   return d;
 }
 
+export function requireFlagValue(
+  args: string[],
+  index: number,
+  flagName: string,
+  options: { hint?: string; allowEmpty?: boolean } = {}
+): string {
+  const val = args[index + 1];
+  const hintSuffix = options.hint ? ` ${options.hint}` : '';
+  if (val === undefined || (val !== '' && val.startsWith('-'))) {
+    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
+  }
+  if (val === '' && !options.allowEmpty) {
+    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
+  }
+  return val;
+}
+
 export function parseDateArg(args: string[]): Date {
   const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
-  if (idx !== -1 && args[idx + 1]) {
-    const val = args[idx + 1];
+  if (idx !== -1) {
+    const flag = args[idx];
+    const val = requireFlagValue(args, idx, flag, { hint: 'Use YYYY-MM-DD or "yesterday".' });
     if (val === 'yesterday') return localYesterdayDate();
     const d = new Date(val + 'T12:00:00');
     if (!isNaN(d.getTime())) return d;

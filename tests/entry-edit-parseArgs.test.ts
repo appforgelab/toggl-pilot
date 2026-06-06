@@ -76,4 +76,52 @@ describe('entry-edit parseArgs', () => {
     expect(result.description).toBe('Desc');
     expect(result.dur).toBe('45m');
   });
+
+  it('throws on -d with no value', () => {
+    expect(() => parseArgs(['12345', '-d'])).toThrow('Missing value for -d.');
+  });
+
+  it('throws on --description with no value', () => {
+    expect(() => parseArgs(['12345', '--description'])).toThrow('Missing value for --description.');
+  });
+
+  it('throws on -p with no value', () => {
+    expect(() => parseArgs(['12345', '-p'])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on --project with no value', () => {
+    expect(() => parseArgs(['12345', '--project'])).toThrow('Missing value for --project.');
+  });
+
+  it('throws on --tags with no value', () => {
+    expect(() => parseArgs(['12345', '--tags'])).toThrow('Missing value for --tags.');
+  });
+
+  it('throws on --dur with no value', () => {
+    expect(() => parseArgs(['12345', '--dur'])).toThrow('Missing value for --dur.');
+  });
+
+  it('throws on -p followed by another flag', () => {
+    expect(() => parseArgs(['12345', '-p', '-t', 'foo'])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on -d followed by -p', () => {
+    expect(() => parseArgs(['12345', '-d', '-p', 'X'])).toThrow('Missing value for -d.');
+  });
+
+  it('throws on --dur followed by another flag', () => {
+    expect(() => parseArgs(['12345', '--dur', '-d', 'desc'])).toThrow('Missing value for --dur.');
+  });
+
+  it('throws on -d with empty value', () => {
+    expect(() => parseArgs(['12345', '-d', ''])).toThrow('Missing value for -d.');
+  });
+
+  it('throws on -p with empty value', () => {
+    expect(() => parseArgs(['12345', '-p', ''])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on --dur with empty value', () => {
+    expect(() => parseArgs(['12345', '--dur', ''])).toThrow('Missing value for --dur.');
+  });
 });

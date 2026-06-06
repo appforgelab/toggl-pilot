@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit } from '../utils.js';
+import { parseOrExit, requireFlagValue } from '../utils.js';
 
 interface Project {
   id: number;
@@ -25,13 +25,6 @@ const USAGE =
   'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
 const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
 
-function requireValue(args: string[], index: number, flagName: string): string {
-  if (index + 1 >= args.length) {
-    throw new Error(`${flagName} requires a value.`);
-  }
-  return args[index + 1];
-}
-
 export function parseArgs(args: string[]): ParsedArgs {
   const project = args[0];
   let name: string | null = null;
@@ -51,13 +44,13 @@ export function parseArgs(args: string[]): ParsedArgs {
     }
 
     if (args[i] === '-n' || args[i] === '--name') {
-      name = requireValue(args, i, '--name');
+      name = requireFlagValue(args, i, args[i]);
       i++;
     } else if (args[i] === '-c' || args[i] === '--client') {
-      client = requireValue(args, i, '--client');
+      client = requireFlagValue(args, i, args[i], { allowEmpty: true });
       i++;
     } else if (args[i] === '--color') {
-      color = requireValue(args, i, '--color');
+      color = requireFlagValue(args, i, args[i]);
       i++;
     } else if (args[i] === '--public') {
       if (isPrivate === true) {

@@ -227,7 +227,7 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '--color'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('--color requires a value.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -241,7 +241,63 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '-c'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('--client requires a value.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when --color is followed by another flag', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '--color', '--public'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when -c is followed by another flag', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '-c', '--color', 'red'])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when --color value is empty', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '--color', ''])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('exits when -c value is empty', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(projectCreate(['Project', '-c', ''])).rejects.toThrow('exit');
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();

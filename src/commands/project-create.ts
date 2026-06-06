@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit } from '../utils.js';
+import { parseOrExit, requireFlagValue } from '../utils.js';
 
 interface Project {
   id: number;
@@ -24,11 +24,11 @@ function parseArgs(args: string[]) {
     }
 
     if (args[i] === '-c' || args[i] === '--client') {
-      if (!args[i + 1]) throw new Error('--client requires a value.');
-      client = args[++i];
+      client = requireFlagValue(args, i, args[i] === '-c' ? '-c' : '--client');
+      i++;
     } else if (args[i] === '--color') {
-      if (!args[i + 1]) throw new Error('--color requires a value.');
-      color = args[++i];
+      color = requireFlagValue(args, i, '--color');
+      i++;
     } else if (args[i] === '--public') {
       isPublic = true;
     } else if (!args[i].startsWith('-')) {

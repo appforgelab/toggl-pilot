@@ -1,6 +1,13 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import { parseDuration, buildStartTime, parseOrExit, localYesterdayDate, formatDate } from '../utils.js';
+import {
+  parseDuration,
+  buildStartTime,
+  parseOrExit,
+  localYesterdayDate,
+  formatDate,
+  requireFlagValue,
+} from '../utils.js';
 
 function isValidCalendarDate(s: string): boolean {
   const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -52,19 +59,23 @@ export function parseArgs(args: string[]): {
       );
     }
 
-    if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
-      project = args[++i];
-    } else if ((args[i] === '-t' || args[i] === '--tags') && args[i + 1]) {
-      tags = args[++i].split(',').map((t) => t.trim());
-    } else if (args[i] === '--at' && args[i + 1]) {
-      at = args[++i];
-    } else if (args[i] === '--dur' && args[i + 1]) {
-      dur = args[++i];
+    if (args[i] === '-p' || args[i] === '--project') {
+      project = requireFlagValue(args, i, args[i]);
+      i++;
+    } else if (args[i] === '-t' || args[i] === '--tags') {
+      tags = requireFlagValue(args, i, args[i])
+        .split(',')
+        .map((t) => t.trim());
+      i++;
+    } else if (args[i] === '--at') {
+      at = requireFlagValue(args, i, args[i]);
+      i++;
+    } else if (args[i] === '--dur') {
+      dur = requireFlagValue(args, i, args[i]);
+      i++;
     } else if (args[i] === '-d' || args[i] === '--date') {
-      if (!args[i + 1] || args[i + 1].startsWith('-')) {
-        throw new Error(`Missing value for ${args[i]}. Use YYYY-MM-DD or "yesterday".`);
-      }
-      date = args[++i];
+      date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
+      i++;
     } else if (!args[i].startsWith('-')) {
       description = args[i];
     }

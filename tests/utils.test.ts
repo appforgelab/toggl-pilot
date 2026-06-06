@@ -8,6 +8,7 @@ import {
   parseDateArg,
   parseOrExit,
   localYesterdayDate,
+  requireFlagValue,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -247,5 +248,67 @@ describe('parseOrExit', () => {
 
     errorSpy.mockRestore();
     exitSpy.mockRestore();
+  });
+});
+
+describe('requireFlagValue', () => {
+  it('returns the next arg when present and not a flag', () => {
+    expect(requireFlagValue(['-p', 'Dev-Pilot'], 0, '-p')).toBe('Dev-Pilot');
+  });
+
+  it('throws when the flag is the last arg', () => {
+    expect(() => requireFlagValue(['-p'], 0, '-p')).toThrow('Missing value for -p.');
+  });
+
+  it('throws when the next arg starts with -', () => {
+    expect(() => requireFlagValue(['-p', '--dur', '30m'], 0, '-p')).toThrow('Missing value for -p.');
+  });
+
+  it('throws on empty string by default', () => {
+    expect(() => requireFlagValue(['-p', ''], 0, '-p')).toThrow('Missing value for -p.');
+  });
+
+  it('returns an empty string when allowEmpty is true', () => {
+    expect(requireFlagValue(['--client', ''], 0, '--client', { allowEmpty: true })).toBe('');
+  });
+
+  it('still rejects the next arg starting with - even when allowEmpty is true', () => {
+    expect(() => requireFlagValue(['--client', '--name', 'X'], 0, '--client', { allowEmpty: true })).toThrow(
+      'Missing value for --client.'
+    );
+  });
+
+  it('includes a hint in the error message', () => {
+    expect(() => requireFlagValue(['-d'], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
+      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
+    );
+  });
+
+  it('includes a hint even when allowEmpty is true and value is empty', () => {
+    expect(() => requireFlagValue(['-d', ''], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
+      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
+    );
+  });
+});
+
+describe('parseDateArg missing-value behavior', () => {
+  it('throws when -d is the last arg', () => {
+    expect(() => parseDateArg(['-d'])).toThrow('Missing value for -d');
+  });
+
+  it('throws when -d is followed by another flag', () => {
+    expect(() => parseDateArg(['-d', '--foo'])).toThrow('Missing value for -d');
+  });
+
+  it('throws when --date is the last arg', () => {
+    expect(() => parseDateArg(['--date'])).toThrow('Missing value for --date');
+  });
+
+  it('throws when --date is followed by another flag', () => {
+    expect(() => parseDateArg(['--date', '-v'])).toThrow('Missing value for --date');
+  });
+
+  it('throws when -d value is empty', () => {
+    expect(() => parseDateArg(['-d', ''])).toThrow('Missing value for -d');
   });
 });
