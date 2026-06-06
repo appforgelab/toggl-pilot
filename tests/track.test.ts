@@ -161,6 +161,32 @@ describe('track command', () => {
     exitSpy.mockRestore();
   });
 
+  it('exits on impossible calendar date (Feb 31)', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+
+    await expect(track(['Work', '--at', '09:00', '--dur', '30m', '--date', '2025-02-31'])).rejects.toThrow(
+      'exit'
+    );
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+  });
+
+  it('exits on malformed date (MM-DD-YYYY)', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+
+    await expect(track(['Work', '--at', '09:00', '--dur', '30m', '--date', '06-15-2025'])).rejects.toThrow(
+      'exit'
+    );
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+  });
+
   it('creates a timed entry with --date for a specific date', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));

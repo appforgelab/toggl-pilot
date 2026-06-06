@@ -2,6 +2,16 @@ import { config } from '../config.js';
 import { get, post } from '../api.js';
 import { parseDuration, buildStartTime, parseOrExit } from '../utils.js';
 
+function isValidCalendarDate(s: string): boolean {
+  const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const y = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const d = parseInt(match[3], 10);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
 function formatLocalYesterday(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
@@ -115,12 +125,9 @@ export async function track(args: string[]) {
 
   const resolvedDate = rawDate === 'yesterday' ? formatLocalYesterday() : rawDate;
 
-  if (resolvedDate !== null) {
-    const d = new Date(resolvedDate + 'T12:00:00');
-    if (isNaN(d.getTime())) {
-      console.error(`Invalid date: ${rawDate}. Use YYYY-MM-DD or "yesterday".`);
-      process.exit(1);
-    }
+  if (resolvedDate !== null && !isValidCalendarDate(resolvedDate)) {
+    console.error(`Invalid date: ${rawDate}. Use YYYY-MM-DD or "yesterday".`);
+    process.exit(1);
   }
 
   const startTime = at ? buildStartTime(at, resolvedDate ?? undefined) : new Date().toISOString();
