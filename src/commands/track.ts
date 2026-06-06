@@ -18,7 +18,7 @@ interface TimeEntry {
   workspace_id: number;
 }
 
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur']);
+const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
 
 export function parseArgs(args: string[]): {
   description: string;
@@ -26,16 +26,20 @@ export function parseArgs(args: string[]): {
   tags: string[];
   at: string | null;
   dur: string | null;
+  date: string | null;
 } {
   let description = '';
   let project: string | null = null;
   let tags: string[] = [];
   let at: string | null = null;
   let dur: string | null = null;
+  let date: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -p/--project, -t/--tags, --at, --dur`);
+      throw new Error(
+        `Unknown flag: ${args[i]}. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date`
+      );
     }
 
     if ((args[i] === '-p' || args[i] === '--project') && args[i + 1]) {
@@ -46,6 +50,8 @@ export function parseArgs(args: string[]): {
       at = args[++i];
     } else if (args[i] === '--dur' && args[i + 1]) {
       dur = args[++i];
+    } else if ((args[i] === '-d' || args[i] === '--date') && args[i + 1]) {
+      date = args[++i];
     } else if (!args[i].startsWith('-')) {
       description = args[i];
     }
@@ -53,15 +59,22 @@ export function parseArgs(args: string[]): {
 
   if (!description) {
     throw new Error(
-      'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]'
+      'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]'
     );
   }
 
-  return { description, project, tags, at, dur };
+  return { description, project, tags, at, dur, date };
 }
 
 export async function track(args: string[]) {
-  const { description, project: projectName, tags, at, dur } = parseOrExit(() => parseArgs(args));
+  const {
+    description,
+    project: projectName,
+    tags,
+    at,
+    dur,
+    date: rawDate,
+  } = parseOrExit(() => parseArgs(args));
   const wsId = await config.getWorkspaceId();
 
   let projectId: number | null = null;
@@ -86,7 +99,23 @@ export async function track(args: string[]) {
     process.exit(1);
   }
 
-  const startTime = at ? buildStartTime(at) : new Date().toISOString();
+  if (rawDate !== null && !isTimed) {
+    console.error('--date requires both --at and --dur (cannot start a running timer in the past).');
+    process.exit(1);
+  }
+
+  const resolvedDate =
+    rawDate === 'yesterday' ? new Date(Date.now() - 86400000).toISOString().split('T')[0] : rawDate;
+
+  if (resolvedDate !== null) {
+    const d = new Date(resolvedDate + 'T12:00:00');
+    if (isNaN(d.getTime())) {
+      console.error(`Invalid date: ${rawDate}. Use YYYY-MM-DD or "yesterday".`);
+      process.exit(1);
+    }
+  }
+
+  const startTime = at ? buildStartTime(at, resolvedDate ?? undefined) : new Date().toISOString();
   const duration = dur ? parseDuration(dur) : -1;
 
   const entry = await post<TimeEntry>(`/workspaces/${wsId}/time_entries`, {

@@ -39,9 +39,9 @@ export function formatTime(iso: string): string {
   });
 }
 
-export function buildStartTime(at: string): string {
-  const today = new Date().toISOString().split('T')[0];
-  const d = new Date(`${today}T${at}:00`);
+export function buildStartTime(at: string, date?: string): string {
+  const day = date ?? new Date().toISOString().split('T')[0];
+  const d = new Date(`${day}T${at}:00`);
   if (isNaN(d.getTime())) throw new Error(`Invalid time: ${at}. Use HH:MM format.`);
   return d.toISOString();
 }

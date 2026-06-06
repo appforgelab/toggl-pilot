@@ -5,7 +5,7 @@ Starts a running timer or logs a completed time entry with project and tags.
 ## Usage
 
 ```bash
-tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m]
+tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]
 ```
 
 ## Running Timer
@@ -28,14 +28,26 @@ tgp track "Code review" -p "Dev-Pilot" --at 10:00 --dur 1h
 tgp track "Bug fix" -p "Dev-Pilot" -t dev,bug --at 14:00 --dur 1h30m
 ```
 
+## Log Entry for a Past Day
+
+Add `--date` (or `-d`) with an ISO date or `yesterday`:
+
+```bash
+tgp track "Morning standup" --at 09:00 --dur 30m --date yesterday
+tgp track "Bug fix" -p "Dev-Pilot" --at 14:00 --dur 1h --date 2025-06-05
+```
+
+`--date` requires both `--at` and `--dur` (you cannot start a running timer in the past).
+
 ## Options
 
-| Flag        | Short | Description                                            |
-| ----------- | ----- | ------------------------------------------------------ |
-| `--project` | `-p`  | Project name (case-insensitive)                        |
-| `--tags`    | `-t`  | Comma-separated tag names                              |
-| `--at`      |       | Start time in HH:MM format (today) — requires `--dur`  |
-| `--dur`     |       | Duration (e.g. `30m`, `1h`, `1h30m`) — requires `--at` |
+| Flag        | Short | Description                                                    |
+| ----------- | ----- | -------------------------------------------------------------- |
+| `--project` | `-p`  | Project name (case-insensitive)                                |
+| `--tags`    | `-t`  | Comma-separated tag names                                      |
+| `--at`      |       | Start time in HH:MM format — requires `--dur`                  |
+| `--dur`     |       | Duration (e.g. `30m`, `1h`, `1h30m`) — requires `--at`         |
+| `--date`    | `-d`  | Date (`YYYY-MM-DD` or `yesterday`) — requires `--at` + `--dur` |
 
 ## Project Lookup
 

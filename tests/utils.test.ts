@@ -107,6 +107,18 @@ describe('buildStartTime', () => {
   it('throws on non-HH:MM input', () => {
     expect(() => buildStartTime('abc')).toThrow('Invalid time');
   });
+
+  it('builds ISO string for a specific date', () => {
+    const result = buildStartTime('09:00', '2025-06-10');
+    const expected = new Date('2025-06-10T09:00:00').toISOString();
+    expect(result).toBe(expected);
+  });
+
+  it('builds ISO string for yesterday date', () => {
+    const result = buildStartTime('14:30', '2025-06-14');
+    const expected = new Date('2025-06-14T14:30:00').toISOString();
+    expect(result).toBe(expected);
+  });
 });
 
 describe('parseDateArg', () => {
