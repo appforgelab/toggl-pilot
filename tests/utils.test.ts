@@ -109,7 +109,7 @@ describe('formatTime', () => {
 describe('buildStartTime', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
+    vi.setSystemTime(new Date(2025, 5, 15, 12, 0, 0));
   });
 
   afterEach(() => {
@@ -118,7 +118,7 @@ describe('buildStartTime', () => {
 
   it('builds ISO string from HH:MM for today', () => {
     const result = buildStartTime('09:00');
-    const expected = new Date('2025-06-15T09:00:00').toISOString();
+    const expected = new Date(2025, 5, 15, 9, 0, 0).toISOString();
     expect(result).toBe(expected);
   });
 
@@ -132,13 +132,13 @@ describe('buildStartTime', () => {
 
   it('builds ISO string for a specific date', () => {
     const result = buildStartTime('09:00', '2025-06-10');
-    const expected = new Date('2025-06-10T09:00:00').toISOString();
+    const expected = new Date(2025, 5, 10, 9, 0, 0).toISOString();
     expect(result).toBe(expected);
   });
 
   it('builds ISO string for yesterday date', () => {
     const result = buildStartTime('14:30', '2025-06-14');
-    const expected = new Date('2025-06-14T14:30:00').toISOString();
+    const expected = new Date(2025, 5, 14, 14, 30, 0).toISOString();
     expect(result).toBe(expected);
   });
 
@@ -155,17 +155,17 @@ describe('parseDateArg', () => {
   it('returns today when no -d flag', () => {
     const result = parseDateArg([]);
     const today = new Date();
-    expect(result.toISOString().slice(0, 10)).toBe(today.toISOString().slice(0, 10));
+    expect(formatDate(result)).toBe(formatDate(today));
   });
 
   it('parses -d flag with date', () => {
     const result = parseDateArg(['-d', '2025-01-15']);
-    expect(result.toISOString().slice(0, 10)).toBe('2025-01-15');
+    expect(formatDate(result)).toBe('2025-01-15');
   });
 
   it('parses --date flag with date', () => {
     const result = parseDateArg(['--date', '2025-03-20']);
-    expect(result.toISOString().slice(0, 10)).toBe('2025-03-20');
+    expect(formatDate(result)).toBe('2025-03-20');
   });
 
   it('parses -d yesterday', () => {

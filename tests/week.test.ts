@@ -179,11 +179,9 @@ describe('buildProjectDayMap', () => {
       [20, 'Beta'],
     ]);
     const result = buildProjectDayMap(entries, projectMap);
-    const may4Idx = localDayIndex('2026-05-04T09:00:00Z');
-    const may5Idx = localDayIndex('2026-05-05T09:00:00Z');
-    expect(result.get('Alpha')![may4Idx]).toBe(3600);
-    expect(result.get('Alpha')![may5Idx]).toBe(7200);
-    expect(result.get('Beta')![may4Idx]).toBe(1800);
+    expect(result.get('Alpha')![localDayIndex('2026-05-04T09:00:00Z')]).toBe(3600);
+    expect(result.get('Alpha')![localDayIndex('2026-05-05T09:00:00Z')]).toBe(7200);
+    expect(result.get('Beta')![localDayIndex('2026-05-04T10:00:00Z')]).toBe(1800);
   });
 
   it('groups entries without project as —', () => {
