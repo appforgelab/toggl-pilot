@@ -1,15 +1,6 @@
 import { get, put } from '../api.js';
+import type { TimeEntry } from '../types.js';
 import { formatDuration } from '../utils.js';
-
-interface TimeEntry {
-  id: number;
-  description: string;
-  start: string;
-  stop: string | null;
-  duration: number;
-  project_name: string | null;
-  workspace_id: number;
-}
 
 export async function stop() {
   const current = await get<TimeEntry | null>('/me/time_entries/current');
