@@ -9,6 +9,7 @@ import { workspaceList } from './commands/workspace-list.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
+import { resume } from './commands/resume.js';
 import { tagList } from './commands/tag-list.js';
 import { tagCreate } from './commands/tag-create.js';
 import { tagRename } from './commands/tag-rename.js';
@@ -75,6 +76,9 @@ if (command === 'auth') {
     case 'stop':
       stop();
       break;
+    case 'resume':
+      resume();
+      break;
     case 'tag-list':
       tagList();
       break;
@@ -113,7 +117,9 @@ if (command === 'auth') {
       console.error('Commands:');
       console.error('  auth             version          me');
       console.error('  workspace-list');
-      console.error('  track            stop             entry-edit       entry-list       entry-delete');
+      console.error(
+        '  track            stop             resume           entry-edit       entry-list       entry-delete'
+      );
       console.error('  week');
       console.error('  client-list');
       console.error('  project-list     project-create   project-edit     project-rename   project-archive');

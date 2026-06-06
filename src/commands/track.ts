@@ -1,5 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
+import type { TimeEntry } from '../types.js';
 import {
   parseDuration,
   buildStartTime,
@@ -22,17 +23,6 @@ function isValidCalendarDate(s: string): boolean {
 interface Project {
   id: number;
   name: string;
-}
-
-interface TimeEntry {
-  id: number;
-  description: string;
-  start: string;
-  duration: number;
-  project_id: number | null;
-  project_name: string | null;
-  tags: string[] | null;
-  workspace_id: number;
 }
 
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
