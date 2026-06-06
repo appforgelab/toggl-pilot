@@ -7,6 +7,8 @@ import {
   buildStartTime,
   parseDateArg,
   parseOrExit,
+  localYesterdayDate,
+  formatLocalDate,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -138,8 +140,67 @@ describe('parseDateArg', () => {
     expect(result.toISOString().slice(0, 10)).toBe('2025-03-20');
   });
 
+  it('parses -d yesterday', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00'));
+    const result = parseDateArg(['-d', 'yesterday']);
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(5);
+    expect(result.getDate()).toBe(14);
+    vi.useRealTimers();
+  });
+
+  it('yesterday resolves correctly around midnight', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T00:30:00'));
+    const result = parseDateArg(['--date', 'yesterday']);
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(5);
+    expect(result.getDate()).toBe(14);
+    vi.useRealTimers();
+  });
+
   it('throws on invalid date', () => {
     expect(() => parseDateArg(['-d', 'not-a-date'])).toThrow('Invalid date');
+  });
+});
+
+describe('localYesterdayDate', () => {
+  it('returns yesterday in local calendar', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00'));
+    const result = localYesterdayDate();
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(5);
+    expect(result.getDate()).toBe(14);
+    vi.useRealTimers();
+  });
+
+  it('works correctly around midnight', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T00:30:00'));
+    const result = localYesterdayDate();
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(5);
+    expect(result.getDate()).toBe(14);
+    vi.useRealTimers();
+  });
+
+  it('works across month boundary', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-03-01T12:00:00'));
+    const result = localYesterdayDate();
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(1);
+    expect(result.getDate()).toBe(28);
+    vi.useRealTimers();
+  });
+});
+
+describe('formatLocalDate', () => {
+  it('formats a date as YYYY-MM-DD using local components', () => {
+    const d = new Date(2025, 5, 14);
+    expect(formatLocalDate(d)).toBe('2025-06-14');
   });
 });
 

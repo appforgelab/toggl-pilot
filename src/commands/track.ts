@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import { parseDuration, buildStartTime, parseOrExit } from '../utils.js';
+import { parseDuration, buildStartTime, parseOrExit, localYesterdayDate, formatLocalDate } from '../utils.js';
 
 function isValidCalendarDate(s: string): boolean {
   const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -10,15 +10,6 @@ function isValidCalendarDate(s: string): boolean {
   const d = parseInt(match[3], 10);
   const dt = new Date(y, m - 1, d);
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
-}
-
-function formatLocalYesterday(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
 }
 
 interface Project {
@@ -126,7 +117,7 @@ export async function track(args: string[]) {
     process.exit(1);
   }
 
-  const resolvedDate = rawDate === 'yesterday' ? formatLocalYesterday() : rawDate;
+  const resolvedDate = rawDate === 'yesterday' ? formatLocalDate(localYesterdayDate()) : rawDate;
 
   if (resolvedDate !== null && !isValidCalendarDate(resolvedDate)) {
     console.error(`Invalid date: ${rawDate}. Use YYYY-MM-DD or "yesterday".`);
