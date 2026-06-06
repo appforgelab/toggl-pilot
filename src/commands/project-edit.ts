@@ -47,7 +47,7 @@ export function parseArgs(args: string[]): ParsedArgs {
       name = requireFlagValue(args, i, args[i]);
       i++;
     } else if (args[i] === '-c' || args[i] === '--client') {
-      client = requireFlagValue(args, i, args[i]);
+      client = requireFlagValue(args, i, args[i], { allowEmpty: true });
       i++;
     } else if (args[i] === '--color') {
       color = requireFlagValue(args, i, args[i]);

@@ -74,7 +74,7 @@ export function parseArgs(args: string[]): {
       dur = requireFlagValue(args, i, args[i]);
       i++;
     } else if (args[i] === '-d' || args[i] === '--date') {
-      date = requireFlagValue(args, i, args[i], 'Use YYYY-MM-DD or "yesterday".');
+      date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
       i++;
     } else if (!args[i].startsWith('-')) {
       description = args[i];

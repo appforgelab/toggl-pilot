@@ -104,7 +104,7 @@ export function parseArgs(args: string[]): {
       project = requireFlagValue(args, i, args[i]);
       i++;
     } else if (args[i] === '-t' || args[i] === '--tags') {
-      tags = normalizeTags(requireFlagValue(args, i, args[i]).split(','));
+      tags = normalizeTags(requireFlagValue(args, i, args[i], { allowEmpty: true }).split(','));
       i++;
     } else if (args[i] === '--dur') {
       dur = requireFlagValue(args, i, args[i]);

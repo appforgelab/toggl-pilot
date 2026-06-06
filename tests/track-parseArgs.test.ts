@@ -156,4 +156,20 @@ describe('track parseArgs', () => {
   it('throws on --dur followed by another flag', () => {
     expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '--at'])).toThrow('Missing value for --dur.');
   });
+
+  it('throws on --dur with empty value (would create running timer with timed path)', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', ''])).toThrow('Missing value for --dur.');
+  });
+
+  it('throws on --at with empty value', () => {
+    expect(() => parseArgs(['Work', '--at', '', '--dur', '30m'])).toThrow('Missing value for --at.');
+  });
+
+  it('throws on -p with empty value', () => {
+    expect(() => parseArgs(['Work', '-p', ''])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on -t with empty value', () => {
+    expect(() => parseArgs(['Work', '-t', ''])).toThrow('Missing value for -t.');
+  });
 });

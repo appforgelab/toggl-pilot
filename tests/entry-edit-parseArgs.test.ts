@@ -112,4 +112,16 @@ describe('entry-edit parseArgs', () => {
   it('throws on --dur followed by another flag', () => {
     expect(() => parseArgs(['12345', '--dur', '-d', 'desc'])).toThrow('Missing value for --dur.');
   });
+
+  it('throws on -d with empty value', () => {
+    expect(() => parseArgs(['12345', '-d', ''])).toThrow('Missing value for -d.');
+  });
+
+  it('throws on -p with empty value', () => {
+    expect(() => parseArgs(['12345', '-p', ''])).toThrow('Missing value for -p.');
+  });
+
+  it('throws on --dur with empty value', () => {
+    expect(() => parseArgs(['12345', '--dur', ''])).toThrow('Missing value for --dur.');
+  });
 });
