@@ -145,7 +145,8 @@ describe('buildStartTime', () => {
   it('uses local calendar day as default when no date provided', () => {
     vi.setSystemTime(new Date(2025, 5, 16, 0, 30));
     const result = buildStartTime('22:00');
-    expect(result.slice(0, 10)).toBe('2025-06-16');
+    const expected = new Date('2025-06-16T22:00:00').toISOString();
+    expect(result).toBe(expected);
     vi.useRealTimers();
   });
 });
