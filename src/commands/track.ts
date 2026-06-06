@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import { parseDuration, buildStartTime, parseOrExit, localYesterdayDate, formatLocalDate } from '../utils.js';
+import { parseDuration, buildStartTime, parseOrExit, localYesterdayDate, formatDate } from '../utils.js';
 
 function isValidCalendarDate(s: string): boolean {
   const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -117,7 +117,7 @@ export async function track(args: string[]) {
     process.exit(1);
   }
 
-  const resolvedDate = rawDate === 'yesterday' ? formatLocalDate(localYesterdayDate()) : rawDate;
+  const resolvedDate = rawDate === 'yesterday' ? formatDate(localYesterdayDate()) : rawDate;
 
   if (resolvedDate !== null && !isValidCalendarDate(resolvedDate)) {
     console.error(`Invalid date: ${rawDate}. Use YYYY-MM-DD or "yesterday".`);

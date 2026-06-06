@@ -28,8 +28,11 @@ export function parseDuration(dur: string): number {
   throw new Error(`Invalid duration: ${dur}. Use format like 1h30m, 2h, 45m`);
 }
 
-export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+export function formatDate(d: Date): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 export function formatTime(iso: string): string {
@@ -40,7 +43,7 @@ export function formatTime(iso: string): string {
 }
 
 export function buildStartTime(at: string, date?: string): string {
-  const day = date ?? new Date().toISOString().split('T')[0];
+  const day = date ?? formatDate(new Date());
   const d = new Date(`${day}T${at}:00`);
   if (isNaN(d.getTime())) throw new Error(`Invalid time: ${at}. Use HH:MM format.`);
   return d.toISOString();
@@ -51,13 +54,6 @@ export function localYesterdayDate(): Date {
   d.setDate(d.getDate() - 1);
   d.setHours(12, 0, 0, 0);
   return d;
-}
-
-export function formatLocalDate(d: Date): string {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
 }
 
 export function parseDateArg(args: string[]): Date {

@@ -5,63 +5,65 @@ import {
   buildProjectDayMap,
   renderVerboseMatrix,
 } from '../src/commands/week.js';
-import { DASH } from '../src/utils.js';
+import { formatDate, DASH } from '../src/utils.js';
 
 describe('getWeekBounds', () => {
   it('returns same Monday when given a Monday', () => {
-    const mon = new Date('2026-05-04T08:00:00Z');
+    const mon = new Date(2026, 4, 4);
     const { monday, sunday, weekNumber } = getWeekBounds(mon);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-05-04');
-    expect(sunday.toISOString().slice(0, 10)).toBe('2026-05-10');
+    expect(formatDate(monday)).toBe('2026-05-04');
+    expect(formatDate(sunday)).toBe('2026-05-10');
     expect(weekNumber).toBe(19);
   });
 
   it('returns correct Monday for a Wednesday', () => {
-    const wed = new Date('2026-05-06T15:30:00Z');
+    const wed = new Date(2026, 4, 6);
     const { monday, sunday } = getWeekBounds(wed);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-05-04');
-    expect(sunday.toISOString().slice(0, 10)).toBe('2026-05-10');
+    expect(formatDate(monday)).toBe('2026-05-04');
+    expect(formatDate(sunday)).toBe('2026-05-10');
   });
 
   it('returns correct Monday for a Sunday', () => {
-    const sun = new Date('2026-05-10T22:00:00Z');
+    const sun = new Date(2026, 4, 10);
     const { monday, sunday } = getWeekBounds(sun);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-05-04');
-    expect(sunday.toISOString().slice(0, 10)).toBe('2026-05-10');
+    expect(formatDate(monday)).toBe('2026-05-04');
+    expect(formatDate(sunday)).toBe('2026-05-10');
   });
 
   it('handles week spanning month boundary', () => {
-    const thu = new Date('2026-04-30T12:00:00Z');
+    const thu = new Date(2026, 3, 30);
     const { monday, sunday } = getWeekBounds(thu);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-04-27');
-    expect(sunday.toISOString().slice(0, 10)).toBe('2026-05-03');
+    expect(formatDate(monday)).toBe('2026-04-27');
+    expect(formatDate(sunday)).toBe('2026-05-03');
   });
 
   it('handles week spanning year boundary', () => {
-    const wed = new Date('2025-12-31T12:00:00Z');
+    const wed = new Date(2025, 11, 31);
     const { monday, sunday, weekNumber } = getWeekBounds(wed);
-    expect(monday.toISOString().slice(0, 10)).toBe('2025-12-29');
-    expect(sunday.toISOString().slice(0, 10)).toBe('2026-01-04');
+    expect(formatDate(monday)).toBe('2025-12-29');
+    expect(formatDate(sunday)).toBe('2026-01-04');
     expect(weekNumber).toBe(1);
   });
 
   it('calculates correct week number for week 2', () => {
-    const mon = new Date('2026-01-05T12:00:00Z');
+    const mon = new Date(2026, 0, 5);
     const { weekNumber } = getWeekBounds(mon);
     expect(weekNumber).toBe(2);
   });
 
   it('does not mutate the input date', () => {
-    const input = new Date('2026-05-07T12:00:00Z');
-    const before = input.toISOString();
+    const input = new Date(2026, 4, 7, 12, 0, 0);
+    const before = input.getTime();
     getWeekBounds(input);
-    expect(input.toISOString()).toBe(before);
+    expect(input.getTime()).toBe(before);
   });
 
-  it('normalizes time to noon UTC', () => {
-    const lateNight = new Date('2026-05-07T02:00:00Z');
+  it('normalizes time to local noon', () => {
+    const lateNight = new Date(2026, 4, 7, 2, 0, 0);
     const { monday } = getWeekBounds(lateNight);
-    expect(monday.toISOString()).toBe('2026-05-04T12:00:00.000Z');
+    expect(monday.getHours()).toBe(12);
+    expect(monday.getMinutes()).toBe(0);
+    expect(monday.getSeconds()).toBe(0);
   });
 });
 
@@ -69,19 +71,19 @@ describe('parseWeekArgs', () => {
   it('returns current date when no flags provided', () => {
     const { refDate } = parseWeekArgs([]);
     const today = new Date();
-    expect(refDate.toISOString().slice(0, 10)).toBe(today.toISOString().slice(0, 10));
+    expect(formatDate(refDate)).toBe(formatDate(today));
   });
 
   it('parses --date YYYY-MM-DD', () => {
     const { refDate } = parseWeekArgs(['--date', '2026-04-01']);
     const { monday } = getWeekBounds(refDate);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-03-30');
+    expect(formatDate(monday)).toBe('2026-03-30');
   });
 
   it('parses -d shorthand', () => {
     const { refDate } = parseWeekArgs(['-d', '2026-04-01']);
     const { monday } = getWeekBounds(refDate);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-03-30');
+    expect(formatDate(monday)).toBe('2026-03-30');
   });
 
   it('parses --week -1 (last week)', () => {
@@ -89,15 +91,15 @@ describe('parseWeekArgs', () => {
     const { monday: resultMonday } = getWeekBounds(refDate);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const expectedMonday = new Date(currentMonday);
-    expectedMonday.setUTCDate(currentMonday.getUTCDate() - 7);
-    expect(resultMonday.toISOString().slice(0, 10)).toBe(expectedMonday.toISOString().slice(0, 10));
+    expectedMonday.setDate(currentMonday.getDate() - 7);
+    expect(formatDate(resultMonday)).toBe(formatDate(expectedMonday));
   });
 
   it('parses --week 0 (same as current week)', () => {
     const { refDate } = parseWeekArgs(['--week', '0']);
     const { monday: resultMonday } = getWeekBounds(refDate);
     const { monday: currentMonday } = getWeekBounds(new Date());
-    expect(resultMonday.toISOString().slice(0, 10)).toBe(currentMonday.toISOString().slice(0, 10));
+    expect(formatDate(resultMonday)).toBe(formatDate(currentMonday));
   });
 
   it('parses -w -3 (3 weeks ago)', () => {
@@ -105,8 +107,8 @@ describe('parseWeekArgs', () => {
     const { monday: resultMonday } = getWeekBounds(refDate);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const expectedMonday = new Date(currentMonday);
-    expectedMonday.setUTCDate(currentMonday.getUTCDate() - 21);
-    expect(resultMonday.toISOString().slice(0, 10)).toBe(expectedMonday.toISOString().slice(0, 10));
+    expectedMonday.setDate(currentMonday.getDate() - 21);
+    expect(formatDate(resultMonday)).toBe(formatDate(expectedMonday));
   });
 
   it('parses --week 2 (future week)', () => {
@@ -114,8 +116,8 @@ describe('parseWeekArgs', () => {
     const { monday: resultMonday } = getWeekBounds(refDate);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const expectedMonday = new Date(currentMonday);
-    expectedMonday.setUTCDate(currentMonday.getUTCDate() + 14);
-    expect(resultMonday.toISOString().slice(0, 10)).toBe(expectedMonday.toISOString().slice(0, 10));
+    expectedMonday.setDate(currentMonday.getDate() + 14);
+    expect(formatDate(resultMonday)).toBe(formatDate(expectedMonday));
   });
 
   it('throws when both --date and --week are provided', () => {
@@ -155,7 +157,7 @@ describe('parseWeekArgs', () => {
   it('combines --verbose with --date', () => {
     const { refDate, verbose } = parseWeekArgs(['--verbose', '--date', '2026-04-01']);
     const { monday } = getWeekBounds(refDate);
-    expect(monday.toISOString().slice(0, 10)).toBe('2026-03-30');
+    expect(formatDate(monday)).toBe('2026-03-30');
     expect(verbose).toBe(true);
   });
 
@@ -177,9 +179,9 @@ describe('buildProjectDayMap', () => {
       [20, 'Beta'],
     ]);
     const result = buildProjectDayMap(entries, projectMap);
-    expect(result.get('Alpha')![0]).toBe(3600);
-    expect(result.get('Alpha')![1]).toBe(7200);
-    expect(result.get('Beta')![0]).toBe(1800);
+    expect(result.get('Alpha')![localDayIndex('2026-05-04T09:00:00Z')]).toBe(3600);
+    expect(result.get('Alpha')![localDayIndex('2026-05-05T09:00:00Z')]).toBe(7200);
+    expect(result.get('Beta')![localDayIndex('2026-05-04T10:00:00Z')]).toBe(1800);
   });
 
   it('groups entries without project as —', () => {
@@ -187,21 +189,15 @@ describe('buildProjectDayMap', () => {
     const projectMap = new Map<number, string>();
     const result = buildProjectDayMap(entries, projectMap);
     expect(result.has(DASH)).toBe(true);
-    expect(result.get(DASH)![0]).toBe(3600);
+    expect(result.get(DASH)![localDayIndex('2026-05-04T09:00:00Z')]).toBe(3600);
   });
 
-  it('maps Sunday to index 6', () => {
+  it('maps days to correct indices', () => {
     const entries = [makeEntry(1, '2026-05-10T09:00:00Z', 1800, 10)];
     const projectMap = new Map([[10, 'Alpha']]);
     const result = buildProjectDayMap(entries, projectMap);
-    expect(result.get('Alpha')![6]).toBe(1800);
-  });
-
-  it('maps Saturday to index 5', () => {
-    const entries = [makeEntry(1, '2026-05-09T09:00:00Z', 2400, 10)];
-    const projectMap = new Map([[10, 'Alpha']]);
-    const result = buildProjectDayMap(entries, projectMap);
-    expect(result.get('Alpha')![5]).toBe(2400);
+    const idx = localDayIndex('2026-05-10T09:00:00Z');
+    expect(result.get('Alpha')![idx]).toBe(1800);
   });
 
   it('handles running timer entries (negative duration)', () => {
@@ -209,7 +205,7 @@ describe('buildProjectDayMap', () => {
     const entries = [makeEntry(1, start.toISOString(), -1, 10)];
     const projectMap = new Map([[10, 'Alpha']]);
     const result = buildProjectDayMap(entries, projectMap);
-    const dayIdx = start.getUTCDay() === 0 ? 6 : start.getUTCDay() - 1;
+    const dayIdx = start.getDay() === 0 ? 6 : start.getDay() - 1;
     expect(result.get('Alpha')![dayIdx]).toBeGreaterThanOrEqual(1799);
   });
 
@@ -222,8 +218,8 @@ describe('buildProjectDayMap', () => {
 describe('renderVerboseMatrix', () => {
   it('renders a basic matrix with one project', () => {
     const projectDayMap = new Map<string, number[]>([['Alpha', [3600, 7200, 0, 0, 0, 0, 0]]]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
 
     expect(output).toContain('Week 19 (May 04 – May 10)');
@@ -236,8 +232,8 @@ describe('renderVerboseMatrix', () => {
 
   it('shows - for empty cells', () => {
     const projectDayMap = new Map<string, number[]>([['Alpha', [0, 0, 0, 0, 0, 0, 0]]]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
 
     expect(output).toContain('-');
@@ -248,8 +244,8 @@ describe('renderVerboseMatrix', () => {
       [DASH, [3600, 0, 0, 0, 0, 0, 0]],
       ['Alpha', [1800, 0, 0, 0, 0, 0, 0]],
     ]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
     const alphaIdx = output.indexOf('Alpha');
     const dashIdx = output.indexOf(DASH);
@@ -261,8 +257,8 @@ describe('renderVerboseMatrix', () => {
       ['Zeta', [3600, 0, 0, 0, 0, 0, 0]],
       ['Alpha', [1800, 0, 0, 0, 0, 0, 0]],
     ]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
     const alphaIdx = output.indexOf('Alpha');
     const zetaIdx = output.indexOf('Zeta');
@@ -274,8 +270,8 @@ describe('renderVerboseMatrix', () => {
       ['Alpha', [3600, 7200, 0, 0, 0, 0, 0]],
       ['Beta', [1800, 3600, 0, 0, 0, 0, 0]],
     ]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
 
     expect(output).toContain('Daily Total');
@@ -284,13 +280,18 @@ describe('renderVerboseMatrix', () => {
 
   it('renders Total column per project', () => {
     const projectDayMap = new Map<string, number[]>([['Alpha', [3600, 7200, 0, 0, 0, 0, 0]]]);
-    const monday = new Date('2026-05-04T12:00:00Z');
-    const sunday = new Date('2026-05-10T12:00:00Z');
+    const monday = new Date(2026, 4, 4, 12, 0, 0);
+    const sunday = new Date(2026, 4, 10, 12, 0, 0);
     const output = renderVerboseMatrix(projectDayMap, monday, sunday, 19);
 
     expect(output).toContain('3h00m');
   });
 });
+
+function localDayIndex(isoStart: string): number {
+  const dow = new Date(isoStart).getDay();
+  return dow === 0 ? 6 : dow - 1;
+}
 
 function makeEntry(id: number, start: string, duration: number, project_id: number | null) {
   return {
