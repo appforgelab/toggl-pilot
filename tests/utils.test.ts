@@ -8,7 +8,6 @@ import {
   parseDateArg,
   parseOrExit,
   localYesterdayDate,
-  formatLocalDate,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -73,9 +72,30 @@ describe('parseDuration', () => {
 });
 
 describe('formatDate', () => {
-  it('formats a date to YYYY-MM-DD', () => {
-    const d = new Date('2025-06-15T10:30:00Z');
+  it('formats a date to YYYY-MM-DD using local components', () => {
+    const d = new Date(2025, 5, 15);
     expect(formatDate(d)).toBe('2025-06-15');
+  });
+
+  it('pads single-digit month and day', () => {
+    const d = new Date(2025, 0, 5);
+    expect(formatDate(d)).toBe('2025-01-05');
+  });
+
+  it('uses local calendar day near midnight', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T23:30:00'));
+    const localNow = new Date();
+    expect(formatDate(localNow)).toBe('2025-06-15');
+    vi.useRealTimers();
+  });
+
+  it('uses local calendar day just after midnight', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-16T00:30:00'));
+    const localNow = new Date();
+    expect(formatDate(localNow)).toBe('2025-06-16');
+    vi.useRealTimers();
   });
 });
 
@@ -120,6 +140,13 @@ describe('buildStartTime', () => {
     const result = buildStartTime('14:30', '2025-06-14');
     const expected = new Date('2025-06-14T14:30:00').toISOString();
     expect(result).toBe(expected);
+  });
+
+  it('uses local calendar day as default when no date provided', () => {
+    vi.setSystemTime(new Date(2025, 5, 16, 0, 30));
+    const result = buildStartTime('22:00');
+    expect(result.slice(0, 10)).toBe('2025-06-16');
+    vi.useRealTimers();
   });
 });
 
@@ -194,13 +221,6 @@ describe('localYesterdayDate', () => {
     expect(result.getMonth()).toBe(1);
     expect(result.getDate()).toBe(28);
     vi.useRealTimers();
-  });
-});
-
-describe('formatLocalDate', () => {
-  it('formats a date as YYYY-MM-DD using local components', () => {
-    const d = new Date(2025, 5, 14);
-    expect(formatLocalDate(d)).toBe('2025-06-14');
   });
 });
 
