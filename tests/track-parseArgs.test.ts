@@ -10,6 +10,7 @@ describe('track parseArgs', () => {
       tags: [],
       at: null,
       dur: null,
+      date: null,
     });
   });
 
@@ -58,7 +59,54 @@ describe('track parseArgs', () => {
       tags: ['meeting', 'planning'],
       at: '10:00',
       dur: '1h',
+      date: null,
     });
+  });
+
+  it('parses -d with ISO date', () => {
+    const result = parseArgs(['Standup', '--at', '09:00', '--dur', '30m', '-d', '2025-06-10']);
+    expect(result.date).toBe('2025-06-10');
+  });
+
+  it('parses --date with yesterday keyword', () => {
+    const result = parseArgs(['Standup', '--at', '09:00', '--dur', '30m', '--date', 'yesterday']);
+    expect(result.date).toBe('yesterday');
+  });
+
+  it('parses all flags with --date', () => {
+    const result = parseArgs([
+      'Standup',
+      '-p',
+      'Dev-Pilot',
+      '-t',
+      'meeting',
+      '--at',
+      '09:00',
+      '--dur',
+      '30m',
+      '--date',
+      'yesterday',
+    ]);
+    expect(result).toEqual({
+      description: 'Standup',
+      project: 'Dev-Pilot',
+      tags: ['meeting'],
+      at: '09:00',
+      dur: '30m',
+      date: 'yesterday',
+    });
+  });
+
+  it('throws on --date with no value', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '30m', '--date'])).toThrow(
+      'Missing value for --date'
+    );
+  });
+
+  it('throws on -d followed by another flag', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '30m', '-d', '-p', 'X'])).toThrow(
+      'Missing value for -d'
+    );
   });
 
   it('throws on unknown flag', () => {
