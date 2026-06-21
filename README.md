@@ -50,7 +50,7 @@ Run `tgp` without arguments to see all available commands.
 | `tgp entry-list`                        | List time entries for a day | [docs/entry-list.md](docs/entry-list.md)     |
 | `tgp track "Desc" -p "Project" -t tags` | Start a timer or log time   | [docs/track.md](docs/track.md)               |
 | `tgp stop`                              | Stop running timer          | [docs/stop.md](docs/stop.md)                 |
-| `tgp resume`                            | Resume last stopped timer   | [docs/resume.md](docs/resume.md)             |
+| `tgp resume [<id>]`                     | Resume a stopped timer      | [docs/resume.md](docs/resume.md)             |
 | `tgp entry-edit <id> -d/-p/-t/--dur`    | Edit a time entry           | [docs/entry-edit.md](docs/entry-edit.md)     |
 | `tgp week`                              | Weekly summary by project   | [docs/week.md](docs/week.md)                 |
 | `tgp entry-delete <id>`                 | Delete a time entry         | [docs/entry-delete.md](docs/entry-delete.md) |

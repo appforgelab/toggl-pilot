@@ -26,15 +26,26 @@ function getResumeWindow(today: Date): { startDate: string; endDate: string } {
   };
 }
 
-export async function resume() {
-  const current = await get<TimeEntry | null>('/me/time_entries/current');
-  if (current) {
-    console.error(
-      `Timer "${current.description || '(no description)'}" is already running. Stop it first with 'tgp stop'.`
-    );
-    return;
-  }
+function startFrom(entry: TimeEntry): Promise<TimeEntry> {
+  return post<TimeEntry>(`/workspaces/${entry.workspace_id}/time_entries`, {
+    description: entry.description,
+    project_id: entry.project_id,
+    tags: entry.tags && entry.tags.length > 0 ? entry.tags : undefined,
+    start: new Date().toISOString(),
+    duration: -1,
+    workspace_id: entry.workspace_id,
+    created_with: 'toggl-pilot',
+  });
+}
 
+function printStarted(entry: TimeEntry): void {
+  const description = entry.description || '(no description)';
+  const projectLabel = entry.project_name ? ` [${entry.project_name}]` : '';
+  const tagLabel = entry.tags?.length ? ` {${entry.tags.join(', ')}}` : '';
+  console.log(`Started: ${description}${projectLabel}${tagLabel} (id: ${entry.id})`);
+}
+
+async function resumeLatest(): Promise<void> {
   const today = new Date();
   const { startDate, endDate } = getResumeWindow(today);
   const timeEntries = await get<TimeEntry[]>(`/me/time_entries?start_date=${startDate}&end_date=${endDate}`);
@@ -45,18 +56,52 @@ export async function resume() {
     return;
   }
 
-  const entry = await post<TimeEntry>(`/workspaces/${lastStopped.workspace_id}/time_entries`, {
-    description: lastStopped.description,
-    project_id: lastStopped.project_id,
-    tags: lastStopped.tags && lastStopped.tags.length > 0 ? lastStopped.tags : undefined,
-    start: new Date().toISOString(),
-    duration: -1,
-    workspace_id: lastStopped.workspace_id,
-    created_with: 'toggl-pilot',
-  });
+  const entry = await startFrom(lastStopped);
+  printStarted(entry);
+}
 
-  const description = entry.description || '(no description)';
-  const projectLabel = entry.project_name ? ` [${entry.project_name}]` : '';
-  const tagLabel = entry.tags?.length ? ` {${entry.tags.join(', ')}}` : '';
-  console.log(`Started: ${description}${projectLabel}${tagLabel} (id: ${entry.id})`);
+async function resumeById(rawId: string): Promise<void> {
+  let entry: TimeEntry;
+  try {
+    entry = await get<TimeEntry>(`/me/time_entries/${rawId}`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes('400') || msg.includes('404')) {
+      console.error(`Time entry ${rawId} not found.`);
+      return;
+    }
+    throw e;
+  }
+
+  if (entry.duration < 0) {
+    console.error(
+      `Time entry ${rawId} is still running and cannot be resumed. Stop it first with 'tgp stop'.`
+    );
+    return;
+  }
+
+  const started = await startFrom(entry);
+  printStarted(started);
+}
+
+export async function resume(args: string[]) {
+  const positional = args.filter((a) => !a.startsWith('-'));
+  if (args.some((a) => a.startsWith('-')) || positional.length > 1) {
+    console.error('Usage: tgp resume [<entry_id>]');
+    process.exit(1);
+  }
+
+  const current = await get<TimeEntry | null>('/me/time_entries/current');
+  if (current) {
+    console.error(
+      `Timer "${current.description || '(no description)'}" is already running. Stop it first with 'tgp stop'.`
+    );
+    return;
+  }
+
+  if (positional.length === 1) {
+    await resumeById(positional[0]);
+  } else {
+    await resumeLatest();
+  }
 }

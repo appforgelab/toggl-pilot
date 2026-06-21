@@ -81,7 +81,7 @@ if (command === 'auth') {
       stop();
       break;
     case 'resume':
-      resume();
+      resume(args);
       break;
     case 'tag-list':
       tagList();
@@ -122,7 +122,7 @@ if (command === 'auth') {
       console.error('  auth             version          me');
       console.error('  workspace-list');
       console.error(
-        '  track            stop             resume           entry-edit       entry-list       entry-delete'
+        '  track            stop             resume [<id>]    entry-edit       entry-list       entry-delete'
       );
       console.error('  week');
       console.error('  client-list      client-add');
