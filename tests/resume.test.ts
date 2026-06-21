@@ -68,7 +68,7 @@ describe('resume command', () => {
     });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await resume();
+    await resume([]);
 
     expect(mockedGet).toHaveBeenNthCalledWith(1, '/me/time_entries/current');
     expect(mockedGet).toHaveBeenNthCalledWith(
@@ -101,7 +101,7 @@ describe('resume command', () => {
     mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([runningEntry, stoppedEntry]);
     mockedPost.mockResolvedValue({ ...stoppedEntry, id: 999, stop: null, duration: -1 });
 
-    await resume();
+    await resume([]);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/123/time_entries',
@@ -119,7 +119,7 @@ describe('resume command', () => {
     ]);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await resume();
+    await resume([]);
 
     expect(errorSpy).toHaveBeenCalledWith('No stopped task found today to resume.');
     expect(mockedPost).not.toHaveBeenCalled();
@@ -139,7 +139,7 @@ describe('resume command', () => {
     mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([lateEntry, earlyEntry]);
     mockedPost.mockResolvedValue({ ...lateEntry, id: 999, stop: null, duration: -1 });
 
-    await resume();
+    await resume([]);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/123/time_entries',
@@ -157,7 +157,7 @@ describe('resume command', () => {
     mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([stoppedEntry]);
     mockedPost.mockResolvedValue({ ...stoppedEntry, id: 999, stop: null, duration: -1 });
 
-    await resume();
+    await resume([]);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/789/time_entries',
@@ -175,7 +175,7 @@ describe('resume command', () => {
     mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([stoppedEntry]);
     mockedPost.mockResolvedValue({ ...stoppedEntry, id: 999, stop: null, duration: -1 });
 
-    await resume();
+    await resume([]);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/123/time_entries',
@@ -188,7 +188,7 @@ describe('resume command', () => {
     mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([stoppedEntry]);
     mockedPost.mockResolvedValue({ ...stoppedEntry, id: 999, stop: null, duration: -1 });
 
-    await resume();
+    await resume([]);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/123/time_entries',
@@ -205,7 +205,7 @@ describe('resume command', () => {
       ]);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await resume();
+    await resume([]);
 
     expect(errorSpy).toHaveBeenCalledWith('No stopped task found today to resume.');
     expect(mockedPost).not.toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe('resume command', () => {
     );
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await resume();
+    await resume([]);
 
     expect(errorSpy).toHaveBeenCalledWith(
       `Timer "Current task" is already running. Stop it first with 'tgp stop'.`
@@ -236,8 +236,111 @@ describe('resume command', () => {
     mockedPost.mockResolvedValue({ ...stoppedEntry, id: 999, stop: null, duration: -1 });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await resume();
+    await resume([]);
 
     expect(logSpy).toHaveBeenCalledWith('Started: (no description) [Dev-Pilot] {dev, bug} (id: 999)');
+  });
+
+  it('resumes a specific entry by id even from a previous day', async () => {
+    const oldEntry = makeEntry({
+      id: 555,
+      description: 'Old task',
+      start: toUtcIso('2025-06-10T09:00:00'),
+      stop: toUtcIso('2025-06-10T10:00:00'),
+      tags: ['legacy'],
+    });
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce(oldEntry);
+    mockedPost.mockResolvedValue({ ...oldEntry, id: 999, stop: null, duration: -1 });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await resume(['555']);
+
+    expect(mockedGet).toHaveBeenNthCalledWith(2, '/me/time_entries/555');
+    expect(mockedPost).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries',
+      expect.objectContaining({
+        description: 'Old task',
+        project_id: 10,
+        tags: ['legacy'],
+        workspace_id: 123,
+        duration: -1,
+      })
+    );
+    expect(logSpy).toHaveBeenCalledWith('Started: Old task [Dev-Pilot] {legacy} (id: 999)');
+  });
+
+  it('prints an error when the id is not found', async () => {
+    mockedGet.mockResolvedValueOnce(null).mockRejectedValueOnce(new Error('Toggl API 404: not found'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await resume(['999999']);
+
+    expect(mockedGet).toHaveBeenNthCalledWith(2, '/me/time_entries/999999');
+    expect(errorSpy).toHaveBeenCalledWith('Time entry 999999 not found.');
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-404 errors instead of masking them as not found', async () => {
+    mockedGet.mockResolvedValueOnce(null).mockRejectedValueOnce(new Error('Toggl API 402: quota exceeded'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(resume(['999999'])).rejects.toThrow('Toggl API 402: quota exceeded');
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
+  it('rejects a still-running entry id', async () => {
+    const running = makeEntry({ id: 555, stop: null, duration: -1 });
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce(running);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await resume(['555']);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      `Time entry 555 is still running and cannot be resumed. Stop it first with 'tgp stop'.`
+    );
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
+  it('still applies the running-timer guard when an id is given', async () => {
+    mockedGet.mockResolvedValueOnce(makeEntry({ description: 'Current task', stop: null, duration: -1 }));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await resume(['555']);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      `Timer "Current task" is already running. Stop it first with 'tgp stop'.`
+    );
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
+  it('rejects unexpected flags', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+      throw new Error(`exit ${code}`);
+    });
+
+    await expect(resume(['--foo'])).rejects.toThrow('exit 1');
+
+    expect(errorSpy).toHaveBeenCalledWith('Usage: tgp resume [<entry_id>]');
+    expect(mockedGet).not.toHaveBeenCalled();
+    expect(mockedPost).not.toHaveBeenCalled();
+    exitSpy.mockRestore();
+  });
+
+  it('rejects more than one positional argument', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+      throw new Error(`exit ${code}`);
+    });
+
+    await expect(resume(['123', '456'])).rejects.toThrow('exit 1');
+
+    expect(errorSpy).toHaveBeenCalledWith('Usage: tgp resume [<entry_id>]');
+    expect(mockedGet).not.toHaveBeenCalled();
+    expect(mockedPost).not.toHaveBeenCalled();
+    exitSpy.mockRestore();
   });
 });
