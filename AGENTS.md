@@ -34,21 +34,6 @@ they work on this project. If you ever encounter something that surprises you or
 confuses you, please alert the developer working with you and edit AGENTS.md to prevent
 future agents from having the issue.
 
-## Branch Naming Convention
-
-Format: `<type>/<issue-number>-<short-description>` or `<type>/<short-description>`
-
-- **Types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
-- **Issue number**: include when one exists, omit for quick fixes
-- **Description**: kebab-case, concise
-
-Examples:
-
-- `fix/16-entries-column-alignment`
-- `feat/42-add-time-filtering`
-- `fix/typo-in-help-text`
-- `chore/update-deps`
-
 ## PR Title Convention
 
 Prefix PR titles with the type of change using conventional commit format:
