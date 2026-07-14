@@ -49,6 +49,28 @@ export function buildStartTime(at: string, date?: string): string {
   return d.toISOString();
 }
 
+/**
+ * Parse a start time for entry-edit. Accepts a bare `HH:MM` (today, local tz,
+ * via the shared strict `buildStartTime`) or a full ISO 8601 timestamp.
+ * Rejects times in the future (a near-certain typo, intentionally stricter
+ * than the API). Note: bare-time format relaxation (e.g. `8:20`) lives in
+ * `buildStartTime` and is tracked separately in #186.
+ */
+export function parseStartTime(value: string): Date {
+  const isTimeOfDay = /^\d{1,2}:\d{2}$/.test(value);
+  const iso = isTimeOfDay ? buildStartTime(value) : value;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) {
+    throw new Error(
+      `Invalid start time: ${value}. Use HH:MM (e.g. 11:20) or ISO 8601 (e.g. 2026-07-14T11:20:00+07:00).`
+    );
+  }
+  if (d.getTime() > Date.now()) {
+    throw new Error(`Start time cannot be in the future: ${value}`);
+  }
+  return d;
+}
+
 export function localYesterdayDate(): Date {
   const d = new Date();
   d.setDate(d.getDate() - 1);

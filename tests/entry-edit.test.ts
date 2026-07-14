@@ -208,4 +208,102 @@ describe('entryEdit command', () => {
     exitSpy.mockRestore();
     logSpy.mockRestore();
   });
+
+  it('amends start time of a running timer, keeps it running', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+    mockedPut.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+
+    await entryEdit(['100', '--start', '2025-06-15T09:00:00Z']);
+
+    const expectedStartEpoch = Math.floor(new Date('2025-06-15T09:00:00Z').getTime() / 1000);
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        start: '2025-06-15T09:00:00.000Z',
+        stop: null,
+        // Toggl's negative-duration "running" convention, relative to the new start.
+        duration: -expectedStartEpoch,
+      })
+    );
+  });
+
+  it('amends start time of a stopped entry, recomputes duration keeping stop fixed', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+    mockedPut.mockResolvedValue({ ...baseEntry, duration: 7200 });
+
+    await entryEdit(['100', '--start', '2025-06-15T09:00:00Z']);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        start: '2025-06-15T09:00:00.000Z',
+        stop: '2025-06-15T11:00:00Z',
+        duration: 7200,
+      })
+    );
+  });
+
+  it('combines --start and --dur on a stopped entry: stop = start + dur', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+    mockedPut.mockResolvedValue({ ...baseEntry, duration: 10800, stop: '2025-06-15T12:00:00Z' });
+
+    await entryEdit(['100', '--start', '2025-06-15T09:00:00Z', '--dur', '3h']);
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        start: '2025-06-15T09:00:00.000Z',
+        stop: '2025-06-15T12:00:00.000Z',
+        duration: 10800,
+      })
+    );
+  });
+
+  it('rejects --start after the stop time on a stopped entry', async () => {
+    mockedGet.mockResolvedValue({ ...baseEntry });
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(entryEdit(['100', '--start', '2025-06-15T12:00:00Z'])).rejects.toThrow('exit');
+
+    expect(logSpy).toHaveBeenCalledWith('Start time must be before the stop time.');
+    expect(mockedPut).not.toHaveBeenCalled();
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    exitSpy.mockRestore();
+    logSpy.mockRestore();
+  });
+
+  it('amends start time using bare HH:MM (today, local tz)', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 5, 15, 12, 0, 0));
+    mockedGet.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+    mockedPut.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+
+    await entryEdit(['100', '--start', '09:00']);
+
+    const expectedISO = new Date(2025, 5, 15, 9, 0, 0).toISOString();
+    const expectedDuration = -Math.floor(new Date(expectedISO).getTime() / 1000);
+    expect(mockedPut).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries/100',
+      expect.objectContaining({
+        start: expectedISO,
+        stop: null,
+        duration: expectedDuration,
+      })
+    );
+    vi.useRealTimers();
+  });
+
+  it('rejects future start times', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 5, 15, 12, 0, 0));
+    mockedGet.mockResolvedValue({ ...baseEntry, stop: null, duration: -1 });
+
+    await expect(entryEdit(['100', '--start', '13:00'])).rejects.toThrow('cannot be in the future');
+
+    expect(mockedPut).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
