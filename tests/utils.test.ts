@@ -132,6 +132,29 @@ describe('buildStartTime', () => {
     expect(() => buildStartTime('abc')).toThrow('Invalid time');
   });
 
+  it('accepts a single-digit hour (H:MM)', () => {
+    const result = buildStartTime('8:20');
+    const expected = new Date(2025, 5, 15, 8, 20, 0).toISOString();
+    expect(result).toBe(expected);
+  });
+
+  it('keeps requiring a two-digit minute', () => {
+    expect(() => buildStartTime('9:7')).toThrow('Invalid time');
+    expect(() => buildStartTime('09:7')).toThrow('Invalid time');
+  });
+
+  it('accepts two-digit minutes that look like digital clocks', () => {
+    const result = buildStartTime('9:07');
+    const expected = new Date(2025, 5, 15, 9, 7, 0).toISOString();
+    expect(result).toBe(expected);
+  });
+
+  it('rejects out-of-range hours and minutes', () => {
+    expect(() => buildStartTime('24:00')).toThrow('Invalid time');
+    expect(() => buildStartTime('12:60')).toThrow('Invalid time');
+    expect(() => buildStartTime('99:99')).toThrow('Invalid time');
+  });
+
   it('builds ISO string for a specific date', () => {
     const result = buildStartTime('09:00', '2025-06-10');
     const expected = new Date(2025, 5, 10, 9, 0, 0).toISOString();
@@ -186,6 +209,36 @@ describe('parseStartTime', () => {
 
   it('rejects invalid format', () => {
     expect(() => parseStartTime('not-a-time')).toThrow('Invalid start time');
+  });
+
+  it('parses a bare single-digit-hour local time (H:MM)', () => {
+    const result = parseStartTime('9:07');
+    expect(result).toEqual(new Date(2025, 5, 15, 9, 7, 0));
+  });
+
+  it('accepts a full ISO 8601 timestamp with a numeric offset', () => {
+    const result = parseStartTime('2025-06-14T09:00:00+07:00');
+    expect(result).toEqual(new Date('2025-06-14T09:00:00+07:00'));
+  });
+
+  it('rejects a bare number', () => {
+    expect(() => parseStartTime('0')).toThrow('Invalid start time');
+  });
+
+  it('rejects a date without a time or timezone', () => {
+    expect(() => parseStartTime('2025-06-14')).toThrow('Invalid start time');
+  });
+
+  it('rejects a locale-formatted date', () => {
+    expect(() => parseStartTime('15/06/2025 09:00')).toThrow('Invalid start time');
+  });
+
+  it('rejects a timezone-less datetime', () => {
+    expect(() => parseStartTime('2025-06-15T09:00:00')).toThrow('Invalid start time');
+  });
+
+  it('rejects an impossible calendar date instead of normalizing it', () => {
+    expect(() => parseStartTime('2025-02-30T09:00:00Z')).toThrow('Invalid start time');
   });
 });
 
