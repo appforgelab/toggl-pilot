@@ -5,6 +5,7 @@ import {
   formatDate,
   formatTime,
   buildStartTime,
+  parseStartTime,
   parseDateArg,
   parseOrExit,
   localYesterdayDate,
@@ -149,6 +150,42 @@ describe('buildStartTime', () => {
     const expected = new Date('2025-06-16T22:00:00').toISOString();
     expect(result).toBe(expected);
     vi.useRealTimers();
+  });
+});
+
+describe('parseStartTime', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 5, 15, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('parses full ISO 8601 in the past', () => {
+    // Faked now is local 2025-06-15 12:00 (= 05:00Z at +07:00), so use a value
+    // safely before that in any timezone.
+    const result = parseStartTime('2025-06-14T09:00:00Z');
+    expect(result).toEqual(new Date('2025-06-14T09:00:00Z'));
+  });
+
+  it('parses bare HH:MM as today local time', () => {
+    const result = parseStartTime('09:00');
+    expect(result).toEqual(new Date(2025, 5, 15, 9, 0, 0));
+  });
+
+  it('rejects future bare HH:MM start times', () => {
+    // 13:00 is one hour after the faked now (12:00)
+    expect(() => parseStartTime('13:00')).toThrow('cannot be in the future');
+  });
+
+  it('rejects future ISO start times', () => {
+    expect(() => parseStartTime('2030-06-15T09:00:00Z')).toThrow('cannot be in the future');
+  });
+
+  it('rejects invalid format', () => {
+    expect(() => parseStartTime('not-a-time')).toThrow('Invalid start time');
   });
 });
 

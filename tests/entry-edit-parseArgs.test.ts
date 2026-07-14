@@ -10,6 +10,7 @@ describe('entry-edit parseArgs', () => {
       project: null,
       tags: null,
       dur: null,
+      start: null,
     });
   });
 
@@ -42,6 +43,7 @@ describe('entry-edit parseArgs', () => {
       project: 'Project',
       tags: ['review'],
       dur: null,
+      start: null,
     });
   });
 
@@ -123,5 +125,39 @@ describe('entry-edit parseArgs', () => {
 
   it('throws on --dur with empty value', () => {
     expect(() => parseArgs(['12345', '--dur', ''])).toThrow('Missing value for --dur.');
+  });
+
+  it('parses --start', () => {
+    const result = parseArgs(['12345', '--start', '11:20']);
+    expect(result.start).toBe('11:20');
+  });
+
+  it('parses --start with ISO 8601 value', () => {
+    const result = parseArgs(['12345', '--start', '2026-07-14T11:20:00+07:00']);
+    expect(result.start).toBe('2026-07-14T11:20:00+07:00');
+  });
+
+  it('parses --start combined with other flags', () => {
+    const result = parseArgs(['12345', '-d', 'Desc', '--start', '11:20']);
+    expect(result.description).toBe('Desc');
+    expect(result.start).toBe('11:20');
+  });
+
+  it('parses --start and --dur together', () => {
+    const result = parseArgs(['12345', '--start', '11:20', '--dur', '1h30m']);
+    expect(result.start).toBe('11:20');
+    expect(result.dur).toBe('1h30m');
+  });
+
+  it('throws on --start with no value', () => {
+    expect(() => parseArgs(['12345', '--start'])).toThrow('Missing value for --start.');
+  });
+
+  it('throws on --start followed by another flag', () => {
+    expect(() => parseArgs(['12345', '--start', '-d', 'desc'])).toThrow('Missing value for --start.');
+  });
+
+  it('throws on --start with empty value', () => {
+    expect(() => parseArgs(['12345', '--start', ''])).toThrow('Missing value for --start.');
   });
 });
