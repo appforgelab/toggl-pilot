@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import {
   formatDuration,
   parseDuration,
@@ -173,6 +173,34 @@ describe('buildStartTime', () => {
     const expected = new Date('2025-06-16T22:00:00').toISOString();
     expect(result).toBe(expected);
     vi.useRealTimers();
+  });
+});
+
+// DST gap handling depends on the process timezone, so run it in an isolated
+// describe block that swaps TZ to a spring-forward zone and restores it after.
+describe('buildStartTime DST gap', () => {
+  const originalTZ = process.env.TZ;
+
+  beforeAll(() => {
+    process.env.TZ = 'America/New_York';
+  });
+
+  afterAll(() => {
+    if (originalTZ === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTZ;
+  });
+
+  it('rejects a nonexistent wall-clock time during spring-forward', () => {
+    // 2025-03-09 in America/New_York: clocks jump 02:00 -> 03:00, so 02:30
+    // does not exist. The local Date constructor normalizes it to 03:30; the
+    // round-trip check must reject it rather than record the wrong instant.
+    expect(() => buildStartTime('02:30', '2025-03-09')).toThrow('does not exist');
+  });
+
+  it('accepts a valid time on a spring-forward day (after the gap)', () => {
+    // 03:30 is after the 02:00 -> 03:00 gap and must still be accepted.
+    const result = buildStartTime('03:30', '2025-03-09');
+    expect(result).toBe('2025-03-09T07:30:00.000Z');
   });
 });
 

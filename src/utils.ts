@@ -66,6 +66,24 @@ export function buildStartTime(at: string, date?: string): string {
   if (isNaN(d.getTime())) {
     throw new Error(`Invalid time: ${at}. Use H:MM or HH:MM format (e.g. 8:20, 09:07).`);
   }
+  // Reject DST-normalized wall-clock times. During a spring-forward gap (e.g.
+  // 02:30 on 2025-03-09 in America/New_York) the requested time does not exist,
+  // and the local Date constructor silently shifts it forward instead of
+  // rejecting it. That would record the wrong instant, so compare the
+  // constructed Date's local components against the validated input and reject
+  // any mismatch. `day` is always YYYY-MM-DD from formatDate / track's --date.
+  const [yyyy, mo, dd] = day.split('-').map(Number);
+  if (
+    d.getFullYear() !== yyyy ||
+    d.getMonth() !== mo - 1 ||
+    d.getDate() !== dd ||
+    d.getHours() !== hours ||
+    d.getMinutes() !== minutes
+  ) {
+    throw new Error(
+      `Invalid time: ${at}. ${at} does not exist on ${day} in this timezone (it falls in a DST gap).`
+    );
+  }
   return d.toISOString();
 }
 
