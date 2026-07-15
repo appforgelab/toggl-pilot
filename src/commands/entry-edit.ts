@@ -122,7 +122,7 @@ export function parseArgs(args: string[]): {
 
   if (!id) {
     throw new Error(
-      'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start HH:MM]'
+      'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]'
     );
   }
 

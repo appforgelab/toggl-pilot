@@ -43,32 +43,97 @@ export function formatTime(iso: string): string {
 }
 
 export function buildStartTime(at: string, date?: string): string {
+  // Accept a single-digit hour (e.g. 8:20) but always require a two-digit
+  // minute (matches how digital clocks display time). Validate the grammar and
+  // the hour/minute ranges explicitly so validity is decided here, not by the
+  // permissive JS Date parser (which would accept or normalize values like
+  // `0`, locale strings, or out-of-range components).
+  const match = at.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    throw new Error(`Invalid time: ${at}. Use H:MM or HH:MM format (e.g. 8:20, 09:07).`);
+  }
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  if (hours > 23 || minutes > 59) {
+    throw new Error(`Invalid time: ${at}. Use H:MM or HH:MM format (e.g. 8:20, 09:07).`);
+  }
   const day = date ?? formatDate(new Date());
-  const d = new Date(`${day}T${at}:00`);
-  if (isNaN(d.getTime())) throw new Error(`Invalid time: ${at}. Use HH:MM format.`);
+  // Normalize to zero-padded HH:MM so the local datetime string is parsed
+  // consistently (the Date string parser rejects single-digit hours). Validity
+  // was already decided above; this only converts a known-good local time.
+  const hh = String(hours).padStart(2, '0');
+  const d = new Date(`${day}T${hh}:${match[2]}:00`);
+  if (isNaN(d.getTime())) {
+    throw new Error(`Invalid time: ${at}. Use H:MM or HH:MM format (e.g. 8:20, 09:07).`);
+  }
+  // Reject DST-normalized wall-clock times. During a spring-forward gap (e.g.
+  // 02:30 on 2025-03-09 in America/New_York) the requested time does not exist,
+  // and the local Date constructor silently shifts it forward instead of
+  // rejecting it. That would record the wrong instant, so compare the
+  // constructed Date's local components against the validated input and reject
+  // any mismatch. `day` is always YYYY-MM-DD from formatDate / track's --date.
+  const [yyyy, mo, dd] = day.split('-').map(Number);
+  if (
+    d.getFullYear() !== yyyy ||
+    d.getMonth() !== mo - 1 ||
+    d.getDate() !== dd ||
+    d.getHours() !== hours ||
+    d.getMinutes() !== minutes
+  ) {
+    throw new Error(
+      `Invalid time: ${at}. ${at} does not exist on ${day} in this timezone (it falls in a DST gap).`
+    );
+  }
   return d.toISOString();
 }
 
 /**
- * Parse a start time for entry-edit. Accepts a bare `HH:MM` (today, local tz,
- * via the shared strict `buildStartTime`) or a full ISO 8601 timestamp.
- * Rejects times in the future (a near-certain typo, intentionally stricter
- * than the API). Note: bare-time format relaxation (e.g. `8:20`) lives in
- * `buildStartTime` and is tracked separately in #186.
+ * Parse a start time for entry-edit. Accepts a bare local-time `H:MM` or
+ * `HH:MM` (today, local timezone, via the shared `buildStartTime`) or a full
+ * ISO 8601 timestamp that carries an explicit timezone (`Z` or a numeric
+ * offset). Timezone-less datetimes, locale-formatted strings, and bare numbers
+ * are rejected, and impossible calendar dates (e.g. 2025-02-30) are rejected
+ * rather than normalized. Also rejects times in the future (a near-certain
+ * typo, intentionally stricter than the API).
  */
 export function parseStartTime(value: string): Date {
   const isTimeOfDay = /^\d{1,2}:\d{2}$/.test(value);
-  const iso = isTimeOfDay ? buildStartTime(value) : value;
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) {
+  if (!isTimeOfDay) {
+    // Require a full ISO 8601 timestamp with date, time, and timezone so the
+    // permissive Date parser never gets to accept/normalize undocumented input.
+    const invalid = () =>
+      new Error(
+        `Invalid start time: ${value}. Use H:MM (e.g. 11:20) or ISO 8601 (e.g. 2026-07-14T11:20:00+07:00).`
+      );
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})$/);
+    if (!m) throw invalid();
+    const year = +m[1];
+    const month = +m[2];
+    const day = +m[3];
+    const hour = +m[4];
+    const minute = +m[5];
+    const second = +m[6];
+    if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 || second > 59) {
+      throw invalid();
+    }
+    // Reject impossible calendar dates (e.g. 2025-02-30) instead of letting the
+    // Date parser roll them over. Component round-trip via Date.UTC is
+    // timezone-independent, so the check is unambiguous regardless of offset.
+    const cal = new Date(Date.UTC(year, month - 1, day));
+    if (cal.getUTCFullYear() !== year || cal.getUTCMonth() !== month - 1 || cal.getUTCDate() !== day) {
+      throw invalid();
+    }
+  }
+  const parsed = new Date(isTimeOfDay ? buildStartTime(value) : value);
+  if (isNaN(parsed.getTime())) {
     throw new Error(
-      `Invalid start time: ${value}. Use HH:MM (e.g. 11:20) or ISO 8601 (e.g. 2026-07-14T11:20:00+07:00).`
+      `Invalid start time: ${value}. Use H:MM (e.g. 11:20) or ISO 8601 (e.g. 2026-07-14T11:20:00+07:00).`
     );
   }
-  if (d.getTime() > Date.now()) {
+  if (parsed.getTime() > Date.now()) {
     throw new Error(`Start time cannot be in the future: ${value}`);
   }
-  return d;
+  return parsed;
 }
 
 export function localYesterdayDate(): Date {

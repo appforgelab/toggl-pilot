@@ -9,7 +9,7 @@ keeps its end time fixed and recomputes the duration.
 ## Usage
 
 ```bash
-tgp entry-edit <entry_id> [-d "New description"] [-p "Project name"] [-t tag1,tag2] [--dur 1h30m] [--start HH:MM]
+tgp entry-edit <entry_id> [-d "New description"] [-p "Project name"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]
 ```
 
 ## Examples
@@ -28,20 +28,21 @@ tgp entry-edit 4383745312 --start 11:20 --dur 1h30m
 
 ## Options
 
-| Flag            | Short | Description                                       |
-| --------------- | ----- | ------------------------------------------------- |
-| `--description` | `-d`  | New description                                   |
-| `--project`     | `-p`  | New project name (case-insensitive)               |
-| `--tags`        | `-t`  | New tags (replaces existing)                      |
-| `--dur`         |       | New duration (e.g. `1h30m`, `2h`, `45m`)          |
-| `--start`       |       | New start time (`HH:MM` today local, or ISO 8601) |
+| Flag            | Short | Description                                         |
+| --------------- | ----- | --------------------------------------------------- |
+| `--description` | `-d`  | New description                                     |
+| `--project`     | `-p`  | New project name (case-insensitive)                 |
+| `--tags`        | `-t`  | New tags (replaces existing)                        |
+| `--dur`         |       | New duration (e.g. `1h30m`, `2h`, `45m`)            |
+| `--start`       |       | New start time (`[H]H:MM` today local, or ISO 8601) |
 
 You must provide at least one option. Find the entry ID using `tgp entry-list`.
 
 ## Editing the start time
 
-`--start` accepts a bare `HH:MM` (interpreted as today in your local timezone) or a full
-ISO 8601 timestamp (e.g. `2026-07-14T11:20:00+07:00`). Future start times are rejected.
+`--start` accepts a bare `[H]H:MM` (interpreted as today in your local timezone; the minute
+must be two digits, e.g. `8:20` or `09:07`) or a full ISO 8601 timestamp carrying a timezone
+(`Z` or a numeric offset, e.g. `2026-07-14T11:20:00+07:00`). Future start times are rejected.
 
 - **Running entry:** the timer keeps running from the new start time.
 - **Stopped entry:** the end time stays fixed and the duration is recomputed. The new start

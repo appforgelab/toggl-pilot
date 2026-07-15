@@ -5,7 +5,7 @@ Starts a running timer or logs a completed time entry with project and tags.
 ## Usage
 
 ```bash
-tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at HH:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]
+tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]
 ```
 
 ## Running Timer
@@ -45,7 +45,7 @@ tgp track "Bug fix" -p "Dev-Pilot" --at 14:00 --dur 1h --date 2025-06-05
 | ----------- | ----- | -------------------------------------------------------------- |
 | `--project` | `-p`  | Project name (case-insensitive)                                |
 | `--tags`    | `-t`  | Comma-separated tag names                                      |
-| `--at`      |       | Start time in HH:MM format — requires `--dur`                  |
+| `--at`      |       | Start time as `[H]H:MM` — requires `--dur`                     |
 | `--dur`     |       | Duration (e.g. `30m`, `1h`, `1h30m`) — requires `--at`         |
 | `--date`    | `-d`  | Date (`YYYY-MM-DD` or `yesterday`) — requires `--at` + `--dur` |
 
