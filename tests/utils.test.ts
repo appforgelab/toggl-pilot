@@ -8,6 +8,7 @@ import {
   parseStartTime,
   parseDateArg,
   parseOrExit,
+  localDateWithOffset,
   localYesterdayDate,
   requireFlagValue,
 } from '../src/utils.js';
@@ -307,8 +308,63 @@ describe('parseDateArg', () => {
     vi.useRealTimers();
   });
 
+  it.each([
+    ['0', '2025-06-15'],
+    ['-1', '2025-06-14'],
+    ['-3', '2025-06-12'],
+    ['2', '2025-06-17'],
+    ['+2', '2025-06-17'],
+  ])('parses %s as a relative day offset', (offset, expected) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T00:30:00'));
+    const result = parseDateArg(['--date', offset]);
+    expect(formatDate(result)).toBe(expected);
+    expect(result.getHours()).toBe(12);
+    vi.useRealTimers();
+  });
+
+  it('resolves offsets across a year boundary', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-02T12:00:00'));
+    expect(formatDate(parseDateArg(['-d', '-3']))).toBe('2025-12-30');
+    vi.useRealTimers();
+  });
+
+  it('resolves offsets across a leap day', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-03-01T12:00:00'));
+    expect(formatDate(parseDateArg(['-d', '-1']))).toBe('2024-02-29');
+    vi.useRealTimers();
+  });
+
+  it.each(['-1.5', '1.5', '-2days', '9007199254740992'])('rejects invalid offset %s', (offset) => {
+    expect(() => parseDateArg(['-d', offset])).toThrow('Invalid date');
+  });
+
   it('throws on invalid date', () => {
     expect(() => parseDateArg(['-d', 'not-a-date'])).toThrow('Invalid date');
+  });
+});
+
+describe('localDateWithOffset across DST', () => {
+  const originalTZ = process.env.TZ;
+
+  beforeAll(() => {
+    process.env.TZ = 'America/New_York';
+  });
+
+  afterAll(() => {
+    if (originalTZ === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTZ;
+  });
+
+  it('uses local calendar arithmetic across spring-forward', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-03-10T00:30:00-04:00'));
+    const result = localDateWithOffset(-1);
+    expect(formatDate(result)).toBe('2025-03-09');
+    expect(result.getHours()).toBe(12);
+    vi.useRealTimers();
   });
 });
 

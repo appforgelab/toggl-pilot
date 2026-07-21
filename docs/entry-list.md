@@ -7,9 +7,16 @@ Lists all time entries for a given day with totals by project.
 ```bash
 tgp entry-list                        # today
 tgp entry-list -d yesterday           # yesterday
+tgp entry-list -d -2                  # two days ago
+tgp entry-list --date 3               # three days from today
 tgp entry-list -d 2026-04-29          # specific date
 tgp entry-list --date 2026-04-29      # long form
 ```
+
+`--date` (or `-d`) accepts an ISO date, `yesterday`, or an integer day offset from
+today. Negative offsets select past dates, `0` selects today, and positive offsets
+select future dates. Relative values use the local calendar date, so they remain
+correct across daylight-saving and month or year boundaries.
 
 ## Output
 

@@ -10,19 +10,22 @@ tgp week --week -1           # last week
 tgp week --week -3           # 3 weeks ago
 tgp week --date 2026-04-01   # week containing Apr 1
 tgp week -d yesterday        # week containing yesterday
+tgp week --date -2           # week containing the date two days ago
 tgp week --verbose           # current week with daily breakdown
 tgp week -v --week -1        # last week with daily breakdown
 ```
 
 ### Flags
 
-| Flag                | Shorthand       | Description                                                        |
-| ------------------- | --------------- | ------------------------------------------------------------------ |
-| `--week N`          | `-w N`          | Relative week offset (0 = current, -1 = last, 2 = two weeks ahead) |
-| `--date YYYY-MM-DD` | `-d YYYY-MM-DD` | Show the week containing the given date (also accepts `yesterday`) |
-| `--verbose`         | `-v`            | Show a per-day breakdown matrix for each project                   |
+| Flag        | Shorthand | Description                                                                               |
+| ----------- | --------- | ----------------------------------------------------------------------------------------- |
+| `--week N`  | `-w N`    | Relative week offset (0 = current, -1 = last, 2 = two weeks ahead)                        |
+| `--date D`  | `-d D`    | Week containing ISO date `D`, `yesterday`, or integer day offset (negative past, 0 today) |
+| `--verbose` | `-v`      | Show a per-day breakdown matrix for each project                                          |
 
 `--date` and `--week` are mutually exclusive. `--verbose` can be combined with either.
+Positive `--date` offsets select future local calendar dates, matching the signed-offset
+behavior of `--week`.
 
 ## Output
 

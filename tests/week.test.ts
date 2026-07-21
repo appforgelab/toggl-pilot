@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getWeekBounds,
   parseWeekArgs,
@@ -84,6 +84,16 @@ describe('parseWeekArgs', () => {
     const { refDate } = parseWeekArgs(['-d', '2026-04-01']);
     const { monday } = getWeekBounds(refDate);
     expect(formatDate(monday)).toBe('2026-03-30');
+  });
+
+  it('parses a relative day offset with --date', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-01T12:00:00'));
+    const { refDate } = parseWeekArgs(['--date', '-2']);
+    const { monday } = getWeekBounds(refDate);
+    expect(formatDate(refDate)).toBe('2026-03-30');
+    expect(formatDate(monday)).toBe('2026-03-30');
+    vi.useRealTimers();
   });
 
   it('parses --week -1 (last week)', () => {
