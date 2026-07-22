@@ -358,9 +358,13 @@ describe('localDateWithOffset across DST', () => {
     else process.env.TZ = originalTZ;
   });
 
-  it('uses local calendar arithmetic across spring-forward', () => {
+  it('preserves the calendar day across spring-forward', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-03-10T00:30:00-04:00'));
+
+    expect(new Date().getTimezoneOffset()).toBe(240);
+    expect(formatDate(new Date(Date.now() - 86400000))).toBe('2025-03-08');
+
     const result = localDateWithOffset(-1);
     expect(formatDate(result)).toBe('2025-03-09');
     expect(result.getHours()).toBe(12);
