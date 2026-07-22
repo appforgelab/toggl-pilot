@@ -136,11 +136,17 @@ export function parseStartTime(value: string): Date {
   return parsed;
 }
 
-export function localYesterdayDate(): Date {
+export function localDateWithOffset(offsetDays: number): Date {
   const d = new Date();
-  d.setDate(d.getDate() - 1);
+  // Calendar arithmetic preserves the requested local day across DST changes;
+  // noon avoids unstable date formatting around midnight transitions.
+  d.setDate(d.getDate() + offsetDays);
   d.setHours(12, 0, 0, 0);
   return d;
+}
+
+export function localYesterdayDate(): Date {
+  return localDateWithOffset(-1);
 }
 
 export function requireFlagValue(
@@ -164,11 +170,24 @@ export function parseDateArg(args: string[]): Date {
   const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
   if (idx !== -1) {
     const flag = args[idx];
-    const val = requireFlagValue(args, idx, flag, { hint: 'Use YYYY-MM-DD or "yesterday".' });
+    const candidate = args[idx + 1];
+    const val =
+      candidate !== undefined && /^-\d/.test(candidate)
+        ? candidate
+        : requireFlagValue(args, idx, flag, {
+            hint: 'Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).',
+          });
     if (val === 'yesterday') return localYesterdayDate();
+    if (/^[+-]?\d+$/.test(val)) {
+      const offsetDays = Number(val);
+      if (Number.isSafeInteger(offsetDays)) {
+        const date = localDateWithOffset(offsetDays);
+        if (!isNaN(date.getTime())) return date;
+      }
+    }
     const d = new Date(val + 'T12:00:00');
     if (!isNaN(d.getTime())) return d;
-    throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD or "yesterday".`);
+    throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
   }
   return new Date();
 }
