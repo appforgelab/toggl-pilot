@@ -274,6 +274,24 @@ describe('resume command', () => {
     expect(mockedPost).not.toHaveBeenCalled();
   });
 
+  it('never falls back to entries older than yesterday', async () => {
+    const dayBeforeYesterday = makeEntry({
+      id: 101,
+      description: 'Two days ago',
+      start: toUtcIso('2025-06-13T17:00:00'),
+      stop: toUtcIso('2025-06-13T18:00:00'),
+    });
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([dayBeforeYesterday]);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await resume([]);
+
+    expect(errorSpy).toHaveBeenCalledWith('No stopped task found today or yesterday to resume.');
+    expect(logSpy).not.toHaveBeenCalledWith("No stopped task found today; resuming yesterday's last:");
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
   it('prints an error and does not post when a timer is already running', async () => {
     mockedGet.mockResolvedValueOnce(
       makeEntry({
