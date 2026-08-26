@@ -15,9 +15,14 @@ export function findLatestStoppedOn(entries: TimeEntry[], day: Date): TimeEntry 
   return stopped[0];
 }
 
-function getResumeWindow(today: Date): { startDate: string; endDate: string } {
+function getYesterday(today: Date): Date {
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
+  return yesterday;
+}
+
+function getResumeWindow(today: Date): { startDate: string; endDate: string } {
+  const yesterday = getYesterday(today);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   return {
@@ -52,9 +57,7 @@ async function resumeLatest(): Promise<void> {
   let lastStopped = findLatestStoppedOn(timeEntries, today);
 
   if (!lastStopped) {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    lastStopped = findLatestStoppedOn(timeEntries, yesterday);
+    lastStopped = findLatestStoppedOn(timeEntries, getYesterday(today));
     if (lastStopped) {
       console.log("No stopped task found today; resuming yesterday's last:");
     }
