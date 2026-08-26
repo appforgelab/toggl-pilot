@@ -5,7 +5,7 @@ Starts a new running timer from a previously stopped entry.
 ## Usage
 
 ```bash
-tgp resume            # resume the latest task stopped today
+tgp resume            # resume the latest task stopped today (falls back to yesterday)
 tgp resume <id>       # resume a specific entry by ID
 ```
 
@@ -20,8 +20,11 @@ Fetches recent time entries from Toggl and finds the latest stopped entry whose
 stop time is today in your local calendar. It starts a new timer with the same
 description, project, tags, and workspace.
 
-Entries from previous days are ignored, even if they are the most recent stopped
-entries overall. Running entries are ignored.
+If nothing was stopped today, it falls back to the latest entry stopped
+yesterday and prints a notice so the fallback is never silent. If yesterday
+also has no stopped entries (e.g. Monday morning after a weekend off), an
+error is printed. Entries older than yesterday are never resumed
+automatically — use `tgp resume <id>` for those. Running entries are ignored.
 
 ### With an entry ID (`tgp resume <id>`)
 
@@ -43,10 +46,17 @@ Resuming a stopped task:
 Started: Fixing login bug [Dev-Pilot] {dev, bug} (id: 4383678598)
 ```
 
-No stopped task today (no-arg form):
+Falling back to yesterday's last stopped task (no-arg form):
 
 ```text
-No stopped task found today to resume.
+No stopped task found today; resuming yesterday's last:
+Started: Fixing login bug [Dev-Pilot] {dev, bug} (id: 4383678598)
+```
+
+No stopped task today or yesterday (no-arg form):
+
+```text
+No stopped task found today or yesterday to resume.
 ```
 
 Entry ID not found:

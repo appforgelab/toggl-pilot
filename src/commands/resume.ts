@@ -2,17 +2,17 @@ import { get, post } from '../api.js';
 import type { TimeEntry } from '../types.js';
 import { formatDate } from '../utils.js';
 
-function isStoppedToday(entry: TimeEntry, today: Date): boolean {
+function isStoppedOn(entry: TimeEntry, day: Date): boolean {
   if (entry.stop === null || entry.duration < 0) return false;
-  return formatDate(new Date(entry.stop)) === formatDate(today);
+  return formatDate(new Date(entry.stop)) === formatDate(day);
 }
 
-export function findLatestStoppedToday(entries: TimeEntry[], today: Date): TimeEntry | null {
-  const stoppedToday = entries.filter((entry) => isStoppedToday(entry, today));
-  if (stoppedToday.length === 0) return null;
+export function findLatestStoppedOn(entries: TimeEntry[], day: Date): TimeEntry | null {
+  const stopped = entries.filter((entry) => isStoppedOn(entry, day));
+  if (stopped.length === 0) return null;
 
-  stoppedToday.sort((a, b) => new Date(b.stop!).getTime() - new Date(a.stop!).getTime());
-  return stoppedToday[0];
+  stopped.sort((a, b) => new Date(b.stop!).getTime() - new Date(a.stop!).getTime());
+  return stopped[0];
 }
 
 function getResumeWindow(today: Date): { startDate: string; endDate: string } {
@@ -49,10 +49,19 @@ async function resumeLatest(): Promise<void> {
   const today = new Date();
   const { startDate, endDate } = getResumeWindow(today);
   const timeEntries = await get<TimeEntry[]>(`/me/time_entries?start_date=${startDate}&end_date=${endDate}`);
-  const lastStopped = findLatestStoppedToday(timeEntries, today);
+  let lastStopped = findLatestStoppedOn(timeEntries, today);
 
   if (!lastStopped) {
-    console.error('No stopped task found today to resume.');
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    lastStopped = findLatestStoppedOn(timeEntries, yesterday);
+    if (lastStopped) {
+      console.log("No stopped task found today; resuming yesterday's last:");
+    }
+  }
+
+  if (!lastStopped) {
+    console.error('No stopped task found today or yesterday to resume.');
     return;
   }
 

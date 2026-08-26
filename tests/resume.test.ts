@@ -109,20 +109,43 @@ describe('resume command', () => {
     );
   });
 
-  it('ignores entries stopped on the previous local day', async () => {
-    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([
-      makeEntry({
-        id: 101,
-        description: 'Yesterday',
-        stop: toUtcIso('2025-06-14T23:59:00'),
-      }),
-    ]);
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it("falls back to yesterday's last stopped entry when nothing stopped today", async () => {
+    const yesterdayEntry = makeEntry({
+      id: 101,
+      description: 'Yesterday',
+      stop: toUtcIso('2025-06-14T23:59:00'),
+    });
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([yesterdayEntry]);
+    mockedPost.mockResolvedValue({ ...yesterdayEntry, id: 999, stop: null, duration: -1 });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     await resume([]);
 
-    expect(errorSpy).toHaveBeenCalledWith('No stopped task found today to resume.');
-    expect(mockedPost).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith("No stopped task found today; resuming yesterday's last:");
+    expect(mockedPost).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries',
+      expect.objectContaining({ description: 'Yesterday' })
+    );
+  });
+
+  it("prefers today's entries over yesterday's", async () => {
+    const todayEntry = makeEntry({ id: 102, description: 'Today' });
+    const yesterdayEntry = makeEntry({
+      id: 101,
+      description: 'Yesterday',
+      stop: toUtcIso('2025-06-14T23:59:00'),
+    });
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([yesterdayEntry, todayEntry]);
+    mockedPost.mockResolvedValue({ ...todayEntry, id: 999, stop: null, duration: -1 });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await resume([]);
+
+    expect(mockedPost).toHaveBeenCalledWith(
+      '/workspaces/123/time_entries',
+      expect.objectContaining({ description: 'Today' })
+    );
+    expect(logSpy).not.toHaveBeenCalledWith("No stopped task found today; resuming yesterday's last:");
   });
 
   it('chooses the latest entry by stop time', async () => {
@@ -196,18 +219,13 @@ describe('resume command', () => {
     );
   });
 
-  it('prints an error and does not post when no stopped task exists today', async () => {
-    mockedGet
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce([
-        makeEntry({ stop: null, duration: -1 }),
-        makeEntry({ stop: toUtcIso('2025-06-14T18:00:00') }),
-      ]);
+  it('prints an error and does not post when no stopped task exists today or yesterday', async () => {
+    mockedGet.mockResolvedValueOnce(null).mockResolvedValueOnce([makeEntry({ stop: null, duration: -1 })]);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await resume([]);
 
-    expect(errorSpy).toHaveBeenCalledWith('No stopped task found today to resume.');
+    expect(errorSpy).toHaveBeenCalledWith('No stopped task found today or yesterday to resume.');
     expect(mockedPost).not.toHaveBeenCalled();
   });
 
