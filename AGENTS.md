@@ -28,6 +28,12 @@ See README.md for available commands and usage.
   `gh pr merge <number> --squash --subject "feat: add project-rename (#21)" --body "" --delete-branch`
 - **Run `gh` commands outside the sandbox**. Sandboxed `gh` may report invalid auth
   or fail to reach GitHub even when the host keychain token is valid.
+- **Prefer the installed `tgp` CLI** when exercising the tool (`tgp entry-list`, etc.).
+  `tsx` is not on PATH; use `tgp` or `npx tsx src/index.ts`. Only drop to a
+  one-off script hitting `src/api.ts` directly when no command covers the need
+  (e.g. fetching `/me/time_entries/current`, or a rolling multi-day window —
+  `entry-list` misses entries that started on a previous UTC day, such as
+  overnight runners).
 
 This file describes common mistakes and confusion points that an agent may encounter as
 they work on this project. If you ever encounter something that surprises you or
