@@ -62,6 +62,7 @@ Run `tgp` without arguments to see all available commands.
 | `tgp client-list`                     | List workspace clients | [docs/client-list.md](docs/client-list.md)     |
 | `tgp client-add "Name" [--notes "x"]` | Create a client        | [docs/client-add.md](docs/client-add.md)       |
 | `tgp client-delete <id>`              | Delete a client        | [docs/client-delete.md](docs/client-delete.md) |
+| `tgp client-rename <id> "New Name"`   | Rename a client        | [docs/client-rename.md](docs/client-rename.md) |
 
 ### Projects
 
