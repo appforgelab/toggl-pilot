@@ -57,10 +57,11 @@ Run `tgp` without arguments to see all available commands.
 
 ### Clients
 
-| Command                               | Description            | Docs                                       |
-| ------------------------------------- | ---------------------- | ------------------------------------------ |
-| `tgp client-list`                     | List workspace clients | [docs/client-list.md](docs/client-list.md) |
-| `tgp client-add "Name" [--notes "x"]` | Create a client        | [docs/client-add.md](docs/client-add.md)   |
+| Command                               | Description            | Docs                                           |
+| ------------------------------------- | ---------------------- | ---------------------------------------------- |
+| `tgp client-list`                     | List workspace clients | [docs/client-list.md](docs/client-list.md)     |
+| `tgp client-add "Name" [--notes "x"]` | Create a client        | [docs/client-add.md](docs/client-add.md)       |
+| `tgp client-delete <id>`              | Delete a client        | [docs/client-delete.md](docs/client-delete.md) |
 
 ### Projects
 
