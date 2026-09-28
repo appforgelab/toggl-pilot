@@ -6,6 +6,7 @@ import { week } from './commands/week.js';
 import { projectList } from './commands/project-list.js';
 import { clientList } from './commands/client-list.js';
 import { clientAdd } from './commands/client-add.js';
+import { clientDelete } from './commands/client-delete.js';
 import { workspaceList } from './commands/workspace-list.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
@@ -68,6 +69,9 @@ if (command === 'auth') {
     case 'client-add':
       clientAdd(args);
       break;
+    case 'client-delete':
+      clientDelete(args);
+      break;
     case 'workspace-list':
       workspaceList();
       break;
@@ -125,7 +129,7 @@ if (command === 'auth') {
         '  track            stop             resume [<id>]    entry-edit       entry-list       entry-delete'
       );
       console.error('  week');
-      console.error('  client-list      client-add');
+      console.error('  client-list      client-add       client-delete');
       console.error('  project-list     project-create   project-edit     project-rename   project-archive');
       console.error('  project-restore  project-delete');
       console.error('  tag-list         tag-create       tag-rename       tag-delete');
