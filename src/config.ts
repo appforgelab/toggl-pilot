@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { get } from './api.js';
 import { getConfigFile } from './paths.js';
 
@@ -45,6 +45,44 @@ function getVar(name: string): string | undefined {
 export function hasConfig(): boolean {
   const token = getVar('TOGGL_API_TOKEN');
   return !!token && token !== 'your_token_here';
+}
+
+export function setConfigVar(key: string, value: string): string {
+  const file = getConfigFile();
+  let lines: string[] = [];
+  if (existsSync(file)) {
+    const content = readFileSync(file, 'utf-8');
+    lines = content.split('\n');
+    if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+  }
+  let found = false;
+  lines = lines.map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return line;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) return line;
+    if (trimmed.slice(0, eq).trim() === key) {
+      found = true;
+      return `${key}=${value}`;
+    }
+    return line;
+  });
+  if (!found) lines.push(`${key}=${value}`);
+  writeFileSync(file, lines.join('\n') + '\n', { mode: 0o600 });
+  if (cachedConfig) cachedConfig[key] = value;
+
+  try {
+    const st = statSync(file);
+    const mode = st.mode & 0o777;
+    if (process.platform !== 'win32' && mode !== 0o600) {
+      console.warn(
+        `Warning: config file permissions are ${mode.toString(8)}. Consider running: chmod 600 ${file}`
+      );
+    }
+  } catch {
+    // skip permission check
+  }
+  return file;
 }
 
 export const config = {

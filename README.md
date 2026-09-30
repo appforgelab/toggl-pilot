@@ -42,6 +42,7 @@ Run `tgp` without arguments to see all available commands.
 | `tgp version`        | Show CLI version      |                                                  |
 | `tgp me`             | Verify authentication | [docs/me.md](docs/me.md)                         |
 | `tgp workspace-list` | List workspaces       | [docs/workspace-list.md](docs/workspace-list.md) |
+| `tgp workspace-use`  | Set active workspace  | [docs/workspace-use.md](docs/workspace-use.md)   |
 
 ### Entries
 

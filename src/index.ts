@@ -9,6 +9,7 @@ import { clientAdd } from './commands/client-add.js';
 import { clientDelete } from './commands/client-delete.js';
 import { clientRename } from './commands/client-rename.js';
 import { workspaceList } from './commands/workspace-list.js';
+import { workspaceUse } from './commands/workspace-use.js';
 import { entryDelete } from './commands/entry-delete.js';
 import { track } from './commands/track.js';
 import { stop } from './commands/stop.js';
@@ -79,6 +80,9 @@ if (command === 'auth') {
     case 'workspace-list':
       workspaceList();
       break;
+    case 'workspace-use':
+      workspaceUse(args);
+      break;
     case 'entry-delete':
       entryDelete(args);
       break;
@@ -128,7 +132,7 @@ if (command === 'auth') {
       console.error('Usage: tgp <command>');
       console.error('Commands:');
       console.error('  auth             version          me');
-      console.error('  workspace-list');
+      console.error('  workspace-list   workspace-use');
       console.error(
         '  track            stop             resume [<id>]    entry-edit       entry-list       entry-delete'
       );
