@@ -34,6 +34,31 @@ describe('clientAdd command', () => {
     logSpy.mockRestore();
   });
 
+  it.each([
+    { args: ['Acme', 'Backup'] },
+    { args: ['Acme', '--notes', 'Some notes', 'Backup'] },
+    { args: ['--notes', 'Some notes', 'Acme', 'Backup'] },
+    { args: ['', 'Backup'] },
+    { args: ['Acme', ''] },
+    { args: ['', '', 'Backup'] },
+  ])('rejects extra positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(clientAdd(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp client-add "Client Name" [--notes "Some notes"]');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedPost).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('exits on unknown flag', async () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');
@@ -61,11 +86,14 @@ describe('clientAdd command', () => {
     logSpy.mockRestore();
   });
 
-  it('passes --notes to body when provided', async () => {
+  it.each([
+    { args: ['Acme Corp', '--notes', 'Some notes'], flagOrder: 'after' },
+    { args: ['--notes', 'Some notes', 'Acme Corp'], flagOrder: 'before' },
+  ])('passes --notes to body with flag $flagOrder name', async ({ args }) => {
     mockedPost.mockResolvedValue({ id: 1, name: 'Acme Corp' });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await clientAdd(['Acme Corp', '--notes', 'Some notes']);
+    await clientAdd(args);
 
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/clients', {
       name: 'Acme Corp',

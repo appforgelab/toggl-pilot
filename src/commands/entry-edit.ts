@@ -30,6 +30,8 @@ interface TimeEntryUpdate {
   tags?: string[];
 }
 
+const USAGE =
+  'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description', '--dur', '--start']);
 
 function normalizeTags(tags: string[] | null): string[] {
@@ -115,15 +117,14 @@ export function parseArgs(args: string[]): {
     } else if (args[i] === '--start') {
       start = requireFlagValue(args, i, args[i]);
       i++;
-    } else if (!args[i].startsWith('-') && !id) {
+    } else if (!args[i].startsWith('-')) {
+      if (id !== null) throw new Error(USAGE);
       id = args[i];
     }
   }
 
   if (!id) {
-    throw new Error(
-      'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]'
-    );
+    throw new Error(USAGE);
   }
 
   if (!description && !project && !tags && !dur && !start) {

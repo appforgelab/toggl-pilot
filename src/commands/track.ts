@@ -25,6 +25,8 @@ interface Project {
   name: string;
 }
 
+const USAGE =
+  'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
 const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
 
 export function parseArgs(args: string[]): {
@@ -35,7 +37,7 @@ export function parseArgs(args: string[]): {
   dur: string | null;
   date: string | null;
 } {
-  let description = '';
+  let description: string | null = null;
   let project: string | null = null;
   let tags: string[] = [];
   let at: string | null = null;
@@ -67,14 +69,13 @@ export function parseArgs(args: string[]): {
       date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
       i++;
     } else if (!args[i].startsWith('-')) {
+      if (description !== null) throw new Error(USAGE);
       description = args[i];
     }
   }
 
   if (!description) {
-    throw new Error(
-      'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]'
-    );
+    throw new Error(USAGE);
   }
 
   return { description, project, tags, at, dur, date };

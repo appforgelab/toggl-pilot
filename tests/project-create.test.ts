@@ -38,6 +38,34 @@ describe('projectCreate command', () => {
     errorSpy.mockRestore();
   });
 
+  it.each([
+    { args: ['New Project', 'Extra'] },
+    { args: ['New Project', '--color', '#0b83d9', 'Extra'] },
+    { args: ['--public', 'New Project', 'Extra'] },
+    { args: ['', 'Extra'] },
+    { args: ['New Project', ''] },
+    { args: ['', '', 'Extra'] },
+  ])('rejects extra positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(projectCreate(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]'
+      );
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedPost).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('creates project with just a name', async () => {
     mockedPost.mockResolvedValue({ id: 100, name: 'New Project', client_id: null, client_name: null });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -69,11 +97,14 @@ describe('projectCreate command', () => {
     logSpy.mockRestore();
   });
 
-  it('creates project with --color', async () => {
+  it.each([
+    { args: ['Colored', '--color', '#0b83d9'], flagOrder: 'after' },
+    { args: ['--color', '#0b83d9', 'Colored'], flagOrder: 'before' },
+  ])('creates project with --color $flagOrder name', async ({ args }) => {
     mockedPost.mockResolvedValue({ id: 102, name: 'Colored', client_id: null, client_name: null });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await projectCreate(['Colored', '--color', '#0b83d9']);
+    await projectCreate(args);
 
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/projects', {
       name: 'Colored',
