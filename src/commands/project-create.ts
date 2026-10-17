@@ -10,10 +10,11 @@ interface Project {
   client_name: string | null;
 }
 
+const USAGE = 'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
 const VALID_FLAGS = new Set(['-c', '--client', '--color', '--public']);
 
 function parseArgs(args: string[]) {
-  let name = '';
+  let name: string | null = null;
   let client: string | null = null;
   let color: string | null = null;
   let isPublic = false;
@@ -32,14 +33,13 @@ function parseArgs(args: string[]) {
     } else if (args[i] === '--public') {
       isPublic = true;
     } else if (!args[i].startsWith('-')) {
+      if (name !== null) throw new Error(USAGE);
       name = args[i];
     }
   }
 
   if (!name) {
-    throw new Error(
-      'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]'
-    );
+    throw new Error(USAGE);
   }
 
   return { name, client, color, isPublic };

@@ -22,6 +22,34 @@ describe('track command', () => {
     vi.clearAllMocks();
   });
 
+  it.each([
+    { args: ['Work', 'Extra'] },
+    { args: ['Work', '-p', 'Project', 'Extra'] },
+    { args: ['-p', 'Project', 'Work', 'Extra'] },
+    { args: ['', 'Extra'] },
+    { args: ['Work', ''] },
+    { args: ['', '', 'Extra'] },
+  ])('rejects extra positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(track(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]'
+      );
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedPost).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('starts a running timer without project', async () => {
     mockedPost.mockResolvedValue({
       id: 999,
@@ -47,7 +75,10 @@ describe('track command', () => {
     );
   });
 
-  it('starts a timer with project (exact match)', async () => {
+  it.each([
+    { args: ['Fix bug', '-p', 'dev-pilot'], flagOrder: 'after' },
+    { args: ['-p', 'dev-pilot', 'Fix bug'], flagOrder: 'before' },
+  ])('starts a timer with project flag $flagOrder description (exact match)', async ({ args }) => {
     mockedGet.mockResolvedValue([
       { id: 10, name: 'Dev-Pilot' },
       { id: 20, name: 'Other' },
@@ -63,7 +94,7 @@ describe('track command', () => {
       workspace_id: 123,
     });
 
-    await track(['Fix bug', '-p', 'dev-pilot']);
+    await track(args);
 
     expect(mockedPost).toHaveBeenCalledWith(
       '/workspaces/123/time_entries',

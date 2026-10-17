@@ -13,7 +13,7 @@ const USAGE = 'Usage: tgp client-add "Client Name" [--notes "Some notes"]';
 const VALID_FLAGS = new Set(['--notes']);
 
 function parseArgs(args: string[]) {
-  let name = '';
+  let name: string | null = null;
   let notes: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
@@ -25,6 +25,7 @@ function parseArgs(args: string[]) {
       notes = requireFlagValue(args, i, '--notes');
       i++;
     } else if (!args[i].startsWith('-')) {
+      if (name !== null) throw new Error(USAGE);
       name = args[i];
     }
   }

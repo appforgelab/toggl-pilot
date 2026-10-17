@@ -29,14 +29,45 @@ describe('entryEdit command', () => {
     vi.clearAllMocks();
   });
 
-  it('edits description only, preserves other fields', async () => {
+  it.each([
+    { args: ['100', '200', '-d', 'Updated'] },
+    { args: ['100', '-d', 'Updated', '200'] },
+    { args: ['-d', 'Updated', '100', '200'] },
+    { args: ['', '200', '-d', 'Updated'] },
+    { args: ['100', '', '-d', 'Updated'] },
+    { args: ['', '', '200', '-d', 'Updated'] },
+  ])('rejects extra positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(entryEdit(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]'
+      );
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedPut).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it.each([
+    { args: ['100', '-d', 'Updated'], flagOrder: 'after' },
+    { args: ['-d', 'Updated', '100'], flagOrder: 'before' },
+  ])('edits description with flag $flagOrder id, preserves other fields', async ({ args }) => {
     mockedGet.mockResolvedValue({ ...baseEntry });
     mockedPut.mockResolvedValue({
       ...baseEntry,
       description: 'Updated',
     });
 
-    await entryEdit(['100', '-d', 'Updated']);
+    await entryEdit(args);
 
     expect(mockedPut).toHaveBeenCalledWith(
       '/workspaces/123/time_entries/100',
