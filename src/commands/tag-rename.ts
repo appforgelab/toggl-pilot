@@ -10,7 +10,7 @@ export async function tagRename(args: string[]) {
   const tagId = args[0];
   const newName = args[1];
 
-  if (!tagId || !newName) {
+  if (args.length !== 2 || !tagId || !newName) {
     console.error('Usage: tgp tag-rename <tag_id> "New Name"');
     process.exit(1);
   }

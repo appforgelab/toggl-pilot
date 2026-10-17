@@ -8,7 +8,7 @@ interface Workspace {
 
 export async function workspaceUse(args: string[]) {
   const raw = args[0];
-  if (!raw) {
+  if (args.length !== 1 || !raw) {
     console.error('Usage: tgp workspace-use <workspace_id>');
     process.exit(1);
   }

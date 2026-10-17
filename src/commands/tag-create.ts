@@ -9,7 +9,7 @@ interface Tag {
 export async function tagCreate(args: string[]) {
   const name = args[0];
 
-  if (!name) {
+  if (args.length !== 1 || !name) {
     console.error('Usage: tgp tag-create "Tag Name"');
     process.exit(1);
   }

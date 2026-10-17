@@ -12,6 +12,7 @@ vi.mock('../src/config.js', () => ({
 }));
 
 import { get, put } from '../src/api.js';
+import { config } from '../src/config.js';
 import { projectRename } from '../src/commands/project-rename.js';
 
 const mockedGet = vi.mocked(get);
@@ -20,6 +21,34 @@ const mockedPut = vi.mocked(put);
 describe('projectRename command', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    { args: ['456', 'New', 'Name'] },
+    { args: ['Backend', 'New Name', 'Extra'] },
+    { args: ['456', 'New Name', ''] },
+    { args: ['456', 'New Name', '', 'Extra'] },
+    { args: ['', 'New Name', 'Extra'] },
+    { args: ['', 'New Name'] },
+    { args: ['456', ''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(projectRename(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp project-rename <project> "New Name"');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(config.getWorkspaceId).not.toHaveBeenCalled();
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedPut).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 
   it('exits with usage message when no args provided', async () => {
@@ -79,12 +108,12 @@ describe('projectRename command', () => {
     logSpy.mockRestore();
   });
 
-  it('renames project by name', async () => {
-    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
+  it.each(['Backend', 'Backend Service'])('renames project by name: %s', async (name) => {
+    mockedGet.mockResolvedValue([{ id: 456, name }]);
     mockedPut.mockResolvedValue({ id: 456, name: 'New Name' });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await projectRename(['Backend', 'New Name']);
+    await projectRename([name, 'New Name']);
 
     expect(mockedGet).toHaveBeenCalledWith('/workspaces/123/projects');
     expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {

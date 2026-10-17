@@ -4,7 +4,7 @@ import { del } from '../api.js';
 export async function clientDelete(args: string[]) {
   const clientId = args[0];
 
-  if (!clientId) {
+  if (args.length !== 1 || !clientId) {
     console.error('Usage: tgp client-delete <client_id>');
     process.exit(1);
   }

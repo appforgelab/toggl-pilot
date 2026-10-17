@@ -11,7 +11,7 @@ interface TimeEntry {
 
 export async function entryDelete(args: string[]) {
   const id = args.find((a) => !a.startsWith('-'));
-  if (!id) {
+  if (args.length !== 1 || !id) {
     console.error('Usage: tgp entry-delete <entry_id>');
     process.exit(1);
   }
