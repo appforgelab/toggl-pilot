@@ -5,7 +5,7 @@ import { resolveProjectId } from '../projects.js';
 export async function projectDelete(args: string[]) {
   const projectInput = args[0];
 
-  if (!projectInput) {
+  if (args.length !== 1 || !projectInput) {
     console.error('Usage: tgp project-delete <project>');
     process.exit(1);
   }

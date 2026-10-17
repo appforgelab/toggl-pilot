@@ -11,6 +11,7 @@ vi.mock('../src/config.js', () => ({
 }));
 
 import { del } from '../src/api.js';
+import { config } from '../src/config.js';
 import { tagDelete } from '../src/commands/tag-delete.js';
 
 const mockedDel = vi.mocked(del);
@@ -18,6 +19,31 @@ const mockedDel = vi.mocked(del);
 describe('tagDelete command', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    { args: ['456', '789'] },
+    { args: ['456', ''] },
+    { args: ['456', '', '789'] },
+    { args: ['', '456'] },
+    { args: [''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(tagDelete(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-delete <tag_id>');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(config.getWorkspaceId).not.toHaveBeenCalled();
+      expect(mockedDel).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 
   it('exits with usage message when no ID provided', async () => {

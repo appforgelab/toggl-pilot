@@ -25,6 +25,34 @@ describe('entryDelete command', () => {
     vi.clearAllMocks();
   });
 
+  it.each([
+    { args: ['100', '200'] },
+    { args: ['--force', '100'] },
+    { args: ['100', '--force'] },
+    { args: ['100', ''] },
+    { args: ['100', '', '200'] },
+    { args: ['', '100'] },
+    { args: ['', '', '100'] },
+    { args: [''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(entryDelete(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp entry-delete <entry_id>');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedDel).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('exits with usage message when no ID provided', async () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('exit');

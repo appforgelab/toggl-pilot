@@ -10,7 +10,7 @@ export async function clientRename(args: string[]) {
   const clientId = args[0];
   const newName = args[1];
 
-  if (!clientId || !newName) {
+  if (args.length !== 2 || !clientId || !newName) {
     console.error('Usage: tgp client-rename <client_id> "New Name"');
     process.exit(1);
   }

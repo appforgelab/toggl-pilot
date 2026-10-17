@@ -26,6 +26,29 @@ describe('workspaceUse command', () => {
     vi.clearAllMocks();
   });
 
+  it.each([
+    { args: ['12345', '67890'] },
+    { args: ['12345', ''] },
+    { args: ['12345', '', '67890'] },
+    { args: ['', '12345'] },
+    { args: [''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = mockExit();
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(workspaceUse(args)).rejects.toThrow('exit');
+
+      expect(errSpy).toHaveBeenCalledWith('Usage: tgp workspace-use <workspace_id>');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedSetConfigVar).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errSpy.mockRestore();
+    }
+  });
+
   it('exits with usage when no id provided', async () => {
     const exitSpy = mockExit();
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

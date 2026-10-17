@@ -11,6 +11,7 @@ vi.mock('../src/config.js', () => ({
 }));
 
 import { post } from '../src/api.js';
+import { config } from '../src/config.js';
 import { tagCreate } from '../src/commands/tag-create.js';
 
 const mockedPost = vi.mocked(post);
@@ -18,6 +19,31 @@ const mockedPost = vi.mocked(post);
 describe('tagCreate command', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    { args: ['Bug', 'Report'] },
+    { args: ['Bug', ''] },
+    { args: ['Bug', '', 'Report'] },
+    { args: ['', 'Bug'] },
+    { args: [''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(tagCreate(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(config.getWorkspaceId).not.toHaveBeenCalled();
+      expect(mockedPost).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 
   it('exits with usage message when no name provided', async () => {
@@ -34,17 +60,17 @@ describe('tagCreate command', () => {
     logSpy.mockRestore();
   });
 
-  it('creates tag and prints confirmation', async () => {
-    mockedPost.mockResolvedValue({ id: 456, name: 'Bug' });
+  it.each(['Bug', 'Bug Report'])('creates tag and prints confirmation: %s', async (name) => {
+    mockedPost.mockResolvedValue({ id: 456, name });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await tagCreate(['Bug']);
+    await tagCreate([name]);
 
     expect(mockedPost).toHaveBeenCalledWith('/workspaces/123/tags', {
-      name: 'Bug',
+      name,
       workspace_id: 123,
     });
-    expect(logSpy).toHaveBeenCalledWith('Tag 456 created: "Bug"');
+    expect(logSpy).toHaveBeenCalledWith(`Tag 456 created: "${name}"`);
     logSpy.mockRestore();
   });
 

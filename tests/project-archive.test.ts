@@ -12,6 +12,7 @@ vi.mock('../src/config.js', () => ({
 }));
 
 import { get, put } from '../src/api.js';
+import { config } from '../src/config.js';
 import { projectArchive } from '../src/commands/project-archive.js';
 
 const mockedGet = vi.mocked(get);
@@ -20,6 +21,33 @@ const mockedPut = vi.mocked(put);
 describe('projectArchive command', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    { args: ['456', '789'] },
+    { args: ['Backend', 'Other'] },
+    { args: ['Backend', ''] },
+    { args: ['Backend', '', 'Other'] },
+    { args: ['', 'Backend'] },
+    { args: [''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(projectArchive(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp project-archive <project>');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(config.getWorkspaceId).not.toHaveBeenCalled();
+      expect(mockedGet).not.toHaveBeenCalled();
+      expect(mockedPut).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 
   it('exits with usage message when no ID provided', async () => {
@@ -65,12 +93,12 @@ describe('projectArchive command', () => {
     logSpy.mockRestore();
   });
 
-  it('archives project by name', async () => {
-    mockedGet.mockResolvedValue([{ id: 456, name: 'Backend' }]);
+  it.each(['Backend', 'Backend Service'])('archives project by name: %s', async (name) => {
+    mockedGet.mockResolvedValue([{ id: 456, name }]);
     mockedPut.mockResolvedValue({ id: 456 });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await projectArchive(['Backend']);
+    await projectArchive([name]);
 
     expect(mockedGet).toHaveBeenCalledWith('/workspaces/123/projects');
     expect(mockedPut).toHaveBeenCalledWith('/workspaces/123/projects/456', {

@@ -11,6 +11,7 @@ vi.mock('../src/config.js', () => ({
 }));
 
 import { put } from '../src/api.js';
+import { config } from '../src/config.js';
 import { clientRename } from '../src/commands/client-rename.js';
 
 const mockedPut = vi.mocked(put);
@@ -18,6 +19,33 @@ const mockedPut = vi.mocked(put);
 describe('clientRename command', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    { args: ['456', 'New', 'Name'] },
+    { args: ['456', 'New Name', 'Extra'] },
+    { args: ['456', 'New Name', ''] },
+    { args: ['456', 'New Name', '', 'Extra'] },
+    { args: ['', 'New Name', 'Extra'] },
+    { args: ['', 'New Name'] },
+    { args: ['456', ''] },
+  ])('rejects invalid positional args with usage: $args', async ({ args }) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('exit');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      await expect(clientRename(args)).rejects.toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp client-rename <client_id> "New Name"');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(config.getWorkspaceId).not.toHaveBeenCalled();
+      expect(mockedPut).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 
   it('exits with usage message when no args provided', async () => {

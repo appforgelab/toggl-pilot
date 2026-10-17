@@ -9,7 +9,7 @@ interface Project {
 export async function projectArchive(args: string[]) {
   const projectInput = args[0];
 
-  if (!projectInput) {
+  if (args.length !== 1 || !projectInput) {
     console.error('Usage: tgp project-archive <project>');
     process.exit(1);
   }

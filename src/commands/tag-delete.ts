@@ -4,7 +4,7 @@ import { del } from '../api.js';
 export async function tagDelete(args: string[]) {
   const tagId = args[0];
 
-  if (!tagId) {
+  if (args.length !== 1 || !tagId) {
     console.error('Usage: tgp tag-delete <tag_id>');
     process.exit(1);
   }
