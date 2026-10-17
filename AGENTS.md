@@ -22,11 +22,6 @@ See README.md for available commands and usage.
 - **After merging a PR**, switch to `main`, run `git pull && git fetch --prune`,
   then delete the local branch (`git branch -D <branch>` — use `-D` since squash
   merges require force delete)
-- If `git pull --ff-only` fails with `Cannot fast-forward to multiple branches`,
-  inspect the file returned by `git rev-parse --git-path FETCH_HEAD` for duplicate
-  entries and verify the upstream. With a clean `main` tracking `origin/main`, use
-  `git fetch origin --prune && git merge --ff-only origin/main` to fast-forward
-  from the explicit ref instead of `FETCH_HEAD`.
 - **When squash-merging a PR**, use `--subject` and `--body` to keep a clean commit
   message. The default includes all commit titles as bullet points in the body, which
   is messy. Example:
