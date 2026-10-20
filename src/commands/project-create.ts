@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
+import { parseOrExit, requireFlagValue, matchFlag, unhandledOption } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectCreateUsage =
@@ -21,31 +21,36 @@ interface Project {
 }
 
 const USAGE = `Usage: ${projectCreateUsage}`;
-const VALID_FLAGS = flagSet(projectCreateOptions);
 
-function parseArgs(args: string[]) {
+export function parseArgs(args: string[]) {
   let name: string | null = null;
   let client: string | null = null;
   let color: string | null = null;
   let isPublic = false;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(projectCreateOptions)}`);
-    }
-
-    if (args[i] === '-c' || args[i] === '--client') {
-      client = requireFlagValue(args, i, args[i] === '-c' ? '-c' : '--client');
-      i++;
-    } else if (args[i] === '--color') {
-      color = requireFlagValue(args, i, '--color');
-      i++;
-    } else if (args[i] === '--public') {
-      isPublic = true;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], projectCreateOptions, seen);
+    if (!option) {
       if (name !== null) throw new Error(USAGE);
       name = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--client':
+        client = requireFlagValue(args, i, args[i]);
+        break;
+      case '--color':
+        color = requireFlagValue(args, i, args[i]);
+        break;
+      case '--public':
+        isPublic = true;
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!name) {

@@ -4,8 +4,8 @@ import {
   parseOrExit,
   parseStartTime,
   requireFlagValue,
-  flagSet,
-  validFlagsHint,
+  matchFlag,
+  unhandledOption,
 } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
@@ -59,7 +59,6 @@ interface TimeEntryUpdate {
 }
 
 const USAGE = `Usage: ${entryEditUsage}`;
-const VALID_FLAGS = flagSet(entryEditOptions);
 
 function normalizeTags(tags: string[] | null): string[] {
   const normalized: string[] = [];
@@ -121,31 +120,36 @@ export function parseArgs(args: string[]): {
   let tags: string[] | null = null;
   let dur: string | null = null;
   let start: string | null = null;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(entryEditOptions)}`);
-    }
-
-    if (args[i] === '-d' || args[i] === '--description') {
-      description = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-p' || args[i] === '--project') {
-      project = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-t' || args[i] === '--tags') {
-      tags = normalizeTags(requireFlagValue(args, i, args[i], { allowEmpty: true }).split(','));
-      i++;
-    } else if (args[i] === '--dur') {
-      dur = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '--start') {
-      start = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], entryEditOptions, seen);
+    if (!option) {
       if (id !== null) throw new Error(USAGE);
       id = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--description':
+        description = requireFlagValue(args, i, args[i]);
+        break;
+      case '--project':
+        project = requireFlagValue(args, i, args[i]);
+        break;
+      case '--tags':
+        tags = normalizeTags(requireFlagValue(args, i, args[i], { allowEmpty: true }).split(','));
+        break;
+      case '--dur':
+        dur = requireFlagValue(args, i, args[i]);
+        break;
+      case '--start':
+        start = requireFlagValue(args, i, args[i]);
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!id) {
@@ -153,10 +157,11 @@ export function parseArgs(args: string[]): {
   }
 
   if (!description && !project && !tags && !dur && !start) {
-    throw new Error('Nothing to edit. Provide at least one of: -d, -p, -t, --dur, --start');
+    const flags = entryEditOptions.map((o) => o.short ?? o.long).join(', ');
+    throw new Error(`Nothing to edit. Provide at least one of: ${flags}`);
   }
 
-  return { id: id!, description, project, tags, dur, start };
+  return { id, description, project, tags, dur, start };
 }
 
 export async function entryEdit(args: string[]) {

@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { DASH, parseOrExit, validateOptionArgs } from '../utils.js';
+import { DASH, parseOptions, parseOrExit } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectListUsage = 'tgp project-list [--all|-a]';
@@ -20,9 +20,9 @@ interface Project {
 }
 
 export function parseArgs(args: string[]): { includeArchived: boolean } {
-  validateOptionArgs(args, projectListOptions, `Usage: ${projectListUsage}`);
-  // --all is the only option.
-  return { includeArchived: args.length > 0 };
+  return {
+    includeArchived: parseOptions(args, projectListOptions, `Usage: ${projectListUsage}`).has('--all'),
+  };
 }
 
 export async function projectList(args: string[] = []) {

@@ -57,7 +57,7 @@ describe('client-list parseArgs', () => {
     expect(() => parseArgs(['--name', 'Acme', '--name', 'Beta'])).toThrow('--name was given more than once.');
   });
 
-  it('does not read a value as a flag', () => {
-    expect(parseArgs(['--name', '--status'])).toEqual({ status: 'active', name: '--status' });
+  it('treats a flag in the value position as a missing value', () => {
+    expect(() => parseArgs(['--name', '--status'])).toThrow('Missing value for --name.');
   });
 });

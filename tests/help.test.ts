@@ -1,16 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { COMMANDS, GROUPS, findCommand } from '../src/registry.js';
-import { isHelpFlag, optionLabel, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
-import { entryListOptions } from '../src/commands/entry-list.js';
-import { trackOptions } from '../src/commands/track.js';
-import { entryEditOptions } from '../src/commands/entry-edit.js';
-import { weekOptions } from '../src/commands/week.js';
-import { clientListOptions } from '../src/commands/client-list.js';
-import { clientAddOptions } from '../src/commands/client-add.js';
-import { projectListOptions } from '../src/commands/project-list.js';
-import { projectCreateOptions } from '../src/commands/project-create.js';
-import { projectEditOptions } from '../src/commands/project-edit.js';
-import { flagSet } from '../src/utils.js';
+import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
+import { entryListOptions, parseArgs as parseEntryList } from '../src/commands/entry-list.js';
+import { trackOptions, parseArgs as parseTrack } from '../src/commands/track.js';
+import { entryEditOptions, parseArgs as parseEntryEdit } from '../src/commands/entry-edit.js';
+import { weekOptions, parseWeekArgs } from '../src/commands/week.js';
+import { clientListOptions, parseArgs as parseClientList } from '../src/commands/client-list.js';
+import { clientAddOptions, parseArgs as parseClientAdd } from '../src/commands/client-add.js';
+import { projectListOptions, parseArgs as parseProjectList } from '../src/commands/project-list.js';
+import { projectCreateOptions, parseArgs as parseProjectCreate } from '../src/commands/project-create.js';
+import { projectEditOptions, parseArgs as parseProjectEdit } from '../src/commands/project-edit.js';
 
 const MAX_WIDTH = 80;
 
@@ -19,6 +18,36 @@ function usageMentions(usage: string, token: string): boolean {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`(^|[\\s[|])${escaped}($|[\\s\\]|])`).test(usage);
 }
+
+/** Each command with options, its parser, and the minimal positional args it needs. */
+const PARSERS: [string, (args: string[]) => unknown, string[]][] = [
+  ['entry-list', parseEntryList, []],
+  ['track', parseTrack, ['Desc']],
+  ['entry-edit', parseEntryEdit, ['123']],
+  ['week', parseWeekArgs, []],
+  ['client-list', parseClientList, []],
+  ['client-add', parseClientAdd, ['Acme']],
+  ['project-list', parseProjectList, []],
+  ['project-create', parseProjectCreate, ['Name']],
+  ['project-edit', parseProjectEdit, ['proj']],
+];
+
+/** A valid value for every option that takes one, keyed by long flag. */
+const SAMPLE_VALUES: Record<string, string> = {
+  '--date': '2026-04-01',
+  '--project': 'Dev',
+  '--tags': 'dev,review',
+  '--at': '09:00',
+  '--dur': '1h',
+  '--description': 'New',
+  '--start': '09:00',
+  '--week': '-1',
+  '--status': 'both',
+  '--name': 'Acme',
+  '--notes': 'Notes',
+  '--client': 'Acme',
+  '--color': '#0b83d9',
+};
 
 describe('command registry', () => {
   it('has unique command names', () => {
@@ -93,25 +122,13 @@ describe('command registry', () => {
     expect(findCommand(name)!.options).toBe(options);
   });
 
-  it('documents options for every command whose parser has them', () => {
-    const withOptions = COMMANDS.filter((c) => c.options?.length).map((c) => c.name);
-    expect(withOptions).toEqual([
-      'entry-list',
-      'track',
-      'entry-edit',
-      'week',
-      'client-list',
-      'client-add',
-      'project-list',
-      'project-create',
-      'project-edit',
-    ]);
+  it('has a parser test entry for every command with options', () => {
+    expect(PARSERS.map(([name]) => name)).toEqual(COMMANDS.filter((c) => c.options).map((c) => c.name));
   });
 
   it.each(COMMANDS.map((c) => [c.name, c]))('%s has no duplicate flags', (_, command) => {
-    const options = command.options ?? [];
-    const count = options.reduce((n, o) => n + (o.short ? 2 : 1), 0);
-    expect(flagSet(options).size).toBe(count);
+    const flags = (command.options ?? []).flatMap((o) => (o.short ? [o.short, o.long] : [o.long]));
+    expect(new Set(flags).size).toBe(flags.length);
   });
 });
 
@@ -171,22 +188,6 @@ describe('renderGlobalHelp', () => {
   });
 });
 
-describe('optionLabel', () => {
-  it('joins short and long flags with the value placeholder', () => {
-    expect(optionLabel({ short: '-p', long: '--project', value: '<name>', description: '' })).toBe(
-      '-p, --project <name>'
-    );
-  });
-
-  it('indents long-only flags so long flags line up', () => {
-    expect(optionLabel({ long: '--dur', value: '<duration>', description: '' })).toBe('    --dur <duration>');
-  });
-
-  it('omits the placeholder for boolean flags', () => {
-    expect(optionLabel({ short: '-v', long: '--verbose', description: '' })).toBe('-v, --verbose');
-  });
-});
-
 describe('renderCommandHelp', () => {
   it('renders usage, description, arguments, options, and examples', () => {
     expect(renderCommandHelp(findCommand('track')!)).toBe(
@@ -235,6 +236,38 @@ describe('renderCommandHelp', () => {
       for (const line of rest) {
         expect(line.length, line).toBeLessThanOrEqual(MAX_WIDTH);
       }
+    }
+  );
+});
+
+describe.each(PARSERS)('%s parser', (name, parse, base) => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-15T12:00:00'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(findCommand(name)!.options!.map((o) => [o.long, o]))(
+    'handles documented option %s',
+    (flag, option) => {
+      const value = option.value ? [SAMPLE_VALUES[flag]] : [];
+      expect(value, `add a sample value for ${flag} to SAMPLE_VALUES`).not.toContain(undefined);
+
+      // Throws "Bug: ... not handled" if the parser has no case for the option.
+      const result = parse([...base, flag, ...value]);
+
+      // Where the base args parse on their own, the option must change the result
+      // (catches an option that is accepted but ignored).
+      let baseline: unknown;
+      try {
+        baseline = parse(base);
+      } catch {
+        return;
+      }
+      expect(result).not.toEqual(baseline);
     }
   );
 });

@@ -1,6 +1,6 @@
 import { get } from '../api.js';
 import { config } from '../config.js';
-import { DASH, parseOrExit, validateOptionArgs } from '../utils.js';
+import { DASH, parseOptions, parseOrExit } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const clientListUsage = 'tgp client-list [--status active|archived|both] [--name <filter>]';
@@ -33,22 +33,13 @@ function isClientStatus(value: string): value is ClientStatus {
 }
 
 export function parseArgs(args: string[]): ClientListArgs {
-  validateOptionArgs(args, clientListOptions, USAGE);
-
-  const parsed: ClientListArgs = { status: 'active' };
-  // Every client-list option takes a value, so validated args are flag/value pairs.
-  for (let i = 0; i < args.length; i += 2) {
-    const value = args[i + 1];
-    if (args[i] === '--status') {
-      if (!value || !isClientStatus(value)) throw new Error(USAGE);
-      parsed.status = value;
-    } else if (args[i] === '--name') {
-      if (!value) throw new Error(USAGE);
-      parsed.name = value;
-    }
+  const values = parseOptions(args, clientListOptions, USAGE);
+  const status = values.get('--status') ?? 'active';
+  if (typeof status !== 'string' || !isClientStatus(status)) {
+    throw new Error(USAGE);
   }
-
-  return parsed;
+  const name = values.get('--name');
+  return typeof name === 'string' ? { status, name } : { status };
 }
 
 function filterByStatus(clients: ClientListItem[], status: ClientStatus): ClientListItem[] {

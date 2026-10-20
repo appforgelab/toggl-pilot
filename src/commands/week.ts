@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration, parseDateArg, parseOrExit, validateOptionArgs, DASH } from '../utils.js';
+import { formatDate, formatDuration, parseDateValue, parseOptions, parseOrExit, DASH } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const weekUsage = 'tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]';
@@ -66,44 +66,25 @@ function formatShortDate(date: Date): string {
 const USAGE = `Usage: ${weekUsage}`;
 
 export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean } {
-  validateOptionArgs(args, weekOptions, USAGE);
+  const values = parseOptions(args, weekOptions, USAGE);
+  const date = values.get('--date');
+  const weekOffset = values.get('--week');
+  const verbose = values.has('--verbose');
 
-  // Validated args have each value right after its flag, so read them by position
-  // (a value such as the `-d` in `-w -d` is never mistaken for a flag).
-  let verbose = false;
-  let dateArgs: string[] | null = null;
-  let weekValue: string | null = null;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '-v' || arg === '--verbose') {
-      verbose = true;
-    } else if (arg === '-d' || arg === '--date') {
-      dateArgs = args.slice(i, i + 2);
-      i++;
-    } else if (arg === '-w' || arg === '--week') {
-      const val = args[i + 1];
-      if (!val || (val.startsWith('-') && !/^-\d/.test(val))) {
-        throw new Error('Missing value for --week');
-      }
-      weekValue = val;
-      i++;
-    }
-  }
-
-  if (dateArgs && weekValue !== null) {
+  if (date !== undefined && weekOffset !== undefined) {
     throw new Error('Cannot use both --date and --week');
   }
 
-  if (weekValue !== null) {
-    const offset = parseInt(weekValue, 10);
-    if (isNaN(offset)) throw new Error(`Invalid week: ${weekValue}`);
+  if (typeof weekOffset === 'string') {
+    const offset = parseInt(weekOffset, 10);
+    if (isNaN(offset)) throw new Error(`Invalid week: ${weekOffset}`);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const targetMonday = new Date(currentMonday);
     targetMonday.setDate(currentMonday.getDate() + offset * 7);
     return { refDate: targetMonday, verbose };
   }
 
-  return { refDate: dateArgs ? parseDateArg(dateArgs) : new Date(), verbose };
+  return { refDate: typeof date === 'string' ? parseDateValue(date) : new Date(), verbose };
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

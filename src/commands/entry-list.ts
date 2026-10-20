@@ -5,9 +5,9 @@ import {
   formatDate,
   formatTime,
   formatDuration,
-  parseDateArg,
+  parseDateValue,
   parseOrExit,
-  validateOptionArgs,
+  parseOptions,
   DASH,
 } from '../utils.js';
 
@@ -25,8 +25,8 @@ export const entryListOptions: CommandOption[] = [
 const USAGE = `Usage: ${entryListUsage}`;
 
 export function parseArgs(args: string[]): Date {
-  validateOptionArgs(args, entryListOptions, USAGE);
-  return parseDateArg(args);
+  const date = parseOptions(args, entryListOptions, USAGE).get('--date');
+  return typeof date === 'string' ? parseDateValue(date) : new Date();
 }
 
 export async function entryList(args: string[]) {

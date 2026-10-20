@@ -172,4 +172,10 @@ describe('track parseArgs', () => {
   it('throws on -t with empty value', () => {
     expect(() => parseArgs(['Work', '-t', ''])).toThrow('Missing value for -t.');
   });
+
+  it('rejects an option given twice, under either spelling', () => {
+    expect(() => parseArgs(['Work', '-p', 'A', '--project', 'B'])).toThrow(
+      '-p/--project was given more than once.'
+    );
+  });
 });

@@ -142,6 +142,18 @@ describe('main', () => {
       expect(tagCreate).toHaveBeenCalledWith(['Bug']);
     });
 
+    it.each([[['stop', 'now']], [['stop', '--hlep']], [['version', 'extra']]])(
+      'rejects arguments for a command that takes none: %j',
+      (argv) => {
+        expect(() => main(argv)).toThrow('exit');
+
+        expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
+        expect(exitSpy).toHaveBeenCalledWith(1);
+        expect(stop).not.toHaveBeenCalled();
+        expect(version).not.toHaveBeenCalled();
+      }
+    );
+
     it('rejects config-requiring commands when no config exists', () => {
       mockedHasConfig.mockReturnValue(false);
 

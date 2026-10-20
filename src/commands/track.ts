@@ -8,8 +8,8 @@ import {
   localYesterdayDate,
   formatDate,
   requireFlagValue,
-  flagSet,
-  validFlagsHint,
+  matchFlag,
+  unhandledOption,
 } from '../utils.js';
 
 export const trackUsage =
@@ -44,7 +44,6 @@ interface Project {
 }
 
 const USAGE = `Usage: ${trackUsage}`;
-const VALID_FLAGS = flagSet(trackOptions);
 
 export function parseArgs(args: string[]): {
   description: string;
@@ -60,33 +59,38 @@ export function parseArgs(args: string[]): {
   let at: string | null = null;
   let dur: string | null = null;
   let date: string | null = null;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(trackOptions)}`);
-    }
-
-    if (args[i] === '-p' || args[i] === '--project') {
-      project = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-t' || args[i] === '--tags') {
-      tags = requireFlagValue(args, i, args[i])
-        .split(',')
-        .map((t) => t.trim());
-      i++;
-    } else if (args[i] === '--at') {
-      at = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '--dur') {
-      dur = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-d' || args[i] === '--date') {
-      date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
-      i++;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], trackOptions, seen);
+    if (!option) {
       if (description !== null) throw new Error(USAGE);
       description = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--project':
+        project = requireFlagValue(args, i, args[i]);
+        break;
+      case '--tags':
+        tags = requireFlagValue(args, i, args[i])
+          .split(',')
+          .map((t) => t.trim());
+        break;
+      case '--at':
+        at = requireFlagValue(args, i, args[i]);
+        break;
+      case '--dur':
+        dur = requireFlagValue(args, i, args[i]);
+        break;
+      case '--date':
+        date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!description) {

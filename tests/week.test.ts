@@ -155,9 +155,10 @@ describe('parseWeekArgs', () => {
   });
 
   it.each([
-    [['-w', '-d'], 'Missing value for --week'],
-    [['-w', '-v'], 'Missing value for --week'],
-    [['-d', '-w'], 'Missing value for -d'],
+    [['-w', '-d'], 'Missing value for -w.'],
+    [['-w', '-v'], 'Missing value for -w.'],
+    [['-d', '-w'], 'Missing value for -d.'],
+    [['--date', '-d'], 'Missing value for --date.'],
   ])('does not read a missing value as the next flag: %j', (args, message) => {
     expect(() => parseWeekArgs(args)).toThrow(message);
   });

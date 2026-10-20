@@ -155,10 +155,13 @@ export function requireFlagValue(
   args: string[],
   index: number,
   flagName: string,
-  options: { hint?: string; allowEmpty?: boolean } = {}
+  options: { hint?: string; allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
 ): string {
   const val = args[index + 1];
   const hintSuffix = options.hint ? ` ${options.hint}` : '';
+  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
+    return val;
+  }
   if (val === undefined || (val !== '' && val.startsWith('-'))) {
     throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
   }
@@ -168,39 +171,36 @@ export function requireFlagValue(
   return val;
 }
 
-export function parseDateArg(args: string[]): Date {
-  const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
-  if (idx !== -1) {
-    const flag = args[idx];
-    const candidate = args[idx + 1];
-    const val =
-      candidate !== undefined && /^-\d/.test(candidate)
-        ? candidate
-        : requireFlagValue(args, idx, flag, {
-            hint: 'Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).',
-          });
-    if (val === 'yesterday') return localYesterdayDate();
-    if (/^[+-]?\d+$/.test(val)) {
-      const offsetDays = Number(val);
-      if (Number.isSafeInteger(offsetDays)) {
-        const date = localDateWithOffset(offsetDays);
-        if (!isNaN(date.getTime())) return date;
-      }
+/**
+ * Parse a date value: YYYY-MM-DD, "yesterday", or an integer day offset from
+ * today (e.g. -2). Relative values use the local calendar date, at noon.
+ */
+export function parseDateValue(val: string): Date {
+  if (val === 'yesterday') return localYesterdayDate();
+  if (/^[+-]?\d+$/.test(val)) {
+    const offsetDays = Number(val);
+    if (Number.isSafeInteger(offsetDays)) {
+      const date = localDateWithOffset(offsetDays);
+      if (!isNaN(date.getTime())) return date;
     }
-    const d = new Date(val + 'T12:00:00');
-    if (!isNaN(d.getTime())) return d;
-    throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
   }
-  return new Date();
+  const d = new Date(val + 'T12:00:00');
+  if (!isNaN(d.getTime())) return d;
+  throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
 }
 
-/** Every spelling of every option, e.g. `-p` and `--project`. */
-export function flagSet(options: CommandOption[]): Set<string> {
-  return new Set(options.flatMap((o) => (o.short ? [o.short, o.long] : [o.long])));
-}
+// Two renderings of the same option, on purpose: errors list flags compactly on
+// one line, while `--help` shows a column with the value placeholder.
 
+/** `-p/--project`, for error messages. */
 function flagLabel(option: CommandOption): string {
   return option.short ? `${option.short}/${option.long}` : option.long;
+}
+
+/** `-p, --project <name>`, for `--help`. Long-only flags are indented so all long flags line up. */
+export function optionLabel(option: CommandOption): string {
+  const flags = option.short ? `${option.short}, ${option.long}` : `    ${option.long}`;
+  return option.value ? `${flags} ${option.value}` : flags;
 }
 
 /** `Valid flags: -p/--project, --at`, for unknown-flag errors. */
@@ -209,24 +209,54 @@ export function validFlagsHint(options: CommandOption[]): string {
 }
 
 /**
- * For commands that take only options: throw on anything that isn't a
- * documented flag or the value following a flag that takes one, and on an
- * option given more than once (e.g. `-d x --date y`). Values are skipped by
- * position, so negative offsets like `-w -1` aren't mistaken for flags. After
- * this passes, every value sits right after its flag.
+ * If `arg` is a flag, return its option, throwing if the flag is unknown or the
+ * option was already given (tracked in `seen`, so `-d x --date y` is caught).
+ * Returns undefined for arguments that aren't flags.
  */
-export function validateOptionArgs(args: string[], options: CommandOption[], usage: string): void {
+export function matchFlag(
+  arg: string,
+  options: CommandOption[],
+  seen: Set<CommandOption>
+): CommandOption | undefined {
+  if (!arg.startsWith('-')) return undefined;
+  const option = options.find((o) => o.short === arg || o.long === arg);
+  if (!option) {
+    throw new Error(`Unknown flag: ${arg}. ${validFlagsHint(options)}`);
+  }
+  if (seen.has(option)) {
+    throw new Error(`${flagLabel(option)} was given more than once.`);
+  }
+  seen.add(option);
+  return option;
+}
+
+/**
+ * Parse the arguments of a command that takes only options. Returns each given
+ * option's value (`true` for options without a value) keyed by its long flag.
+ * Positional arguments are rejected with `usage`. Values may be negative numbers
+ * (e.g. `-w -1`), but anything else starting with `-` counts as a missing value.
+ */
+export function parseOptions(
+  args: string[],
+  options: CommandOption[],
+  usage: string
+): Map<string, string | true> {
+  const values = new Map<string, string | true>();
   const seen = new Set<CommandOption>();
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    const option = options.find((o) => o.short === arg || o.long === arg);
-    if (!option) {
-      throw new Error(arg.startsWith('-') ? `Unknown flag: ${arg}. ${validFlagsHint(options)}` : usage);
+    const option = matchFlag(args[i], options, seen);
+    if (!option) throw new Error(usage);
+    if (option.value) {
+      values.set(option.long, requireFlagValue(args, i, args[i], { hint: usage, allowNegativeNumber: true }));
+      i++;
+    } else {
+      values.set(option.long, true);
     }
-    if (seen.has(option)) {
-      throw new Error(`${flagLabel(option)} was given more than once.`);
-    }
-    seen.add(option);
-    if (option.value) i++;
   }
+  return values;
+}
+
+/** For a parser's `default:` case: an option listed in `<command>Options` that the parser doesn't handle. */
+export function unhandledOption(option: CommandOption): never {
+  throw new Error(`Bug: ${option.long} is documented but not handled by the parser.`);
 }

@@ -1,5 +1,6 @@
 import { COMMANDS, GROUPS, type Command } from './registry.js';
 import type { CommandOption } from './types.js';
+import { optionLabel } from './utils.js';
 
 const HELP_OPTION: CommandOption = { short: '-h', long: '--help', description: 'Show this help' };
 
@@ -22,12 +23,6 @@ export function renderGlobalHelp(commands: Command[] = COMMANDS): string {
 
   lines.push('', 'Run "tgp <command> --help" or "tgp help <command>" for details.');
   return lines.join('\n');
-}
-
-/** `-p, --project <name>`; long-only flags are indented so all long flags line up. */
-export function optionLabel(option: CommandOption): string {
-  const flags = option.short ? `${option.short}, ${option.long}` : `    ${option.long}`;
-  return option.value ? `${flags} ${option.value}` : flags;
 }
 
 export function renderCommandHelp(command: Command): string {

@@ -159,7 +159,7 @@ export const COMMANDS: Command[] = [
       'Start a new timer with the description, project, and tags of a stopped\n' +
       'entry. Without an ID, resumes the latest entry stopped today, falling\n' +
       'back to yesterday.',
-    arguments: [{ name: '<entry_id>', description: 'Entry to resume (ID from "tgp entry-list")' }],
+    arguments: [{ name: '[<entry_id>]', description: 'Optional entry ID from "tgp entry-list"' }],
     requiresConfig: true,
     run: resume,
   },

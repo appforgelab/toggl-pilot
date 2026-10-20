@@ -65,12 +65,16 @@ Example PR title: `feat: set up version management and workflow (#42)`
 - **Usage strings and flags are defined once, in the command file.** A command that prints a
   usage line exports `<command>Usage` (e.g. `trackUsage`, without the `Usage:` prefix) and
   uses it in its error; a command with flags exports `<command>Options` (e.g. `trackOptions`)
-  and builds its accepted flags and `Unknown flag ... Valid flags:` message from it
-  (`flagSet` + `validFlagsHint`, or `validateOptionArgs` for option-only commands, in
-  `src/utils.ts`). The registry references both, so `--help` can't drift from the parser. To
-  add a flag, add it to `<command>Options`, handle it in the parser, and update
-  `<command>Usage`. Help text must fit in 80 columns (the `Usage:` line is exempt); break
-  `description` lines with `\n`.
+  and parses against it with the helpers in `src/utils.ts`: `parseOptions` for option-only
+  commands (values keyed by long flag), or `matchFlag` plus a `switch (option.long)` ending in
+  `default: unhandledOption(option)` for commands with positional arguments. Both reject
+  unknown and repeated flags. The registry references both exports, so `--help` can't drift
+  from the parser. A command with neither `arguments` nor `options` in the registry is given
+  no arguments (`src/cli.ts` rejects them).
+- **To add a flag**, add it to `<command>Options`, handle it in the parser, update
+  `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in `tests/help.test.ts` (that
+  test fails if a documented option isn't handled). Help text must fit in 80 columns (the
+  `Usage:` line is exempt); break `description` lines with `\n`.
 
 ## API Quota (Free Plan)
 
