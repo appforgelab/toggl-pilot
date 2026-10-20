@@ -21,7 +21,7 @@ interface Project {
 
 export function parseArgs(args: string[]): { includeArchived: boolean } {
   return {
-    includeArchived: parseOptions(args, projectListOptions, `Usage: ${projectListUsage}`).has('--all'),
+    includeArchived: parseOptions(args, projectListOptions, `Usage: ${projectListUsage}`).flags.has('--all'),
   };
 }
 

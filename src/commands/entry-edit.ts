@@ -6,6 +6,7 @@ import {
   requireFlagValue,
   matchFlag,
   unhandledOption,
+  nothingToEditError,
 } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
@@ -157,8 +158,7 @@ export function parseArgs(args: string[]): {
   }
 
   if (!description && !project && !tags && !dur && !start) {
-    const flags = entryEditOptions.map((o) => o.short ?? o.long).join(', ');
-    throw new Error(`Nothing to edit. Provide at least one of: ${flags}`);
+    throw nothingToEditError(entryEditOptions);
   }
 
   return { id, description, project, tags, dur, start };

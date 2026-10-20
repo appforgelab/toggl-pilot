@@ -66,16 +66,16 @@ function formatShortDate(date: Date): string {
 const USAGE = `Usage: ${weekUsage}`;
 
 export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean } {
-  const values = parseOptions(args, weekOptions, USAGE);
+  const { values, flags } = parseOptions(args, weekOptions, USAGE);
   const date = values.get('--date');
   const weekOffset = values.get('--week');
-  const verbose = values.has('--verbose');
+  const verbose = flags.has('--verbose');
 
   if (date !== undefined && weekOffset !== undefined) {
     throw new Error('Cannot use both --date and --week');
   }
 
-  if (typeof weekOffset === 'string') {
+  if (weekOffset !== undefined) {
     const offset = parseInt(weekOffset, 10);
     if (isNaN(offset)) throw new Error(`Invalid week: ${weekOffset}`);
     const { monday: currentMonday } = getWeekBounds(new Date());
@@ -84,7 +84,7 @@ export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean
     return { refDate: targetMonday, verbose };
   }
 
-  return { refDate: typeof date === 'string' ? parseDateValue(date) : new Date(), verbose };
+  return { refDate: date === undefined ? new Date() : parseDateValue(date), verbose };
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

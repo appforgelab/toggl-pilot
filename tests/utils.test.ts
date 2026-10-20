@@ -15,6 +15,7 @@ import {
   matchFlag,
   parseOptions,
   optionLabel,
+  nothingToEditError,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -427,6 +428,16 @@ describe('parseOrExit', () => {
   });
 });
 
+describe('nothingToEditError', () => {
+  it('lists the short form of each option where there is one', () => {
+    const options = [
+      { short: '-d', long: '--description', value: '<text>', description: '' },
+      { long: '--dur', value: '<duration>', description: '' },
+    ];
+    expect(nothingToEditError(options).message).toBe('Nothing to edit. Provide at least one of: -d, --dur');
+  });
+});
+
 describe('requireFlagValue', () => {
   it('accepts a negative number only with allowNegativeNumber', () => {
     expect(requireFlagValue(['-w', '-1'], 0, '-w', { allowNegativeNumber: true })).toBe('-1');
@@ -476,13 +487,17 @@ describe('requireFlagValue', () => {
 });
 
 describe('parseOptions missing values', () => {
-  const options = [{ short: '-d', long: '--date', value: '<date>', description: '' }];
+  const options = [
+    { short: '-d', long: '--date', value: '<date>', description: 'YYYY-MM-DD or "yesterday"' },
+  ];
   const usage = 'Usage: tgp test [-d <date>]';
 
   it.each([[['-d']], [['-d', '--foo']], [['--date']], [['--date', '-v']], [['-d', '']]])(
-    'reports a missing value for %j, with the usage',
+    'reports a missing value for %j, with the option description',
     (args) => {
-      expect(() => parseOptions(args, options, usage)).toThrow(`Missing value for ${args[0]}. ${usage}`);
+      expect(() => parseOptions(args, options, usage)).toThrow(
+        `Missing value for ${args[0]}. YYYY-MM-DD or "yesterday".`
+      );
     }
   );
 });
@@ -518,15 +533,15 @@ describe('option helpers', () => {
     expect(() => matchFlag('--date', options, seen)).toThrow('-d/--date was given more than once.');
   });
 
-  it('parseOptions returns values keyed by long flag, true for boolean options', () => {
-    expect(parseOptions(['-d', '-2', '-v', '--at', '09:00'], options, usage)).toEqual(
-      new Map<string, string | true>([
+  it('parseOptions returns values and boolean flags keyed by long flag', () => {
+    expect(parseOptions(['-d', '-2', '-v', '--at', '09:00'], options, usage)).toEqual({
+      values: new Map([
         ['--date', '-2'],
-        ['--verbose', true],
         ['--at', '09:00'],
-      ])
-    );
-    expect(parseOptions([], options, usage)).toEqual(new Map());
+      ]),
+      flags: new Set(['--verbose']),
+    });
+    expect(parseOptions([], options, usage)).toEqual({ values: new Map(), flags: new Set() });
   });
 
   it('parseOptions rejects a value without its flag', () => {

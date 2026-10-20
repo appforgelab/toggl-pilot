@@ -33,13 +33,13 @@ function isClientStatus(value: string): value is ClientStatus {
 }
 
 export function parseArgs(args: string[]): ClientListArgs {
-  const values = parseOptions(args, clientListOptions, USAGE);
+  const { values } = parseOptions(args, clientListOptions, USAGE);
   const status = values.get('--status') ?? 'active';
-  if (typeof status !== 'string' || !isClientStatus(status)) {
+  if (!isClientStatus(status)) {
     throw new Error(USAGE);
   }
   const name = values.get('--name');
-  return typeof name === 'string' ? { status, name } : { status };
+  return name === undefined ? { status } : { status, name };
 }
 
 function filterByStatus(clients: ClientListItem[], status: ClientStatus): ClientListItem[] {

@@ -154,6 +154,17 @@ describe('main', () => {
       }
     );
 
+    it.each([[['tag-create', '--verbose']], [['tag-create', 'Bug', '-x']]])(
+      'rejects a flag for a command without options: %j',
+      (argv) => {
+        expect(() => main(argv)).toThrow('exit');
+
+        expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
+        expect(exitSpy).toHaveBeenCalledWith(1);
+        expect(tagCreate).not.toHaveBeenCalled();
+      }
+    );
+
     it('rejects config-requiring commands when no config exists', () => {
       mockedHasConfig.mockReturnValue(false);
 

@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit, requireFlagValue, matchFlag, unhandledOption } from '../utils.js';
+import { parseOrExit, requireFlagValue, matchFlag, unhandledOption, nothingToEditError } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectEditUsage =
@@ -82,8 +82,7 @@ export function parseArgs(args: string[]): ParsedArgs {
   }
 
   if (name === null && client === null && color === null && isPrivate === null) {
-    const flags = projectEditOptions.map((o) => o.short ?? o.long).join(', ');
-    throw new Error(`Nothing to edit. Provide at least one of: ${flags}`);
+    throw nothingToEditError(projectEditOptions);
   }
 
   return { project, name, client, color, isPrivate };

@@ -231,29 +231,39 @@ export function matchFlag(
 }
 
 /**
- * Parse the arguments of a command that takes only options. Returns each given
- * option's value (`true` for options without a value) keyed by its long flag.
- * Positional arguments are rejected with `usage`. Values may be negative numbers
- * (e.g. `-w -1`), but anything else starting with `-` counts as a missing value.
+ * Parse the arguments of a command that takes only options. Returns the values
+ * of options that take one, and the set of boolean options given, both keyed by
+ * long flag. Positional arguments are rejected with `usage`. Values may be
+ * negative numbers (e.g. `-w -1`), but anything else starting with `-` counts as
+ * a missing value.
  */
 export function parseOptions(
   args: string[],
   options: CommandOption[],
   usage: string
-): Map<string, string | true> {
-  const values = new Map<string, string | true>();
+): { values: Map<string, string>; flags: Set<string> } {
+  const values = new Map<string, string>();
+  const flags = new Set<string>();
   const seen = new Set<CommandOption>();
   for (let i = 0; i < args.length; i++) {
     const option = matchFlag(args[i], options, seen);
     if (!option) throw new Error(usage);
     if (option.value) {
-      values.set(option.long, requireFlagValue(args, i, args[i], { hint: usage, allowNegativeNumber: true }));
+      const hint = `${option.description}.`;
+      values.set(option.long, requireFlagValue(args, i, args[i], { hint, allowNegativeNumber: true }));
       i++;
     } else {
-      values.set(option.long, true);
+      flags.add(option.long);
     }
   }
-  return values;
+  return { values, flags };
+}
+
+/** `Nothing to edit. Provide at least one of: -d, -p, --dur`, for edit commands. */
+export function nothingToEditError(options: CommandOption[]): Error {
+  return new Error(
+    `Nothing to edit. Provide at least one of: ${options.map((o) => o.short ?? o.long).join(', ')}`
+  );
 }
 
 /** For a parser's `default:` case: an option listed in `<command>Options` that the parser doesn't handle. */

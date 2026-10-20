@@ -25,8 +25,8 @@ export const entryListOptions: CommandOption[] = [
 const USAGE = `Usage: ${entryListUsage}`;
 
 export function parseArgs(args: string[]): Date {
-  const date = parseOptions(args, entryListOptions, USAGE).get('--date');
-  return typeof date === 'string' ? parseDateValue(date) : new Date();
+  const date = parseOptions(args, entryListOptions, USAGE).values.get('--date');
+  return date === undefined ? new Date() : parseDateValue(date);
 }
 
 export async function entryList(args: string[]) {

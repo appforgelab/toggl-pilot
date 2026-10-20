@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { COMMANDS, GROUPS, findCommand } from '../src/registry.js';
+import { COMMANDS, GROUPS, findCommand, type Command } from '../src/registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
 import { entryListOptions, parseArgs as parseEntryList } from '../src/commands/entry-list.js';
 import { trackOptions, parseArgs as parseTrack } from '../src/commands/track.js';
@@ -17,6 +17,27 @@ const MAX_WIDTH = 80;
 function usageMentions(usage: string, token: string): boolean {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(`(^|[\\s[|])${escaped}($|[\\s\\]|])`).test(usage);
+}
+
+/**
+ * The positional tokens of a usage line: everything after `tgp <name>` except
+ * option groups such as `[-p "Project"]` or `[--at [H]H:MM]` (brackets may nest).
+ * Optional positionals keep their brackets, e.g. `[<entry_id>]`.
+ */
+function usagePositionals(command: Command): string[] {
+  const rest = command.usage.slice(`tgp ${command.name}`.length);
+  let kept = '';
+  for (let i = 0; i < rest.length; i++) {
+    if (rest[i] === '[' && rest[i + 1] === '-') {
+      for (let depth = 0; i < rest.length; i++) {
+        if (rest[i] === '[') depth++;
+        else if (rest[i] === ']' && --depth === 0) break;
+      }
+    } else {
+      kept += rest[i];
+    }
+  }
+  return kept.match(/"[^"]*"|\S+/g) ?? [];
 }
 
 /** Each command with options, its parser, and the minimal positional args it needs. */
@@ -77,11 +98,9 @@ describe('command registry', () => {
   });
 
   it.each(COMMANDS.map((c) => [c.name, c]))(
-    '%s documents only arguments that appear in its usage',
+    '%s documents exactly the positional arguments in its usage',
     (_, command) => {
-      for (const arg of command.arguments ?? []) {
-        expect(command.usage).toContain(arg.name);
-      }
+      expect((command.arguments ?? []).map((a) => a.name)).toEqual(usagePositionals(command));
     }
   );
 

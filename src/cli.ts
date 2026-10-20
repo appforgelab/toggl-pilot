@@ -31,11 +31,15 @@ export function main(argv: string[]): void | Promise<void> {
     return;
   }
 
-  // Commands that document no arguments or options (e.g. `tgp stop`) take none, so
-  // stray input such as a mistyped flag is an error rather than silently ignored.
-  if (args.length > 0 && !command.arguments && !command.options) {
-    console.error(`Usage: ${command.usage}`);
-    process.exit(1);
+  // A command without options takes no flags, and one without arguments takes
+  // nothing, so stray input is an error instead of data (e.g. `tgp stop --hlep`
+  // must not stop the timer, and `tgp tag-create --verbose` must not create a tag).
+  if (!command.options) {
+    const stray = command.arguments ? args.find((a) => a.startsWith('-')) : args[0];
+    if (stray !== undefined) {
+      console.error(`Usage: ${command.usage}`);
+      process.exit(1);
+    }
   }
 
   if (command.requiresConfig && !hasConfig()) {
