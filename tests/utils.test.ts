@@ -483,7 +483,20 @@ describe('parseCommandLine option values', () => {
       'Missing value for -d. Expected <text>: New description. If "-1" is the value, write --description=-1.'
     );
     expect(() => parseCommandLine(['-d', '-draft notes'], [description])).toThrow(
-      'If "-draft notes" is the value, write --description="-draft notes".'
+      `If "-draft notes" is the value, write --description='-draft notes'.`
+    );
+  });
+
+  it('quotes the suggested value so the shell does not expand it', () => {
+    const description = {
+      short: '-d',
+      long: '--description',
+      value: '<text>',
+      description: 'New description',
+      text: true,
+    };
+    expect(() => parseCommandLine(['-d', "-$5 it's"], [description])).toThrow(
+      `write --description='-$5 it'\\''s'.`
     );
   });
 
@@ -491,6 +504,8 @@ describe('parseCommandLine option values', () => {
     ['a mistyped long flag', ['-d', '--descr'], true],
     ["one of the command's short flags", ['-d', '-p'], true],
     ['a value for an option that is not free text', ['--dur', '-30m'], false],
+    ['a short flag with = attached', ['-d', '-p=Dev'], true],
+    ['a short flag in another case', ['-d', '-P'], true],
   ])('does not suggest --long=value for %s', (_, args, text) => {
     const options = [
       { short: '-d', long: '--description', value: '<text>', description: 'New description', text },

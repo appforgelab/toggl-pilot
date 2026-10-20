@@ -69,12 +69,14 @@ Example PR title: `feat: set up version management and workflow (#42)`
   `values`, and boolean `flags` (keyed by long flag), rejects unknown and repeated flags, and
   supports `--` (end of options) and `--long=value`. Option-only commands use `parseOptions`,
   which also rejects positionals. Value rules live on the option (`allowEmpty`,
-  `negativeNumber`). The registry references both exports, so `--help` can't drift from the
-  parser.
+  `negativeNumber`); mark options whose value is free text (names, descriptions, notes) with
+  `text: true` so a missing-value error can suggest `--long=-value`. The registry references
+  both exports, so `--help` can't drift from the parser.
 - **`src/cli.ts` checks every command's arguments** with `parseCommandLine` against the
   registry before dispatch, so syntax errors never reach a command: a command without
-  `options` takes no flags, and the number of positionals must match `arguments` (names in
-  brackets, like `[<entry_id>]`, are optional). Commands with options
+  `options` takes no flags, and the number of positionals must match `arguments` (mark
+  optional ones with `optional: true` and write them in brackets, like `[<entry_id>]`; a test
+  keeps the two in sync). Commands with options
   get the raw arguments and parse them again for the values; the others get just the
   positionals. Mark free-text arguments (names, not IDs) with `text: true` so an unknown flag
   in that position suggests `--`. Help flags show help even after `--`.

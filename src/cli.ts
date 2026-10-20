@@ -1,7 +1,7 @@
 import { hasConfig, ConfigNotFoundError } from './config.js';
 import { findCommand, type Command } from './registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from './help.js';
-import { parseCommandLine, UnknownFlagError } from './utils.js';
+import { looksLikeFlag, parseCommandLine, UnknownFlagError } from './utils.js';
 
 export function main(argv: string[]): void | Promise<void> {
   const [name, ...args] = argv;
@@ -57,13 +57,13 @@ function checkArguments(command: Command, args: string[]): ReturnType<typeof par
   } catch (e) {
     let message = (e as Error).message;
     // Suggest `--` for a value like `-wip` or `-1` where a name goes, but not for an
-    // ID position or for something likelier to be a mistyped flag: `--tag`, or `-x`
-    // in a command that has short flags.
-    if (e instanceof UnknownFlagError && command.arguments?.[e.position]?.text) {
-      const likelyTypo = e.flag.startsWith('--') || (e.flag.length === 2 && !!command.options);
-      if (!likelyTypo) {
-        message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
-      }
+    // ID position or for something that looks like a (mistyped) flag.
+    if (
+      e instanceof UnknownFlagError &&
+      command.arguments?.[e.position]?.text &&
+      !looksLikeFlag(e.flag, command.options ?? [])
+    ) {
+      message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
     }
     return rejectArguments(command, message);
   }
@@ -71,7 +71,7 @@ function checkArguments(command: Command, args: string[]): ReturnType<typeof par
   const declared = command.arguments ?? [];
   const missing = declared.slice(parsed.positionals.length).find((a) => !a.optional);
   if (missing) {
-    return rejectArguments(command, `Missing argument: ${missing.name} (${missing.description}).`);
+    return rejectArguments(command, `Missing argument: ${missing.name}. Expected: ${missing.description}.`);
   }
   if (parsed.positionals.length > declared.length) {
     return rejectArguments(command, `Unexpected argument: ${parsed.positionals[declared.length]}.`);

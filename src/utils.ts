@@ -204,11 +204,29 @@ export class UnknownFlagError extends Error {
 }
 
 /**
+ * Whether a dash-led argument is more likely a flag (or a mistyped one) than a
+ * value such as a name that starts with "-": anything starting with `--`, one of
+ * the command's short flags in either case, or one with `=` attached (`-p=Dev`).
+ * Shared by the hints that suggest `--` and `--long=value`.
+ */
+export function looksLikeFlag(arg: string, options: CommandOption[]): boolean {
+  if (arg.startsWith('--')) return true;
+  const lower = arg.toLowerCase();
+  return options.some(
+    (o) => o.short && (lower === o.short.toLowerCase() || lower.startsWith(`${o.short.toLowerCase()}=`))
+  );
+}
+
+/** Quote a value for the shell only when needed, with single quotes so nothing in it is expanded. */
+function shellQuote(value: string): string {
+  return /^[\w@%+:,./-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+/**
  * `Missing value for -d. Expected <text>: New description.` For a free-text
- * option, a following name-shaped argument such as `-1` or `-draft` that isn't
- * one of the command's flags was probably meant as the value, so the
- * `--long=value` form is suggested. Anything starting with `--` is treated as a
- * mistyped flag instead.
+ * option, a following dash-led argument that doesn't look like a flag (such as
+ * `-1` or `-draft`) was probably meant as the value, so the `--long=value` form
+ * is suggested.
  */
 function missingValue(
   flag: string,
@@ -219,9 +237,8 @@ function missingValue(
   const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
   const period = /[.!?]$/.test(expected) ? '' : '.';
   let message = `Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`;
-  if (option.text && next !== undefined && /^-[^-]/.test(next) && !options.some((o) => o.short === next)) {
-    const value = /^[\w@%+:,./-]+$/.test(next) ? next : JSON.stringify(next);
-    message += ` If "${next}" is the value, write ${option.long}=${value}.`;
+  if (option.text && next !== undefined && /^-[^-]/.test(next) && !looksLikeFlag(next, options)) {
+    message += ` If "${next}" is the value, write ${option.long}=${shellQuote(next)}.`;
   }
   return new Error(message);
 }

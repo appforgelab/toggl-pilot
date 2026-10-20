@@ -275,15 +275,19 @@ describe('main', () => {
       ],
       [['week', 'last'], 'Unexpected argument: last.'],
       [['tag-create', 'Bug', 'Report'], 'Unexpected argument: Report.'],
-      [['tag-create'], 'Missing argument: "Tag Name" (Name for the new tag).'],
-      [['entry-edit', '-d', 'x'], 'Missing argument: <entry_id> (Entry ID from "tgp entry-list").'],
+      [['tag-create'], 'Missing argument: "Tag Name". Expected: Name for the new tag.'],
+      [['entry-edit', '-d', 'x'], 'Missing argument: <entry_id>. Expected: Entry ID from "tgp entry-list".'],
       [
         ['auth'],
-        'Missing argument: <api-token> (Toggl Track API token from https://track.toggl.com/profile).',
+        'Missing argument: <api-token>. Expected: Toggl Track API token from https://track.toggl.com/profile.',
       ],
       [
         ['track', '-x', 'Fix'],
-        'Unknown flag: -x. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date',
+        'Unknown flag: -x. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date. To pass a name that starts with "-", put -- after any options and before the name.',
+      ],
+      [
+        ['track', '-P', 'Dev', 'Fix'],
+        'Unknown flag: -P. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date',
       ],
     ])('checks the arguments before running the command: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
