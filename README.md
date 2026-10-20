@@ -30,7 +30,8 @@ Running `tgp auth` saves your token so you don't need to pass it every time.
 You can also set the `TOGGL_API_TOKEN` environment variable, which takes
 priority over the saved config.
 
-Run `tgp` without arguments to see all available commands.
+Run `tgp --help` (or just `tgp`) to see all available commands, and
+`tgp <command> --help` for a command's usage.
 
 ## Commands
 

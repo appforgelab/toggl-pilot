@@ -58,6 +58,10 @@ Example PR title: `feat: set up version management and workflow (#42)`
 ## Code Conventions
 
 - **Usage messages** should use `tgp <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
+- **New commands** must be added to `COMMANDS` in `src/registry.ts` — it drives both dispatch
+  (`src/cli.ts`) and `tgp --help`. Keep its `usage` string in sync with the command's own
+  `Usage:` error message. `--help`/`-h` is intercepted before dispatch, so commands never
+  see it as an argument.
 
 ## API Quota (Free Plan)
 
