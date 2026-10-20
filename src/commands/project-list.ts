@@ -1,7 +1,9 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { DASH, flagSet, parseOrExit } from '../utils.js';
+import { DASH, parseOrExit, validateOptionArgs } from '../utils.js';
 import type { CommandOption } from '../types.js';
+
+export const projectListUsage = 'tgp project-list [--all|-a]';
 
 export const projectListOptions: CommandOption[] = [
   { short: '-a', long: '--all', description: 'Include archived projects' },
@@ -18,15 +20,9 @@ interface Project {
 }
 
 export function parseArgs(args: string[]): { includeArchived: boolean } {
-  if (args.length === 0) {
-    return { includeArchived: false };
-  }
-
-  if (args.length === 1 && flagSet(projectListOptions).has(args[0])) {
-    return { includeArchived: true };
-  }
-
-  throw new Error('Usage: tgp project-list [--all|-a]');
+  validateOptionArgs(args, projectListOptions, `Usage: ${projectListUsage}`);
+  // --all is the only option.
+  return { includeArchived: args.length > 0 };
 }
 
 export async function projectList(args: string[] = []) {

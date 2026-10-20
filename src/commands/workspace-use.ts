@@ -1,6 +1,8 @@
 import { get } from '../api.js';
 import { setConfigVar } from '../config.js';
 
+export const workspaceUseUsage = 'tgp workspace-use <workspace_id>';
+
 interface Workspace {
   id: number;
   name: string;
@@ -9,7 +11,7 @@ interface Workspace {
 export async function workspaceUse(args: string[]) {
   const raw = args[0];
   if (args.length !== 1 || !raw) {
-    console.error('Usage: tgp workspace-use <workspace_id>');
+    console.error(`Usage: ${workspaceUseUsage}`);
     process.exit(1);
   }
 

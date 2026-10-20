@@ -4,10 +4,16 @@ vi.mock('../src/config.js', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/config.js')>()),
   hasConfig: vi.fn(),
 }));
-vi.mock('../src/commands/auth.js', () => ({ auth: vi.fn() }));
+vi.mock('../src/commands/auth.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/auth.js')>()),
+  auth: vi.fn(),
+}));
 vi.mock('../src/commands/version.js', () => ({ version: vi.fn() }));
 vi.mock('../src/commands/stop.js', () => ({ stop: vi.fn() }));
-vi.mock('../src/commands/tag-create.js', () => ({ tagCreate: vi.fn() }));
+vi.mock('../src/commands/tag-create.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/tag-create.js')>()),
+  tagCreate: vi.fn(),
+}));
 
 import { hasConfig, ConfigNotFoundError } from '../src/config.js';
 import { auth } from '../src/commands/auth.js';

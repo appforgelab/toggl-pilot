@@ -25,6 +25,12 @@ describe('entry-list parseArgs', () => {
     expect(() => parseArgs(['--all'])).toThrow('Unknown flag: --all. Valid flag: -d/--date');
   });
 
+  it('rejects a repeated date', () => {
+    expect(() => parseArgs(['--date', '2026-01-01', '-d', 'yesterday'])).toThrow(
+      '-d/--date was given more than once.'
+    );
+  });
+
   it('rejects extra arguments after the date', () => {
     expect(() => parseArgs(['-d', 'yesterday', 'extra'])).toThrow('Usage: tgp entry-list');
   });

@@ -9,6 +9,9 @@ import {
 } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
+export const entryEditUsage =
+  'tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
+
 export const entryEditOptions: CommandOption[] = [
   { short: '-d', long: '--description', value: '<text>', description: 'New description' },
   { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
@@ -55,8 +58,7 @@ interface TimeEntryUpdate {
   tags?: string[];
 }
 
-const USAGE =
-  'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
+const USAGE = `Usage: ${entryEditUsage}`;
 const VALID_FLAGS = flagSet(entryEditOptions);
 
 function normalizeTags(tags: string[] | null): string[] {

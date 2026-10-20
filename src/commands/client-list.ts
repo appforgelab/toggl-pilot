@@ -1,7 +1,9 @@
 import { get } from '../api.js';
 import { config } from '../config.js';
-import { DASH, flagSet, parseOrExit } from '../utils.js';
+import { DASH, parseOrExit, validateOptionArgs } from '../utils.js';
 import type { CommandOption } from '../types.js';
+
+export const clientListUsage = 'tgp client-list [--status active|archived|both] [--name <filter>]';
 
 export const clientListOptions: CommandOption[] = [
   { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
@@ -24,42 +26,26 @@ interface ClientListArgs {
   name?: string;
 }
 
-const USAGE = 'Usage: tgp client-list [--status active|archived|both] [--name <filter>]';
-const VALID_FLAGS = flagSet(clientListOptions);
+const USAGE = `Usage: ${clientListUsage}`;
 
 function isClientStatus(value: string): value is ClientStatus {
   return value === 'active' || value === 'archived' || value === 'both';
 }
 
 export function parseArgs(args: string[]): ClientListArgs {
+  validateOptionArgs(args, clientListOptions, USAGE);
+
   const parsed: ClientListArgs = { status: 'active' };
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (!VALID_FLAGS.has(arg)) {
-      throw new Error(USAGE);
+  // Every client-list option takes a value, so validated args are flag/value pairs.
+  for (let i = 0; i < args.length; i += 2) {
+    const value = args[i + 1];
+    if (args[i] === '--status') {
+      if (!value || !isClientStatus(value)) throw new Error(USAGE);
+      parsed.status = value;
+    } else if (args[i] === '--name') {
+      if (!value) throw new Error(USAGE);
+      parsed.name = value;
     }
-
-    if (arg === '--status') {
-      const status = args[++i];
-      if (!status || !isClientStatus(status)) {
-        throw new Error(USAGE);
-      }
-      parsed.status = status;
-      continue;
-    }
-
-    if (arg === '--name') {
-      const name = args[++i];
-      if (!name) {
-        throw new Error(USAGE);
-      }
-      parsed.name = name;
-      continue;
-    }
-
-    throw new Error(USAGE);
   }
 
   return parsed;

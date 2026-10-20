@@ -45,7 +45,19 @@ describe('client-list parseArgs', () => {
     expect(() => parseArgs(['--name'])).toThrow(usage);
   });
 
-  it('throws usage on unknown flag', () => {
-    expect(() => parseArgs(['--all'])).toThrow(usage);
+  it('rejects unknown flags with the valid ones', () => {
+    expect(() => parseArgs(['--all'])).toThrow('Unknown flag: --all. Valid flags: --status, --name');
+  });
+
+  it('throws usage on positional arguments', () => {
+    expect(() => parseArgs(['Acme'])).toThrow(usage);
+  });
+
+  it('rejects a repeated option', () => {
+    expect(() => parseArgs(['--name', 'Acme', '--name', 'Beta'])).toThrow('--name was given more than once.');
+  });
+
+  it('does not read a value as a flag', () => {
+    expect(parseArgs(['--name', '--status'])).toEqual({ status: 'active', name: '--status' });
   });
 });

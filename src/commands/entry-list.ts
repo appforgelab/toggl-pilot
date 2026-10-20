@@ -7,9 +7,11 @@ import {
   formatDuration,
   parseDateArg,
   parseOrExit,
-  rejectUnknownArgs,
+  validateOptionArgs,
   DASH,
 } from '../utils.js';
+
+export const entryListUsage = 'tgp entry-list [-d YYYY-MM-DD|yesterday|<offset>]';
 
 export const entryListOptions: CommandOption[] = [
   {
@@ -20,10 +22,10 @@ export const entryListOptions: CommandOption[] = [
   },
 ];
 
-const USAGE = 'Usage: tgp entry-list [-d YYYY-MM-DD|yesterday|<offset>]';
+const USAGE = `Usage: ${entryListUsage}`;
 
 export function parseArgs(args: string[]): Date {
-  rejectUnknownArgs(args, entryListOptions, USAGE);
+  validateOptionArgs(args, entryListOptions, USAGE);
   return parseDateArg(args);
 }
 

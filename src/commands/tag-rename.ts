@@ -1,6 +1,8 @@
 import { config } from '../config.js';
 import { put } from '../api.js';
 
+export const tagRenameUsage = 'tgp tag-rename <tag_id> "New Name"';
+
 interface Tag {
   id: number;
   name: string;
@@ -11,7 +13,7 @@ export async function tagRename(args: string[]) {
   const newName = args[1];
 
   if (args.length !== 2 || !tagId || !newName) {
-    console.error('Usage: tgp tag-rename <tag_id> "New Name"');
+    console.error(`Usage: ${tagRenameUsage}`);
     process.exit(1);
   }
 

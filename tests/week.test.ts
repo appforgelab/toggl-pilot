@@ -154,6 +154,20 @@ describe('parseWeekArgs', () => {
     expect(() => parseWeekArgs(['-v', '-1'])).toThrow('Unknown flag: -1.');
   });
 
+  it.each([
+    [['-w', '-d'], 'Missing value for --week'],
+    [['-w', '-v'], 'Missing value for --week'],
+    [['-d', '-w'], 'Missing value for -d'],
+  ])('does not read a missing value as the next flag: %j', (args, message) => {
+    expect(() => parseWeekArgs(args)).toThrow(message);
+  });
+
+  it('rejects a repeated option', () => {
+    expect(() => parseWeekArgs(['-d', 'yesterday', '--date', '2026-04-01'])).toThrow(
+      '-d/--date was given more than once.'
+    );
+  });
+
   it('rejects positional arguments', () => {
     expect(() => parseWeekArgs(['last'])).toThrow(
       'Usage: tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]'

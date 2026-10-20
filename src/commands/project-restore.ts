@@ -2,6 +2,8 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveProjectId } from '../projects.js';
 
+export const projectRestoreUsage = 'tgp project-restore <project>';
+
 interface Project {
   id: number;
 }
@@ -10,7 +12,7 @@ export async function projectRestore(args: string[]) {
   const projectInput = args[0];
 
   if (args.length !== 1 || !projectInput) {
-    console.error('Usage: tgp project-restore <project>');
+    console.error(`Usage: ${projectRestoreUsage}`);
     process.exit(1);
   }
 

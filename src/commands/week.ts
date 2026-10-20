@@ -1,7 +1,9 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration, parseDateArg, parseOrExit, rejectUnknownArgs, DASH } from '../utils.js';
+import { formatDate, formatDuration, parseDateArg, parseOrExit, validateOptionArgs, DASH } from '../utils.js';
 import type { CommandOption } from '../types.js';
+
+export const weekUsage = 'tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]';
 
 export const weekOptions: CommandOption[] = [
   {
@@ -61,43 +63,47 @@ function formatShortDate(date: Date): string {
   return `${MONTHS[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function findFlag(args: string[], ...flags: string[]): number {
-  for (const f of flags) {
-    const idx = args.indexOf(f);
-    if (idx !== -1) return idx;
-  }
-  return -1;
-}
-
-const USAGE = 'Usage: tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]';
+const USAGE = `Usage: ${weekUsage}`;
 
 export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean } {
-  rejectUnknownArgs(args, weekOptions, USAGE);
-  const verbose = findFlag(args, '--verbose', '-v') !== -1;
-  const dateIdx = findFlag(args, '--date', '-d');
-  const weekIdx = findFlag(args, '--week', '-w');
+  validateOptionArgs(args, weekOptions, USAGE);
 
-  if (dateIdx !== -1 && weekIdx !== -1) {
+  // Validated args have each value right after its flag, so read them by position
+  // (a value such as the `-d` in `-w -d` is never mistaken for a flag).
+  let verbose = false;
+  let dateArgs: string[] | null = null;
+  let weekValue: string | null = null;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '-v' || arg === '--verbose') {
+      verbose = true;
+    } else if (arg === '-d' || arg === '--date') {
+      dateArgs = args.slice(i, i + 2);
+      i++;
+    } else if (arg === '-w' || arg === '--week') {
+      const val = args[i + 1];
+      if (!val || (val.startsWith('-') && !/^-\d/.test(val))) {
+        throw new Error('Missing value for --week');
+      }
+      weekValue = val;
+      i++;
+    }
+  }
+
+  if (dateArgs && weekValue !== null) {
     throw new Error('Cannot use both --date and --week');
   }
 
-  if (weekIdx !== -1) {
-    const val = args[weekIdx + 1];
-    if (!val) throw new Error('Missing value for --week');
-    const offset = parseInt(val, 10);
-    if (isNaN(offset)) throw new Error(`Invalid week: ${val}`);
+  if (weekValue !== null) {
+    const offset = parseInt(weekValue, 10);
+    if (isNaN(offset)) throw new Error(`Invalid week: ${weekValue}`);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const targetMonday = new Date(currentMonday);
     targetMonday.setDate(currentMonday.getDate() + offset * 7);
     return { refDate: targetMonday, verbose };
   }
 
-  if (dateIdx !== -1) {
-    if (!args[dateIdx + 1]) throw new Error('Missing value for --date');
-    return { refDate: parseDateArg(args), verbose };
-  }
-
-  return { refDate: new Date(), verbose };
+  return { refDate: dateArgs ? parseDateArg(dateArgs) : new Date(), verbose };
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

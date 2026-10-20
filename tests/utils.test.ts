@@ -13,7 +13,7 @@ import {
   requireFlagValue,
   flagSet,
   validFlagsHint,
-  rejectUnknownArgs,
+  validateOptionArgs,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -512,23 +512,31 @@ describe('option helpers', () => {
   });
 
   it.each([[[]], [['-v']], [['-d', '-2', '-v']], [['--at', '09:00', '--date', 'yesterday']], [['-d']]])(
-    'rejectUnknownArgs accepts %j',
+    'validateOptionArgs accepts %j',
     (args) => {
-      expect(() => rejectUnknownArgs(args, options, usage)).not.toThrow();
+      expect(() => validateOptionArgs(args, options, usage)).not.toThrow();
     }
   );
 
-  it('rejectUnknownArgs rejects unknown flags with the valid ones', () => {
-    expect(() => rejectUnknownArgs(['-v', '--json'], options, usage)).toThrow(
+  it('validateOptionArgs rejects unknown flags with the valid ones', () => {
+    expect(() => validateOptionArgs(['-v', '--json'], options, usage)).toThrow(
       'Unknown flag: --json. Valid flags: -d/--date, --at, -v/--verbose'
     );
   });
 
-  it('rejectUnknownArgs rejects a value without its flag', () => {
-    expect(() => rejectUnknownArgs(['-v', '-2'], options, usage)).toThrow('Unknown flag: -2.');
+  it('validateOptionArgs rejects a value without its flag', () => {
+    expect(() => validateOptionArgs(['-v', '-2'], options, usage)).toThrow('Unknown flag: -2.');
   });
 
-  it('rejectUnknownArgs rejects positional arguments with the usage', () => {
-    expect(() => rejectUnknownArgs(['yesterday'], options, usage)).toThrow(usage);
+  it.each([
+    [['-v', '-v'], '-v/--verbose was given more than once.'],
+    [['-d', 'yesterday', '--date', '2026-01-01'], '-d/--date was given more than once.'],
+    [['--at', '09:00', '--at', '10:00'], '--at was given more than once.'],
+  ])('validateOptionArgs rejects repeated options: %j', (args, message) => {
+    expect(() => validateOptionArgs(args, options, usage)).toThrow(message);
+  });
+
+  it('validateOptionArgs rejects positional arguments with the usage', () => {
+    expect(() => validateOptionArgs(['yesterday'], options, usage)).toThrow(usage);
   });
 });

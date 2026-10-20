@@ -59,17 +59,18 @@ Example PR title: `feat: set up version management and workflow (#42)`
 
 - **Usage messages** should use `tgp <command>` (user-facing), not `tsx src/index.ts <command>` (dev-facing)
 - **New commands** must be added to `COMMANDS` in `src/registry.ts` — it drives both dispatch
-  (`src/cli.ts`) and `tgp --help`. Keep its `usage` string in sync with the command's own
-  `Usage:` error message. `--help`/`-h` is intercepted before dispatch, so commands never
-  see it as an argument. `help` itself is not a registry command: `src/cli.ts` rewrites
+  (`src/cli.ts`) and `tgp --help`. `--help`/`-h` is intercepted before dispatch, so commands
+  never see it as an argument. `help` itself is not a registry command: `src/cli.ts` rewrites
   `tgp help <command>` to `tgp <command> --help`.
-- **Flags are defined once**, in the `<command>Options` array exported by the command file
-  (e.g. `trackOptions` in `src/commands/track.ts`). The parser builds its accepted flags and
-  its `Unknown flag ... Valid flags:` message from it (`flagSet`, `validFlagsHint`, or
-  `rejectUnknownArgs` for option-only commands in `src/utils.ts`), and the registry passes the
-  same array to `--help`. To add a flag, add it there and handle it in the parser; also add it
-  to the `usage` strings. Help text must fit in 80 columns (the `Usage:` line is exempt);
-  break `description` lines with `\n`.
+- **Usage strings and flags are defined once, in the command file.** A command that prints a
+  usage line exports `<command>Usage` (e.g. `trackUsage`, without the `Usage:` prefix) and
+  uses it in its error; a command with flags exports `<command>Options` (e.g. `trackOptions`)
+  and builds its accepted flags and `Unknown flag ... Valid flags:` message from it
+  (`flagSet` + `validFlagsHint`, or `validateOptionArgs` for option-only commands, in
+  `src/utils.ts`). The registry references both, so `--help` can't drift from the parser. To
+  add a flag, add it to `<command>Options`, handle it in the parser, and update
+  `<command>Usage`. Help text must fit in 80 columns (the `Usage:` line is exempt); break
+  `description` lines with `\n`.
 
 ## API Quota (Free Plan)
 

@@ -4,6 +4,9 @@ import { resolveClientId } from '../clients.js';
 import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
+export const projectCreateUsage =
+  'tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
+
 export const projectCreateOptions: CommandOption[] = [
   { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID' },
   { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
@@ -17,7 +20,7 @@ interface Project {
   client_name: string | null;
 }
 
-const USAGE = 'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
+const USAGE = `Usage: ${projectCreateUsage}`;
 const VALID_FLAGS = flagSet(projectCreateOptions);
 
 function parseArgs(args: string[]) {

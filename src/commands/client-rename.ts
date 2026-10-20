@@ -1,6 +1,8 @@
 import { config } from '../config.js';
 import { put } from '../api.js';
 
+export const clientRenameUsage = 'tgp client-rename <client_id> "New Name"';
+
 interface Client {
   id: number;
   name: string;
@@ -11,7 +13,7 @@ export async function clientRename(args: string[]) {
   const newName = args[1];
 
   if (args.length !== 2 || !clientId || !newName) {
-    console.error('Usage: tgp client-rename <client_id> "New Name"');
+    console.error(`Usage: ${clientRenameUsage}`);
     process.exit(1);
   }
 

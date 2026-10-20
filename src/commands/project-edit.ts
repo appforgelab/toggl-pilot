@@ -5,6 +5,9 @@ import { resolveProjectId } from '../projects.js';
 import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
+export const projectEditUsage =
+  'tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
+
 export const projectEditOptions: CommandOption[] = [
   { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
   {
@@ -35,8 +38,7 @@ interface ParsedArgs {
   isPrivate: boolean | null;
 }
 
-const USAGE =
-  'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
+const USAGE = `Usage: ${projectEditUsage}`;
 const VALID_FLAGS = flagSet(projectEditOptions);
 
 export function parseArgs(args: string[]): ParsedArgs {

@@ -12,6 +12,9 @@ import {
   validFlagsHint,
 } from '../utils.js';
 
+export const trackUsage =
+  'tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
+
 export const trackOptions: CommandOption[] = [
   { short: '-p', long: '--project', value: '<name>', description: 'Project name (case-insensitive)' },
   { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names' },
@@ -40,8 +43,7 @@ interface Project {
   name: string;
 }
 
-const USAGE =
-  'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
+const USAGE = `Usage: ${trackUsage}`;
 const VALID_FLAGS = flagSet(trackOptions);
 
 export function parseArgs(args: string[]): {

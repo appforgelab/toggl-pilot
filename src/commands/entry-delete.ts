@@ -1,5 +1,7 @@
 import { del, get } from '../api.js';
 
+export const entryDeleteUsage = 'tgp entry-delete <entry_id>';
+
 interface TimeEntry {
   id: number;
   description: string;
@@ -12,7 +14,7 @@ interface TimeEntry {
 export async function entryDelete(args: string[]) {
   const id = args.find((a) => !a.startsWith('-'));
   if (args.length !== 1 || !id) {
-    console.error('Usage: tgp entry-delete <entry_id>');
+    console.error(`Usage: ${entryDeleteUsage}`);
     process.exit(1);
   }
 

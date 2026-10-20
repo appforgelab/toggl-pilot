@@ -2,11 +2,13 @@ import { config } from '../config.js';
 import { del } from '../api.js';
 import { resolveProjectId } from '../projects.js';
 
+export const projectDeleteUsage = 'tgp project-delete <project>';
+
 export async function projectDelete(args: string[]) {
   const projectInput = args[0];
 
   if (args.length !== 1 || !projectInput) {
-    console.error('Usage: tgp project-delete <project>');
+    console.error(`Usage: ${projectDeleteUsage}`);
     process.exit(1);
   }
 

@@ -3,6 +3,8 @@ import { post } from '../api.js';
 import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
+export const clientAddUsage = 'tgp client-add "Client Name" [--notes "Some notes"]';
+
 export const clientAddOptions: CommandOption[] = [
   { long: '--notes', value: '<text>', description: 'Notes for the client' },
 ];
@@ -14,7 +16,7 @@ interface Client {
   wid: number;
 }
 
-const USAGE = 'Usage: tgp client-add "Client Name" [--notes "Some notes"]';
+const USAGE = `Usage: ${clientAddUsage}`;
 const VALID_FLAGS = flagSet(clientAddOptions);
 
 function parseArgs(args: string[]) {

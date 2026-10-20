@@ -2,6 +2,8 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveProjectId } from '../projects.js';
 
+export const projectRenameUsage = 'tgp project-rename <project> "New Name"';
+
 interface Project {
   id: number;
   name: string;
@@ -12,7 +14,7 @@ export async function projectRename(args: string[]) {
   const newName = args[1];
 
   if (args.length !== 2 || !projectInput || !newName) {
-    console.error('Usage: tgp project-rename <project> "New Name"');
+    console.error(`Usage: ${projectRenameUsage}`);
     process.exit(1);
   }
 

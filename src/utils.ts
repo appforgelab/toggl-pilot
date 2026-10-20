@@ -199,25 +199,34 @@ export function flagSet(options: CommandOption[]): Set<string> {
   return new Set(options.flatMap((o) => (o.short ? [o.short, o.long] : [o.long])));
 }
 
+function flagLabel(option: CommandOption): string {
+  return option.short ? `${option.short}/${option.long}` : option.long;
+}
+
 /** `Valid flags: -p/--project, --at`, for unknown-flag errors. */
 export function validFlagsHint(options: CommandOption[]): string {
-  const list = options.map((o) => (o.short ? `${o.short}/${o.long}` : o.long)).join(', ');
-  return `Valid flag${options.length === 1 ? '' : 's'}: ${list}`;
+  return `Valid flag${options.length === 1 ? '' : 's'}: ${options.map(flagLabel).join(', ')}`;
 }
 
 /**
  * For commands that take only options: throw on anything that isn't a
- * documented flag or the value following a flag that takes one. Values are
- * skipped by position, so negative offsets like `-w -1` aren't mistaken for flags.
+ * documented flag or the value following a flag that takes one, and on an
+ * option given more than once (e.g. `-d x --date y`). Values are skipped by
+ * position, so negative offsets like `-w -1` aren't mistaken for flags. After
+ * this passes, every value sits right after its flag.
  */
-export function rejectUnknownArgs(args: string[], options: CommandOption[], usage: string): void {
-  const flags = flagSet(options);
-  const valueFlags = flagSet(options.filter((o) => o.value));
+export function validateOptionArgs(args: string[], options: CommandOption[], usage: string): void {
+  const seen = new Set<CommandOption>();
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (!flags.has(arg)) {
+    const option = options.find((o) => o.short === arg || o.long === arg);
+    if (!option) {
       throw new Error(arg.startsWith('-') ? `Unknown flag: ${arg}. ${validFlagsHint(options)}` : usage);
     }
-    if (valueFlags.has(arg)) i++;
+    if (seen.has(option)) {
+      throw new Error(`${flagLabel(option)} was given more than once.`);
+    }
+    seen.add(option);
+    if (option.value) i++;
   }
 }
