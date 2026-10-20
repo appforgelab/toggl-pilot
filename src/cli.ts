@@ -23,10 +23,16 @@ export function main(argv: string[]): void | Promise<void> {
     process.exit(1);
   }
 
+  // For commands without options, `--` ends flags so a value may start with "-"
+  // (e.g. `tgp tag-create -- -wip`); the `--` itself is not passed on.
+  const end = command.options ? -1 : args.indexOf('--');
+  const flagArgs = end === -1 ? args : args.slice(0, end);
+  const commandArgs = end === -1 ? args : [...flagArgs, ...args.slice(end + 1)];
+
   // Intercept help before dispatch so a help flag is never handed to a command
   // as an argument (e.g. `tgp stop --help` must not stop the running timer, and
   // `tgp tag-create --help` must not create a tag named "--help").
-  if (args.some(isHelpFlag)) {
+  if (flagArgs.some(isHelpFlag)) {
     console.log(renderCommandHelp(command));
     return;
   }
@@ -35,8 +41,12 @@ export function main(argv: string[]): void | Promise<void> {
   // nothing, so stray input is an error instead of data (e.g. `tgp stop --hlep`
   // must not stop the timer, and `tgp tag-create --verbose` must not create a tag).
   if (!command.options) {
-    const stray = command.arguments ? args.find((a) => a.startsWith('-')) : args[0];
+    const stray = command.arguments ? flagArgs.find((a) => a.startsWith('-')) : commandArgs[0];
     if (stray !== undefined) {
+      const escapeHint = command.arguments ? ' To pass a value that starts with "-", put -- before it.' : '';
+      console.error(
+        stray.startsWith('-') ? `Unknown flag: ${stray}.${escapeHint}` : `Unexpected argument: ${stray}.`
+      );
       console.error(`Usage: ${command.usage}`);
       process.exit(1);
     }
@@ -47,5 +57,5 @@ export function main(argv: string[]): void | Promise<void> {
     process.exit(1);
   }
 
-  return command.run(args);
+  return command.run(commandArgs);
 }

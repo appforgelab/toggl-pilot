@@ -16,7 +16,7 @@ export const weekOptions: CommandOption[] = [
     short: '-w',
     long: '--week',
     value: '<offset>',
-    description: 'Week offset: 0 is this week, -1 last week',
+    description: 'Weeks from this one, e.g. -1 for last week',
   },
   { short: '-v', long: '--verbose', description: 'Show a per-day breakdown for each project' },
 ];

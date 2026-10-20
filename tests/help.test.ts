@@ -37,6 +37,9 @@ function usagePositionals(command: Command): string[] {
       kept += rest[i];
     }
   }
+  const opens = command.usage.split('[').length;
+  const closes = command.usage.split(']').length;
+  if (opens !== closes) throw new Error(`Unbalanced brackets in usage: ${command.usage}`);
   return kept.match(/"[^"]*"|\S+/g) ?? [];
 }
 

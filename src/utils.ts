@@ -249,7 +249,7 @@ export function parseOptions(
     const option = matchFlag(args[i], options, seen);
     if (!option) throw new Error(usage);
     if (option.value) {
-      const hint = `${option.description}.`;
+      const hint = `Expected ${option.value}: ${option.description.replace(/\.$/, '')}.`;
       values.set(option.long, requireFlagValue(args, i, args[i], { hint, allowNegativeNumber: true }));
       i++;
     } else {

@@ -69,8 +69,9 @@ Example PR title: `feat: set up version management and workflow (#42)`
   commands (values keyed by long flag), or `matchFlag` plus a `switch (option.long)` ending in
   `default: unhandledOption(option)` for commands with positional arguments. Both reject
   unknown and repeated flags. The registry references both exports, so `--help` can't drift
-  from the parser. A command with neither `arguments` nor `options` in the registry is given
-  no arguments (`src/cli.ts` rejects them).
+  from the parser. For a command without `options`, `src/cli.ts` rejects flag-like arguments
+  (and, if it also has no `arguments`, any argument at all) before dispatch; `--` ends flags
+  there so a value can start with `-` (`tgp tag-create -- -wip`).
 - **To add a flag**, add it to `<command>Options`, handle it in the parser, update
   `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in `tests/help.test.ts` (that
   test fails if a documented option isn't handled). Help text must fit in 80 columns (the

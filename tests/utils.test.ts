@@ -487,16 +487,23 @@ describe('requireFlagValue', () => {
 });
 
 describe('parseOptions missing values', () => {
+  it('does not double a trailing period in the description', () => {
+    const withPeriod = [{ long: '--name', value: '<filter>', description: 'Client name.' }];
+    expect(() => parseOptions(['--name'], withPeriod, 'Usage: x')).toThrow(
+      /^Missing value for --name\. Expected <filter>: Client name\.$/
+    );
+  });
+
   const options = [
     { short: '-d', long: '--date', value: '<date>', description: 'YYYY-MM-DD or "yesterday"' },
   ];
   const usage = 'Usage: tgp test [-d <date>]';
 
   it.each([[['-d']], [['-d', '--foo']], [['--date']], [['--date', '-v']], [['-d', '']]])(
-    'reports a missing value for %j, with the option description',
+    'reports a missing value for %j, with what is expected',
     (args) => {
       expect(() => parseOptions(args, options, usage)).toThrow(
-        `Missing value for ${args[0]}. YYYY-MM-DD or "yesterday".`
+        `Missing value for ${args[0]}. Expected <date>: YYYY-MM-DD or "yesterday".`
       );
     }
   );

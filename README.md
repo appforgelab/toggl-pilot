@@ -34,6 +34,9 @@ Run `tgp --help` (or just `tgp`) to see all available commands, and
 `tgp <command> --help` (or `tgp help <command>`) for a command's usage, options,
 and examples.
 
+Arguments that start with `-` are treated as flags. To pass a name that starts
+with `-`, put `--` before it, e.g. `tgp tag-create -- -wip`.
+
 ## Commands
 
 ### General

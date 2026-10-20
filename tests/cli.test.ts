@@ -10,6 +10,10 @@ vi.mock('../src/commands/auth.js', async (importOriginal) => ({
 }));
 vi.mock('../src/commands/version.js', () => ({ version: vi.fn() }));
 vi.mock('../src/commands/stop.js', () => ({ stop: vi.fn() }));
+vi.mock('../src/commands/track.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/track.js')>()),
+  track: vi.fn(),
+}));
 vi.mock('../src/commands/tag-create.js', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/commands/tag-create.js')>()),
   tagCreate: vi.fn(),
@@ -19,6 +23,7 @@ import { hasConfig, ConfigNotFoundError } from '../src/config.js';
 import { auth } from '../src/commands/auth.js';
 import { version } from '../src/commands/version.js';
 import { stop } from '../src/commands/stop.js';
+import { track } from '../src/commands/track.js';
 import { tagCreate } from '../src/commands/tag-create.js';
 import { findCommand } from '../src/registry.js';
 import { renderCommandHelp, renderGlobalHelp } from '../src/help.js';
@@ -142,28 +147,52 @@ describe('main', () => {
       expect(tagCreate).toHaveBeenCalledWith(['Bug']);
     });
 
-    it.each([[['stop', 'now']], [['stop', '--hlep']], [['version', 'extra']]])(
-      'rejects arguments for a command that takes none: %j',
-      (argv) => {
-        expect(() => main(argv)).toThrow('exit');
+    it.each([
+      [['stop', 'now'], 'Unexpected argument: now.'],
+      [['stop', '--hlep'], 'Unknown flag: --hlep.'],
+      [['version', 'extra'], 'Unexpected argument: extra.'],
+      [['stop', '--', 'x'], 'Unexpected argument: x.'],
+    ])('rejects arguments for a command that takes none: %j', (argv, message) => {
+      expect(() => main(argv)).toThrow('exit');
 
-        expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
-        expect(exitSpy).toHaveBeenCalledWith(1);
-        expect(stop).not.toHaveBeenCalled();
-        expect(version).not.toHaveBeenCalled();
-      }
-    );
+      expect(errorSpy).toHaveBeenCalledWith(message);
+      expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(stop).not.toHaveBeenCalled();
+      expect(version).not.toHaveBeenCalled();
+    });
 
-    it.each([[['tag-create', '--verbose']], [['tag-create', 'Bug', '-x']]])(
-      'rejects a flag for a command without options: %j',
-      (argv) => {
-        expect(() => main(argv)).toThrow('exit');
+    it.each([
+      [['tag-create', '--verbose'], '--verbose'],
+      [['tag-create', 'Bug', '-x'], '-x'],
+    ])('rejects a flag for a command without options: %j', (argv, flag) => {
+      expect(() => main(argv)).toThrow('exit');
 
-        expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
-        expect(exitSpy).toHaveBeenCalledWith(1);
-        expect(tagCreate).not.toHaveBeenCalled();
-      }
-    );
+      expect(errorSpy).toHaveBeenCalledWith(
+        `Unknown flag: ${flag}. To pass a value that starts with "-", put -- before it.`
+      );
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(tagCreate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [['tag-create', '--', '-wip'], ['-wip']],
+      [['tag-create', '--', '--help'], ['--help']],
+      [['tag-create', 'Bug', '--'], ['Bug']],
+    ])('passes values after -- through as data: %j', (argv, expected) => {
+      main(argv);
+
+      expect(tagCreate).toHaveBeenCalledWith(expected);
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(exitSpy).not.toHaveBeenCalled();
+    });
+
+    it('leaves -- to the parser for commands with options', () => {
+      main(['track', '--', '-x']);
+
+      expect(track).toHaveBeenCalledWith(['--', '-x']);
+    });
 
     it('rejects config-requiring commands when no config exists', () => {
       mockedHasConfig.mockReturnValue(false);
