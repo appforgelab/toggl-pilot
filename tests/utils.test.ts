@@ -471,19 +471,33 @@ describe('parseCommandLine option values', () => {
     expect(() => valueOf(['-p', '-x'], { ...project, allowEmpty: true })).toThrow(missingProject('-p'));
   });
 
-  it('suggests --long=value when the next arg looks like a value rather than a flag', () => {
+  it('suggests --long=value for a free-text option when the next arg looks like a value', () => {
     const description = {
       short: '-d',
       long: '--description',
       value: '<text>',
       description: 'New description',
+      text: true,
     };
     expect(() => parseCommandLine(['-d', '-1'], [description])).toThrow(
       'Missing value for -d. Expected <text>: New description. If "-1" is the value, write --description=-1.'
     );
-    expect(() => parseCommandLine(['-d', '--description'], [description])).toThrow(
-      /^Missing value for -d\. Expected <text>: New description\.$/
+    expect(() => parseCommandLine(['-d', '-draft notes'], [description])).toThrow(
+      'If "-draft notes" is the value, write --description="-draft notes".'
     );
+  });
+
+  it.each([
+    ['a mistyped long flag', ['-d', '--descr'], true],
+    ["one of the command's short flags", ['-d', '-p'], true],
+    ['a value for an option that is not free text', ['--dur', '-30m'], false],
+  ])('does not suggest --long=value for %s', (_, args, text) => {
+    const options = [
+      { short: '-d', long: '--description', value: '<text>', description: 'New description', text },
+      { short: '-p', long: '--project', value: '<name>', description: 'Project' },
+      { long: '--dur', value: '<duration>', description: 'Duration' },
+    ];
+    expect(() => parseCommandLine(args, options)).toThrow(/^Missing value for [^.]+\. Expected [^.]+\.$/);
   });
 
   it('accepts a negative number only for options marked negativeNumber', () => {

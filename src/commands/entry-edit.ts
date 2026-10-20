@@ -12,14 +12,21 @@ export const entryEditUsage =
   'tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
 
 export const entryEditOptions: CommandOption[] = [
-  { short: '-d', long: '--description', value: '<text>', description: 'New description' },
-  { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
+  { short: '-d', long: '--description', value: '<text>', description: 'New description', text: true },
+  {
+    short: '-p',
+    long: '--project',
+    value: '<name>',
+    description: 'New project name (case-insensitive)',
+    text: true,
+  },
   {
     short: '-t',
     long: '--tags',
     value: '<tags>',
     description: 'Replace tags (comma-separated; "" clears)',
     allowEmpty: true,
+    text: true,
   },
   { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
   {

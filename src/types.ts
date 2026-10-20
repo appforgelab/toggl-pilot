@@ -24,4 +24,9 @@ export interface CommandOption {
   allowEmpty?: boolean;
   /** Accept a negative number as the value, e.g. `-d -2` for a day offset. */
   negativeNumber?: boolean;
+  /**
+   * The value is free text such as a name, so it may legitimately start with "-";
+   * a missing-value error then suggests the `--long=value` form.
+   */
+  text?: boolean;
 }

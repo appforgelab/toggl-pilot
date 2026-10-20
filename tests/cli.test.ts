@@ -206,6 +206,10 @@ describe('main', () => {
         ['tag-create', '-wip'],
         'Unknown flag: -wip. To pass a name that starts with "-", put -- after any options and before the name.',
       ],
+      [
+        ['tag-create', '-1'],
+        'Unknown flag: -1. To pass a name that starts with "-", put -- after any options and before the name.',
+      ],
     ])('rejects a flag for a command without options: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
 
@@ -267,19 +271,27 @@ describe('main', () => {
       ],
       [
         ['track', 'Fix', '--dur', '-30m'],
-        'Missing value for --dur. Expected <duration>: Duration, e.g. 30m, 1h, 1h30m (requires --at). If "-30m" is the value, write --dur=-30m.',
+        'Missing value for --dur. Expected <duration>: Duration, e.g. 30m, 1h, 1h30m (requires --at).',
       ],
       [['week', 'last'], 'Unexpected argument: last.'],
       [['tag-create', 'Bug', 'Report'], 'Unexpected argument: Report.'],
-      [['tag-create'], 'Missing argument: "Tag Name".'],
-      [['entry-edit', '-d', 'x'], 'Missing argument: <entry_id>.'],
+      [['tag-create'], 'Missing argument: "Tag Name" (Name for the new tag).'],
+      [['entry-edit', '-d', 'x'], 'Missing argument: <entry_id> (Entry ID from "tgp entry-list").'],
+      [
+        ['auth'],
+        'Missing argument: <api-token> (Toggl Track API token from https://track.toggl.com/profile).',
+      ],
+      [
+        ['track', '-x', 'Fix'],
+        'Unknown flag: -x. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date',
+      ],
     ])('checks the arguments before running the command: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
 
       expect(errorSpy).toHaveBeenCalledWith(message);
       expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
       expect(exitSpy).toHaveBeenCalledWith(1);
-      for (const run of [track, week, tagCreate, entryEdit]) expect(run).not.toHaveBeenCalled();
+      for (const run of [track, week, tagCreate, entryEdit, auth]) expect(run).not.toHaveBeenCalled();
     });
 
     it.each([

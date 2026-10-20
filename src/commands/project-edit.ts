@@ -9,13 +9,14 @@ export const projectEditUsage =
   'tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
 
 export const projectEditOptions: CommandOption[] = [
-  { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
+  { short: '-n', long: '--name', value: '<name>', description: 'New project name', text: true },
   {
     short: '-c',
     long: '--client',
     value: '<client>',
     description: 'Client name or ID ("" removes the client)',
     allowEmpty: true,
+    text: true,
   },
   { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
   { long: '--public', description: 'Make the project visible to all workspace members' },

@@ -35,6 +35,8 @@ export interface CommandArgument {
   /** Written exactly as it appears in `usage`, e.g. `<entry_id>` or `"Tag Name"`. */
   name: string;
   description: string;
+  /** May be left out (written in brackets in `usage`, e.g. `[<entry_id>]`). */
+  optional?: boolean;
   /**
    * Free text such as a name (not an ID), which may legitimately start with "-":
    * an unknown-flag error in this position suggests `--` (see src/cli.ts).
@@ -74,7 +76,9 @@ export const COMMANDS: Command[] = [
     description:
       'Verify an API token and save it to the config file.\n' +
       'Get your token at https://track.toggl.com/profile',
-    arguments: [{ name: '<api-token>', description: 'Toggl Track API token' }],
+    arguments: [
+      { name: '<api-token>', description: 'Toggl Track API token from https://track.toggl.com/profile' },
+    ],
     requiresConfig: false,
     run: auth,
   },
@@ -164,7 +168,7 @@ export const COMMANDS: Command[] = [
       'Start a new timer with the description, project, and tags of a stopped\n' +
       'entry. Without an ID, resumes the latest entry stopped today, falling\n' +
       'back to yesterday.',
-    arguments: [{ name: '[<entry_id>]', description: 'Optional entry ID from "tgp entry-list"' }],
+    arguments: [{ name: '[<entry_id>]', description: 'Entry ID from "tgp entry-list"', optional: true }],
     requiresConfig: true,
     run: resume,
   },

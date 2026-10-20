@@ -204,9 +204,11 @@ export class UnknownFlagError extends Error {
 }
 
 /**
- * `Missing value for -d. Expected <text>: New description.` When the next
- * argument starts with "-" but isn't one of the command's flags, it was probably
- * meant as the value, so the `--long=value` form is suggested.
+ * `Missing value for -d. Expected <text>: New description.` For a free-text
+ * option, a following name-shaped argument such as `-1` or `-draft` that isn't
+ * one of the command's flags was probably meant as the value, so the
+ * `--long=value` form is suggested. Anything starting with `--` is treated as a
+ * mistyped flag instead.
  */
 function missingValue(
   flag: string,
@@ -217,10 +219,9 @@ function missingValue(
   const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
   const period = /[.!?]$/.test(expected) ? '' : '.';
   let message = `Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`;
-  const isFlag = (arg: string) =>
-    options.some((o) => arg === o.short || arg === o.long || arg.startsWith(`${o.long}=`));
-  if (next !== undefined && next.startsWith('-') && next !== '--' && !isFlag(next)) {
-    message += ` If "${next}" is the value, write ${option.long}=${next}.`;
+  if (option.text && next !== undefined && /^-[^-]/.test(next) && !options.some((o) => o.short === next)) {
+    const value = /^[\w@%+:,./-]+$/.test(next) ? next : JSON.stringify(next);
+    message += ` If "${next}" is the value, write ${option.long}=${value}.`;
   }
   return new Error(message);
 }

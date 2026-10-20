@@ -6,7 +6,7 @@ import type { CommandOption } from '../types.js';
 export const clientAddUsage = 'tgp client-add "Client Name" [--notes "Some notes"]';
 
 export const clientAddOptions: CommandOption[] = [
-  { long: '--notes', value: '<text>', description: 'Notes for the client' },
+  { long: '--notes', value: '<text>', description: 'Notes for the client', text: true },
 ];
 
 interface Client {

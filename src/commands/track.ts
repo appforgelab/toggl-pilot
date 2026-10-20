@@ -14,8 +14,14 @@ export const trackUsage =
   'tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
 
 export const trackOptions: CommandOption[] = [
-  { short: '-p', long: '--project', value: '<name>', description: 'Project name (case-insensitive)' },
-  { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names' },
+  {
+    short: '-p',
+    long: '--project',
+    value: '<name>',
+    description: 'Project name (case-insensitive)',
+    text: true,
+  },
+  { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names', text: true },
   { long: '--at', value: '<time>', description: 'Start time as [H]H:MM (requires --dur)' },
   { long: '--dur', value: '<duration>', description: 'Duration, e.g. 30m, 1h, 1h30m (requires --at)' },
   {

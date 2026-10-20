@@ -56,19 +56,22 @@ function checkArguments(command: Command, args: string[]): ReturnType<typeof par
     parsed = parseCommandLine(args, command.options ?? []);
   } catch (e) {
     let message = (e as Error).message;
-    // Suggest `--` for something like `-wip` where a name goes, but not for an ID
-    // position or anything shaped like a flag (`-x`, `--tag`), which is likelier a typo.
-    if (e instanceof UnknownFlagError && command.arguments?.[e.position]?.text && /^-[^-]./.test(e.flag)) {
-      message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
+    // Suggest `--` for a value like `-wip` or `-1` where a name goes, but not for an
+    // ID position or for something likelier to be a mistyped flag: `--tag`, or `-x`
+    // in a command that has short flags.
+    if (e instanceof UnknownFlagError && command.arguments?.[e.position]?.text) {
+      const likelyTypo = e.flag.startsWith('--') || (e.flag.length === 2 && !!command.options);
+      if (!likelyTypo) {
+        message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
+      }
     }
     return rejectArguments(command, message);
   }
 
-  // Optional arguments are written in brackets, e.g. `[<entry_id>]`.
   const declared = command.arguments ?? [];
-  const missing = declared.slice(parsed.positionals.length).find((a) => !a.name.startsWith('['));
+  const missing = declared.slice(parsed.positionals.length).find((a) => !a.optional);
   if (missing) {
-    return rejectArguments(command, `Missing argument: ${missing.name}.`);
+    return rejectArguments(command, `Missing argument: ${missing.name} (${missing.description}).`);
   }
   if (parsed.positionals.length > declared.length) {
     return rejectArguments(command, `Unexpected argument: ${parsed.positionals[declared.length]}.`);

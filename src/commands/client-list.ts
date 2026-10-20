@@ -7,7 +7,7 @@ export const clientListUsage = 'tgp client-list [--status active|archived|both] 
 
 export const clientListOptions: CommandOption[] = [
   { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
-  { long: '--name', value: '<filter>', description: 'Client name to filter by' },
+  { long: '--name', value: '<filter>', description: 'Client name to filter by', text: true },
 ];
 
 type ClientStatus = 'active' | 'archived' | 'both';

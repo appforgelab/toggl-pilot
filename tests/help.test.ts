@@ -120,6 +120,15 @@ describe('command registry', () => {
   });
 
   it.each(COMMANDS.map((c) => [c.name, c]))(
+    '%s marks exactly the bracketed arguments optional',
+    (_, command) => {
+      for (const arg of command.arguments ?? []) {
+        expect(!!arg.optional, arg.name).toBe(arg.name.startsWith('['));
+      }
+    }
+  );
+
+  it.each(COMMANDS.map((c) => [c.name, c]))(
     '%s usage has balanced, properly nested brackets',
     (_, command) => {
       let depth = 0;

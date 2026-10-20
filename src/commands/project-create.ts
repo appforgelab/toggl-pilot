@@ -8,7 +8,7 @@ export const projectCreateUsage =
   'tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
 
 export const projectCreateOptions: CommandOption[] = [
-  { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID' },
+  { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID', text: true },
   { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
   { long: '--public', description: 'Make the project visible to all workspace members' },
 ];
