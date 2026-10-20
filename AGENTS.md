@@ -65,19 +65,20 @@ Example PR title: `feat: set up version management and workflow (#42)`
 - **Usage strings and flags are defined once, in the command file.** A command that prints a
   usage line exports `<command>Usage` (e.g. `trackUsage`, without the `Usage:` prefix) and
   uses it in its error; a command with flags exports `<command>Options` (e.g. `trackOptions`)
-  and parses against it with the helpers in `src/utils.ts`: `parseOptions` for option-only
-  commands (values keyed by long flag), or `matchFlag` plus a `switch (option.long)` ending in
-  `default: unhandledOption(option)` for commands with positional arguments. Both reject
-  unknown and repeated flags. The registry references both exports, so `--help` can't drift
-  from the parser. For a command without `options`, `src/cli.ts` rejects flag-like arguments
-  (and, if it also has no `arguments`, any argument at all) before dispatch; `--` ends flags
-  there so a value can start with `-` (`tgp tag-create -- -wip`). Help flags show help even
-  after `--`. Commands with options don't support `--` yet. In commands without options, mark
-  free-text arguments (names, not IDs) with `text: true` so the unknown-flag error suggests `--`.
-- **To add a flag**, add it to `<command>Options`, handle it in the parser, update
-  `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in `tests/help.test.ts` (that
-  test fails if a documented option isn't handled). Help text must fit in 80 columns (the
-  `Usage:` line is exempt); break `description` lines with `\n`.
+  parses with `parseCommandLine` in `src/utils.ts`, which returns `positionals`, option
+  `values`, and boolean `flags` (keyed by long flag), rejects unknown and repeated flags, and
+  supports `--` (end of options) and `--long=value`. Option-only commands use `parseOptions`,
+  which also rejects positionals. Value rules live on the option (`allowEmpty`). The registry
+  references both exports, so `--help` can't drift from the parser.
+- **Commands without options** never reach `parseCommandLine`: `src/cli.ts` rejects
+  flag-like arguments (and, if the command has no `arguments`, any argument at all) before
+  dispatch, and handles `--` the same way. Mark free-text arguments (names, not IDs) with
+  `text: true` so the unknown-flag error suggests `--`. Help flags show help even after `--`.
+- **To add a flag**, add it to `<command>Options`, read it from `values`/`flags` in the
+  parser, update `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in
+  `tests/help.test.ts` (that test fails if a documented option doesn't change the parse
+  result). Help text must fit in 80 columns (the `Usage:` line is exempt); break
+  `description` lines with `\n`.
 
 ## API Quota (Free Plan)
 

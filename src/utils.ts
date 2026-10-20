@@ -210,56 +210,92 @@ export function matchFlag(
   return option;
 }
 
+function missingValue(flag: string, option: CommandOption): Error {
+  const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
+  const period = /[.!?]$/.test(expected) ? '' : '.';
+  return new Error(`Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`);
+}
+
 /**
  * The value after the flag at `args[index]`, which matched `option`. Anything
  * starting with `-` counts as missing (it's the next flag), except negative
- * numbers when `allowNegativeNumber` is set (e.g. `-w -1`). A missing value is
- * reported with what the option expects, e.g.
- * `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
+ * numbers (e.g. `-w -1`). A missing value is reported with what the option
+ * expects, e.g. `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
  */
-export function requireOptionValue(
-  args: string[],
-  index: number,
-  option: CommandOption,
-  options: { allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
-): string {
+export function requireOptionValue(args: string[], index: number, option: CommandOption): string {
   const val = args[index + 1];
-  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
+  if (val !== undefined && /^-\d/.test(val)) {
     return val;
   }
-  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !options.allowEmpty)) {
-    const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
-    const period = /[.!?]$/.test(expected) ? '' : '.';
-    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}${period}`);
+  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !option.allowEmpty)) {
+    throw missingValue(args[index], option);
   }
   return val;
 }
 
+/** Split `args` at the first `--`: flags may appear before it, only positionals after. */
+export function splitAtDoubleDash(args: string[]): { before: string[]; after: string[] } {
+  const end = args.indexOf('--');
+  return end === -1
+    ? { before: args, after: [] }
+    : { before: args.slice(0, end), after: args.slice(end + 1) };
+}
+
 /**
- * Parse the arguments of a command that takes only options. Returns the values
- * of options that take one, and the set of boolean options given, both keyed by
- * long flag. Positional arguments are rejected with `usage`. Values may be
- * negative numbers (e.g. `-w -1`), but anything else starting with `-` counts as
- * a missing value.
+ * Parse a command's arguments against its options. Returns the positional
+ * arguments, the values of options that take one, and the boolean options given
+ * (both keyed by long flag). Unknown and repeated flags are rejected.
+ *
+ * A value can start with "-" in two ways: after `--`, every argument is
+ * positional (`tgp track -p Dev -- -wip`), and a long option's value can be
+ * attached with `=` (`--description=-draft`). Negative numbers work as plain
+ * values too (`-w -1`).
+ */
+export function parseCommandLine(
+  args: string[],
+  options: CommandOption[]
+): { positionals: string[]; values: Map<string, string>; flags: Set<string> } {
+  const { before, after } = splitAtDoubleDash(args);
+  const positionals: string[] = [];
+  const values = new Map<string, string>();
+  const flags = new Set<string>();
+  const seen = new Set<CommandOption>();
+
+  for (let i = 0; i < before.length; i++) {
+    const arg = before[i];
+    const eq = arg.startsWith('--') ? arg.indexOf('=') : -1;
+    const flag = eq === -1 ? arg : arg.slice(0, eq);
+    const option = matchFlag(flag, options, seen);
+    if (!option) {
+      positionals.push(arg);
+    } else if (!option.value) {
+      if (eq !== -1) throw new Error(`${option.long} does not take a value.`);
+      flags.add(option.long);
+    } else if (eq !== -1) {
+      const value = arg.slice(eq + 1);
+      if (value === '' && !option.allowEmpty) throw missingValue(flag, option);
+      values.set(option.long, value);
+    } else {
+      values.set(option.long, requireOptionValue(before, i, option));
+      i++;
+    }
+  }
+
+  positionals.push(...after);
+  return { positionals, values, flags };
+}
+
+/**
+ * Parse the arguments of a command that takes only options (see
+ * parseCommandLine); any positional argument is rejected with `usage`.
  */
 export function parseOptions(
   args: string[],
   options: CommandOption[],
   usage: string
 ): { values: Map<string, string>; flags: Set<string> } {
-  const values = new Map<string, string>();
-  const flags = new Set<string>();
-  const seen = new Set<CommandOption>();
-  for (let i = 0; i < args.length; i++) {
-    const option = matchFlag(args[i], options, seen);
-    if (!option) throw new Error(usage);
-    if (option.value) {
-      values.set(option.long, requireOptionValue(args, i, option, { allowNegativeNumber: true }));
-      i++;
-    } else {
-      flags.add(option.long);
-    }
-  }
+  const { positionals, values, flags } = parseCommandLine(args, options);
+  if (positionals.length > 0) throw new Error(usage);
   return { values, flags };
 }
 
@@ -268,9 +304,4 @@ export function nothingToEditError(options: CommandOption[]): Error {
   return new Error(
     `Nothing to edit. Provide at least one of: ${options.map((o) => o.short ?? o.long).join(', ')}`
   );
-}
-
-/** For a parser's `default:` case: an option listed in `<command>Options` that the parser doesn't handle. */
-export function unhandledOption(option: CommandOption): never {
-  throw new Error(`Bug: ${option.long} is documented but not handled by the parser.`);
 }

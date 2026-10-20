@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit, matchFlag, unhandledOption, requireOptionValue } from '../utils.js';
+import { parseOrExit, parseCommandLine } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectCreateUsage =
@@ -23,41 +23,18 @@ interface Project {
 const USAGE = `Usage: ${projectCreateUsage}`;
 
 export function parseArgs(args: string[]) {
-  let name: string | null = null;
-  let client: string | null = null;
-  let color: string | null = null;
-  let isPublic = false;
-  const seen = new Set<CommandOption>();
-
-  for (let i = 0; i < args.length; i++) {
-    const option = matchFlag(args[i], projectCreateOptions, seen);
-    if (!option) {
-      if (name !== null) throw new Error(USAGE);
-      name = args[i];
-      continue;
-    }
-
-    switch (option.long) {
-      case '--client':
-        client = requireOptionValue(args, i, option);
-        break;
-      case '--color':
-        color = requireOptionValue(args, i, option);
-        break;
-      case '--public':
-        isPublic = true;
-        break;
-      default:
-        unhandledOption(option);
-    }
-    if (option.value) i++;
-  }
-
-  if (!name) {
+  const { positionals, values, flags } = parseCommandLine(args, projectCreateOptions);
+  const [name] = positionals;
+  if (positionals.length !== 1 || !name) {
     throw new Error(USAGE);
   }
 
-  return { name, client, color, isPublic };
+  return {
+    name,
+    client: values.get('--client') ?? null,
+    color: values.get('--color') ?? null,
+    isPublic: flags.has('--public'),
+  };
 }
 
 export async function projectCreate(args: string[]) {

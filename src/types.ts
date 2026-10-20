@@ -20,4 +20,6 @@ export interface CommandOption {
   /** Placeholder for the flag's value, e.g. `<name>`. Omit for boolean flags. */
   value?: string;
   description: string;
+  /** Accept an empty value, e.g. `--tags ""` to clear tags. */
+  allowEmpty?: boolean;
 }

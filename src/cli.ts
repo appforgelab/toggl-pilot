@@ -1,6 +1,7 @@
 import { hasConfig, ConfigNotFoundError } from './config.js';
 import { findCommand } from './registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from './help.js';
+import { splitAtDoubleDash } from './utils.js';
 
 export function main(argv: string[]): void | Promise<void> {
   const [name, ...args] = argv;
@@ -33,18 +34,17 @@ export function main(argv: string[]): void | Promise<void> {
     return;
   }
 
-  // For commands without options, `--` ends flags so a name may start with "-"
-  // (e.g. `tgp tag-create -- -wip`); the `--` itself is not passed on.
-  const end = command.options ? -1 : args.indexOf('--');
-  const flagArgs = end === -1 ? args : args.slice(0, end);
-  const commandArgs = args.filter((_, i) => i !== end);
-
-  // A command without options takes no flags, and one without arguments takes
-  // nothing, so stray input is an error instead of data (e.g. `tgp stop --hlep`
-  // must not stop the timer, and `tgp tag-create --verbose` must not create a tag).
+  // Commands with options handle `--` in their parser (parseCommandLine). For the
+  // rest, `--` ends flags here so a name may start with "-" (`tgp tag-create -- -wip`),
+  // and stray input is an error instead of data: a command without options takes
+  // no flags, and one without arguments takes nothing (e.g. `tgp stop --hlep` must
+  // not stop the timer, and `tgp tag-create --verbose` must not create a tag).
+  let commandArgs = args;
   if (!command.options) {
-    const flagIndex = flagArgs.findIndex((a) => a.startsWith('-'));
-    const flag = flagIndex === -1 ? undefined : flagArgs[flagIndex];
+    const { before, after } = splitAtDoubleDash(args);
+    commandArgs = [...before, ...after];
+    const flagIndex = before.findIndex((a) => a.startsWith('-'));
+    const flag = flagIndex === -1 ? undefined : before[flagIndex];
     const unexpected = command.arguments ? undefined : commandArgs[0];
     if (flag !== undefined || unexpected !== undefined) {
       // Everything before the first flag-like value is positional, so its index is

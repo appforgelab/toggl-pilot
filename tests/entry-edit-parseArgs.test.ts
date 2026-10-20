@@ -166,4 +166,8 @@ describe('entry-edit parseArgs', () => {
       'Missing value for --start. Expected <time>: New start: [H]H:MM today, or ISO 8601 with timezone.'
     );
   });
+
+  it('accepts an option value that starts with - via --description=', () => {
+    expect(parseArgs(['12345', '--description=-draft']).description).toBe('-draft');
+  });
 });

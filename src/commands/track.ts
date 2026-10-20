@@ -7,9 +7,7 @@ import {
   parseOrExit,
   localYesterdayDate,
   formatDate,
-  matchFlag,
-  unhandledOption,
-  requireOptionValue,
+  parseCommandLine,
 } from '../utils.js';
 
 export const trackUsage =
@@ -53,51 +51,21 @@ export function parseArgs(args: string[]): {
   dur: string | null;
   date: string | null;
 } {
-  let description: string | null = null;
-  let project: string | null = null;
-  let tags: string[] = [];
-  let at: string | null = null;
-  let dur: string | null = null;
-  let date: string | null = null;
-  const seen = new Set<CommandOption>();
-
-  for (let i = 0; i < args.length; i++) {
-    const option = matchFlag(args[i], trackOptions, seen);
-    if (!option) {
-      if (description !== null) throw new Error(USAGE);
-      description = args[i];
-      continue;
-    }
-
-    switch (option.long) {
-      case '--project':
-        project = requireOptionValue(args, i, option);
-        break;
-      case '--tags':
-        tags = requireOptionValue(args, i, option)
-          .split(',')
-          .map((t) => t.trim());
-        break;
-      case '--at':
-        at = requireOptionValue(args, i, option);
-        break;
-      case '--dur':
-        dur = requireOptionValue(args, i, option);
-        break;
-      case '--date':
-        date = requireOptionValue(args, i, option);
-        break;
-      default:
-        unhandledOption(option);
-    }
-    if (option.value) i++;
-  }
-
-  if (!description) {
+  const { positionals, values } = parseCommandLine(args, trackOptions);
+  const [description] = positionals;
+  if (positionals.length !== 1 || !description) {
     throw new Error(USAGE);
   }
 
-  return { description, project, tags, at, dur, date };
+  const tags = values.get('--tags');
+  return {
+    description,
+    project: values.get('--project') ?? null,
+    tags: tags === undefined ? [] : tags.split(',').map((t) => t.trim()),
+    at: values.get('--at') ?? null,
+    dur: values.get('--dur') ?? null,
+    date: values.get('--date') ?? null,
+  };
 }
 
 export async function track(args: string[]) {

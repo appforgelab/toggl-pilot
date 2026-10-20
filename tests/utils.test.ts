@@ -16,6 +16,7 @@ import {
   optionLabel,
   nothingToEditError,
   requireOptionValue,
+  parseCommandLine,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -459,22 +460,19 @@ describe('requireOptionValue', () => {
     expect(() => requireOptionValue(['-p', ''], 0, project)).toThrow(missingProject('-p'));
   });
 
-  it('returns an empty string when allowEmpty is true', () => {
-    expect(requireOptionValue(['-p', ''], 0, project, { allowEmpty: true })).toBe('');
+  it('returns an empty string when the option allows it', () => {
+    expect(requireOptionValue(['-p', ''], 0, { ...project, allowEmpty: true })).toBe('');
   });
 
-  it('still rejects the next arg starting with - even when allowEmpty is true', () => {
-    expect(() => requireOptionValue(['-p', '--name', 'X'], 0, project, { allowEmpty: true })).toThrow(
+  it('still rejects the next arg starting with - when the option allows empty values', () => {
+    expect(() => requireOptionValue(['-p', '--name', 'X'], 0, { ...project, allowEmpty: true })).toThrow(
       missingProject('-p')
     );
   });
 
-  it('accepts a negative number only with allowNegativeNumber', () => {
-    expect(requireOptionValue(['-w', '-1'], 0, week, { allowNegativeNumber: true })).toBe('-1');
-    expect(() => requireOptionValue(['-w', '-1'], 0, week)).toThrow('Missing value for -w.');
-    expect(() => requireOptionValue(['-w', '-v'], 0, week, { allowNegativeNumber: true })).toThrow(
-      'Missing value for -w.'
-    );
+  it('accepts a negative number, but not another flag', () => {
+    expect(requireOptionValue(['-w', '-1'], 0, week)).toBe('-1');
+    expect(() => requireOptionValue(['-w', '-v'], 0, week)).toThrow('Missing value for -w.');
   });
 
   it('does not add a period after a description ending in ? or !', () => {
@@ -490,6 +488,61 @@ describe('requireOptionValue', () => {
     };
     expect(() => requireOptionValue(['--at'], 0, wrapped)).toThrow(
       /^Missing value for --at\. Expected <time>: Start time as \[H\]H:MM \(requires --dur\)\.$/
+    );
+  });
+});
+
+describe('parseCommandLine', () => {
+  const options = [
+    { short: '-p', long: '--project', value: '<name>', description: 'Project name' },
+    { short: '-t', long: '--tags', value: '<tags>', description: 'Tags', allowEmpty: true },
+    { long: '--public', description: 'Public' },
+  ];
+
+  it('separates positionals, values, and boolean flags', () => {
+    expect(parseCommandLine(['Fix', '-p', 'Dev', '--public', 'extra'], options)).toEqual({
+      positionals: ['Fix', 'extra'],
+      values: new Map([['--project', 'Dev']]),
+      flags: new Set(['--public']),
+    });
+  });
+
+  it('treats everything after -- as positional', () => {
+    expect(parseCommandLine(['-p', 'Dev', '--', '-wip', '--public', '--'], options)).toEqual({
+      positionals: ['-wip', '--public', '--'],
+      values: new Map([['--project', 'Dev']]),
+      flags: new Set(),
+    });
+  });
+
+  it('does not use -- as a missing value', () => {
+    expect(() => parseCommandLine(['-p', '--', 'x'], options)).toThrow('Missing value for -p.');
+  });
+
+  it('accepts --long=value, including values that start with -', () => {
+    expect(parseCommandLine(['--project=-draft', 'Fix'], options).values.get('--project')).toBe('-draft');
+    expect(parseCommandLine(['--project=a=b'], options).values.get('--project')).toBe('a=b');
+  });
+
+  it('applies the empty-value rule to --long=', () => {
+    expect(() => parseCommandLine(['--project='], options)).toThrow(
+      'Missing value for --project. Expected <name>: Project name.'
+    );
+    expect(parseCommandLine(['--tags='], options).values.get('--tags')).toBe('');
+  });
+
+  it('rejects = on an option that takes no value', () => {
+    expect(() => parseCommandLine(['--public=yes'], options)).toThrow('--public does not take a value.');
+  });
+
+  it('does not support = on short flags', () => {
+    expect(() => parseCommandLine(['-p=Dev'], options)).toThrow('Unknown flag: -p=Dev.');
+  });
+
+  it('rejects unknown flags and repeats, including the = form', () => {
+    expect(() => parseCommandLine(['--color=red'], options)).toThrow('Unknown flag: --color.');
+    expect(() => parseCommandLine(['-p', 'A', '--project=B'], options)).toThrow(
+      '-p/--project was given more than once.'
     );
   });
 });
