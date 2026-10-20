@@ -72,7 +72,8 @@ Example PR title: `feat: set up version management and workflow (#42)`
   from the parser. For a command without `options`, `src/cli.ts` rejects flag-like arguments
   (and, if it also has no `arguments`, any argument at all) before dispatch; `--` ends flags
   there so a value can start with `-` (`tgp tag-create -- -wip`). Help flags show help even
-  after `--`. Commands with options don't support `--` yet.
+  after `--`. Commands with options don't support `--` yet; mark free-text arguments with
+  `text: true` so the unknown-flag error suggests `--`.
 - **To add a flag**, add it to `<command>Options`, handle it in the parser, update
   `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in `tests/help.test.ts` (that
   test fails if a documented option isn't handled). Help text must fit in 80 columns (the

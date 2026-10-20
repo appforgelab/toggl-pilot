@@ -151,26 +151,6 @@ export function localYesterdayDate(): Date {
   return localDateWithOffset(-1);
 }
 
-export function requireFlagValue(
-  args: string[],
-  index: number,
-  flagName: string,
-  options: { hint?: string; allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
-): string {
-  const val = args[index + 1];
-  const hintSuffix = options.hint ? ` ${options.hint}` : '';
-  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
-    return val;
-  }
-  if (val === undefined || (val !== '' && val.startsWith('-'))) {
-    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
-  }
-  if (val === '' && !options.allowEmpty) {
-    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
-  }
-  return val;
-}
-
 /**
  * Parse a date value: YYYY-MM-DD, "yesterday", or an integer day offset from
  * today (e.g. -2). Relative values use the local calendar date, at noon.
@@ -231,8 +211,10 @@ export function matchFlag(
 }
 
 /**
- * The value after the flag at `args[index]`, which matched `option`. A missing
- * value is reported with what the option expects, e.g.
+ * The value after the flag at `args[index]`, which matched `option`. Anything
+ * starting with `-` counts as missing (it's the next flag), except negative
+ * numbers when `allowNegativeNumber` is set (e.g. `-w -1`). A missing value is
+ * reported with what the option expects, e.g.
  * `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
  */
 export function requireOptionValue(
@@ -241,8 +223,15 @@ export function requireOptionValue(
   option: CommandOption,
   options: { allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
 ): string {
-  const hint = `Expected ${option.value}: ${option.description.replace(/\.$/, '')}.`;
-  return requireFlagValue(args, index, args[index], { ...options, hint });
+  const val = args[index + 1];
+  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
+    return val;
+  }
+  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !options.allowEmpty)) {
+    const expected = option.description.replace(/\s*\n\s*/g, ' ').replace(/\.$/, '');
+    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}.`);
+  }
+  return val;
 }
 
 /**

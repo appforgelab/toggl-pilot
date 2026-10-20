@@ -9,13 +9,13 @@ import {
   parseOrExit,
   localDateWithOffset,
   localYesterdayDate,
-  requireFlagValue,
   validFlagsHint,
   parseDateValue,
   matchFlag,
   parseOptions,
   optionLabel,
   nothingToEditError,
+  requireOptionValue,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -438,50 +438,53 @@ describe('nothingToEditError', () => {
   });
 });
 
-describe('requireFlagValue', () => {
+describe('requireOptionValue', () => {
+  const project = { short: '-p', long: '--project', value: '<name>', description: 'Project name' };
+  const week = { short: '-w', long: '--week', value: '<offset>', description: 'Weeks from now' };
+  const missingProject = (flag: string) => `Missing value for ${flag}. Expected <name>: Project name.`;
+
+  it('returns the next arg when present and not a flag', () => {
+    expect(requireOptionValue(['-p', 'Dev-Pilot'], 0, project)).toBe('Dev-Pilot');
+  });
+
+  it('reports the flag as typed, with what the option expects', () => {
+    expect(() => requireOptionValue(['--project'], 0, project)).toThrow(missingProject('--project'));
+  });
+
+  it('throws when the next arg starts with -', () => {
+    expect(() => requireOptionValue(['-p', '--dur', '30m'], 0, project)).toThrow(missingProject('-p'));
+  });
+
+  it('throws on empty string by default', () => {
+    expect(() => requireOptionValue(['-p', ''], 0, project)).toThrow(missingProject('-p'));
+  });
+
+  it('returns an empty string when allowEmpty is true', () => {
+    expect(requireOptionValue(['-p', ''], 0, project, { allowEmpty: true })).toBe('');
+  });
+
+  it('still rejects the next arg starting with - even when allowEmpty is true', () => {
+    expect(() => requireOptionValue(['-p', '--name', 'X'], 0, project, { allowEmpty: true })).toThrow(
+      missingProject('-p')
+    );
+  });
+
   it('accepts a negative number only with allowNegativeNumber', () => {
-    expect(requireFlagValue(['-w', '-1'], 0, '-w', { allowNegativeNumber: true })).toBe('-1');
-    expect(() => requireFlagValue(['-w', '-1'], 0, '-w')).toThrow('Missing value for -w.');
-    expect(() => requireFlagValue(['-w', '-v'], 0, '-w', { allowNegativeNumber: true })).toThrow(
+    expect(requireOptionValue(['-w', '-1'], 0, week, { allowNegativeNumber: true })).toBe('-1');
+    expect(() => requireOptionValue(['-w', '-1'], 0, week)).toThrow('Missing value for -w.');
+    expect(() => requireOptionValue(['-w', '-v'], 0, week, { allowNegativeNumber: true })).toThrow(
       'Missing value for -w.'
     );
   });
 
-  it('returns the next arg when present and not a flag', () => {
-    expect(requireFlagValue(['-p', 'Dev-Pilot'], 0, '-p')).toBe('Dev-Pilot');
-  });
-
-  it('throws when the flag is the last arg', () => {
-    expect(() => requireFlagValue(['-p'], 0, '-p')).toThrow('Missing value for -p.');
-  });
-
-  it('throws when the next arg starts with -', () => {
-    expect(() => requireFlagValue(['-p', '--dur', '30m'], 0, '-p')).toThrow('Missing value for -p.');
-  });
-
-  it('throws on empty string by default', () => {
-    expect(() => requireFlagValue(['-p', ''], 0, '-p')).toThrow('Missing value for -p.');
-  });
-
-  it('returns an empty string when allowEmpty is true', () => {
-    expect(requireFlagValue(['--client', ''], 0, '--client', { allowEmpty: true })).toBe('');
-  });
-
-  it('still rejects the next arg starting with - even when allowEmpty is true', () => {
-    expect(() => requireFlagValue(['--client', '--name', 'X'], 0, '--client', { allowEmpty: true })).toThrow(
-      'Missing value for --client.'
-    );
-  });
-
-  it('includes a hint in the error message', () => {
-    expect(() => requireFlagValue(['-d'], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
-      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
-    );
-  });
-
-  it('includes a hint even when allowEmpty is true and value is empty', () => {
-    expect(() => requireFlagValue(['-d', ''], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
-      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
+  it('keeps the hint on one line and does not double a trailing period', () => {
+    const wrapped = {
+      long: '--at',
+      value: '<time>',
+      description: 'Start time as [H]H:MM\n(requires --dur).',
+    };
+    expect(() => requireOptionValue(['--at'], 0, wrapped)).toThrow(
+      /^Missing value for --at\. Expected <time>: Start time as \[H\]H:MM \(requires --dur\)\.$/
     );
   });
 });

@@ -35,6 +35,8 @@ export interface CommandArgument {
   /** Written exactly as it appears in `usage`, e.g. `<entry_id>` or `"Tag Name"`. */
   name: string;
   description: string;
+  /** Free text such as a name (not an ID), so it may legitimately start with "-". */
+  text?: boolean;
 }
 
 export interface Command {
@@ -131,7 +133,7 @@ export const COMMANDS: Command[] = [
     description:
       'Start a running timer, or log a completed entry with --at and --dur.\n' +
       "Tags that don't exist yet are created automatically.",
-    arguments: [{ name: '"Description"', description: 'Entry description' }],
+    arguments: [{ name: '"Description"', description: 'Entry description', text: true }],
     options: trackOptions,
     examples: [
       'tgp track "Code review" -p "Dev-Pilot" -t dev,review',
@@ -221,7 +223,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a client',
     usage: clientAddUsage,
     description: 'Create a client in the workspace.',
-    arguments: [{ name: '"Client Name"', description: 'Name for the new client' }],
+    arguments: [{ name: '"Client Name"', description: 'Name for the new client', text: true }],
     options: clientAddOptions,
     requiresConfig: true,
     run: clientAdd,
@@ -244,7 +246,7 @@ export const COMMANDS: Command[] = [
     description: 'Rename a client.',
     arguments: [
       { name: '<client_id>', description: 'Client ID from "tgp client-list"' },
-      { name: '"New Name"', description: 'New client name' },
+      { name: '"New Name"', description: 'New client name', text: true },
     ],
     requiresConfig: true,
     run: clientRename,
@@ -265,7 +267,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a project',
     usage: projectCreateUsage,
     description: 'Create a project. Projects are private unless --public is given.',
-    arguments: [{ name: '"Project Name"', description: 'Name for the new project' }],
+    arguments: [{ name: '"Project Name"', description: 'Name for the new project', text: true }],
     options: projectCreateOptions,
     requiresConfig: true,
     run: projectCreate,
@@ -276,7 +278,7 @@ export const COMMANDS: Command[] = [
     summary: 'Edit a project',
     usage: projectEditUsage,
     description: 'Edit a project. Provide at least one option.',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     options: projectEditOptions,
     examples: ['tgp project-edit Backend -c "Acme Corp" --public', 'tgp project-edit 1234567890 --client ""'],
     requiresConfig: true,
@@ -289,8 +291,8 @@ export const COMMANDS: Command[] = [
     usage: projectRenameUsage,
     description: 'Rename a project.',
     arguments: [
-      { name: '<project>', description: PROJECT_ARG },
-      { name: '"New Name"', description: 'New project name' },
+      { name: '<project>', description: PROJECT_ARG, text: true },
+      { name: '"New Name"', description: 'New project name', text: true },
     ],
     requiresConfig: true,
     run: projectRename,
@@ -301,7 +303,7 @@ export const COMMANDS: Command[] = [
     summary: 'Delete a project',
     usage: projectDeleteUsage,
     description: 'Delete a project from the workspace.',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     requiresConfig: true,
     run: projectDelete,
   },
@@ -311,7 +313,7 @@ export const COMMANDS: Command[] = [
     summary: 'Archive a project',
     usage: projectArchiveUsage,
     description: 'Archive an active project. Restore it later with "tgp project-restore".',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     requiresConfig: true,
     run: projectArchive,
   },
@@ -321,7 +323,7 @@ export const COMMANDS: Command[] = [
     summary: 'Restore a project',
     usage: projectRestoreUsage,
     description: 'Restore an archived project. List archived projects with\n"tgp project-list --all".',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     requiresConfig: true,
     run: projectRestore,
   },
@@ -342,7 +344,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a tag',
     usage: tagCreateUsage,
     description: 'Create a tag in the workspace.',
-    arguments: [{ name: '"Tag Name"', description: 'Name for the new tag' }],
+    arguments: [{ name: '"Tag Name"', description: 'Name for the new tag', text: true }],
     requiresConfig: true,
     run: tagCreate,
   },
@@ -354,7 +356,7 @@ export const COMMANDS: Command[] = [
     description: 'Rename a tag.',
     arguments: [
       { name: '<tag_id>', description: 'Tag ID from "tgp tag-list"' },
-      { name: '"New Name"', description: 'New tag name' },
+      { name: '"New Name"', description: 'New tag name', text: true },
     ],
     requiresConfig: true,
     run: tagRename,

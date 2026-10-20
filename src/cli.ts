@@ -10,10 +10,12 @@ export function main(argv: string[]): void | Promise<void> {
     return;
   }
 
-  // `tgp help <command> ...` is an alias for `tgp <command> --help ...`, so both
-  // forms share one code path (bare `tgp help` shows the global help).
+  // `tgp help <command>` is an alias for `tgp <command> --help`, so both forms
+  // share one code path (bare `tgp help` shows the global help). Anything after
+  // the command name is irrelevant: help never runs the command.
   if (name === 'help') {
-    return main(args.length > 0 ? [args[0], '--help', ...args.slice(1)] : []);
+    const target = args.find((a) => a !== '--');
+    return main(target === undefined ? [] : [target, '--help']);
   }
 
   const command = findCommand(name);
@@ -44,7 +46,12 @@ export function main(argv: string[]): void | Promise<void> {
     const flag = flagArgs.find((a) => a.startsWith('-'));
     const unexpected = command.arguments ? undefined : commandArgs[0];
     if (flag !== undefined || unexpected !== undefined) {
-      console.error(flag !== undefined ? `Unknown flag: ${flag}.` : `Unexpected argument: ${unexpected}.`);
+      const escapeHint = command.arguments?.some((a) => a.text)
+        ? ' To pass a name that starts with "-", put -- before it.'
+        : '';
+      console.error(
+        flag !== undefined ? `Unknown flag: ${flag}.${escapeHint}` : `Unexpected argument: ${unexpected}.`
+      );
       console.error(`Usage: ${command.usage}`);
       process.exit(1);
     }

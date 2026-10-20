@@ -121,6 +121,12 @@ describe('main', () => {
       }
     );
 
+    it('finds the command name after a leading --', () => {
+      main(['help', '--', 'tag-create']);
+
+      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+    });
+
     it('shows help instead of running the command when the arguments include --', () => {
       main(['help', 'auth', '--', 'MYTOKEN']);
 
@@ -176,7 +182,9 @@ describe('main', () => {
     ])('rejects a flag for a command without options: %j', (argv, flag) => {
       expect(() => main(argv)).toThrow('exit');
 
-      expect(errorSpy).toHaveBeenCalledWith(`Unknown flag: ${flag}.`);
+      expect(errorSpy).toHaveBeenCalledWith(
+        `Unknown flag: ${flag}. To pass a name that starts with "-", put -- before it.`
+      );
       expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
       expect(exitSpy).toHaveBeenCalledWith(1);
       expect(tagCreate).not.toHaveBeenCalled();
@@ -202,6 +210,13 @@ describe('main', () => {
         expect(tagCreate).not.toHaveBeenCalled();
       }
     );
+
+    it('does not suggest -- when the argument is an ID, not a name', () => {
+      expect(() => main(['auth', '-x'])).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Unknown flag: -x.');
+      expect(auth).not.toHaveBeenCalled();
+    });
 
     it('leaves -- to the parser for commands with options', () => {
       main(['track', '--', '-x']);

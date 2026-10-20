@@ -34,10 +34,10 @@ Run `tgp --help` (or just `tgp`) to see all available commands, and
 `tgp <command> --help` (or `tgp help <command>`) for a command's usage, options,
 and examples.
 
-Arguments that start with `-` are treated as flags. For commands that take names
-but no options (such as `tag-create`, `tag-rename`, `client-rename`, and the
-`project-*` commands that take a `<project>`), put `--` before a name that starts
-with `-`, e.g. `tgp tag-create -- -wip`.
+Arguments that start with `-` are treated as flags. In `tag-create`,
+`tag-rename`, `client-rename`, `project-rename`, `project-archive`,
+`project-restore`, and `project-delete`, put `--` before a name that starts with
+`-`, e.g. `tgp tag-create -- -wip`. (`-h` and `--help` always show help.)
 
 ## Commands
 

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { COMMANDS, GROUPS, findCommand, type Command } from '../src/registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
@@ -72,6 +73,16 @@ const SAMPLE_VALUES: Record<string, string> = {
 };
 
 describe('command registry', () => {
+  it('README lists exactly the commands where -- lets a name start with "-"', () => {
+    const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf-8');
+    const paragraph = readme.split(/\n\s*\n/).find((p) => p.includes('put `--` before'))!;
+    const listed = [...paragraph.matchAll(/`([a-z]+-[a-z]+)`/g)].map((m) => m[1]);
+    const supported = COMMANDS.filter((c) => !c.options && c.arguments?.some((a) => a.text)).map(
+      (c) => c.name
+    );
+    expect(listed.sort()).toEqual(supported.sort());
+  });
+
   it('has unique command names', () => {
     const names = COMMANDS.map((c) => c.name);
     expect(new Set(names).size).toBe(names.length);

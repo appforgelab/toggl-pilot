@@ -178,4 +178,13 @@ describe('track parseArgs', () => {
       '-p/--project was given more than once.'
     );
   });
+
+  it('reports missing values with what the option expects', () => {
+    expect(() => parseArgs(['Work', '--at', '09:00', '--dur', '30m', '-d'])).toThrow(
+      'Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday" (requires --at and --dur).'
+    );
+    expect(() => parseArgs(['Work', '-p'])).toThrow(
+      'Missing value for -p. Expected <name>: Project name (case-insensitive).'
+    );
+  });
 });
