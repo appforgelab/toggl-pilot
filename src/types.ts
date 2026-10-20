@@ -22,4 +22,6 @@ export interface CommandOption {
   description: string;
   /** Accept an empty value, e.g. `--tags ""` to clear tags. */
   allowEmpty?: boolean;
+  /** Accept a negative number as the value, e.g. `-d -2` for a day offset. */
+  negativeNumber?: boolean;
 }

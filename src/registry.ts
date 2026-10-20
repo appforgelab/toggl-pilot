@@ -36,9 +36,8 @@ export interface CommandArgument {
   name: string;
   description: string;
   /**
-   * Free text such as a name (not an ID), which may legitimately start with "-".
-   * Only used by commands without options, where `--` lets such a value through
-   * and the unknown-flag error suggests it (see src/cli.ts).
+   * Free text such as a name (not an ID), which may legitimately start with "-":
+   * an unknown-flag error in this position suggests `--` (see src/cli.ts).
    */
   text?: boolean;
 }
@@ -137,7 +136,7 @@ export const COMMANDS: Command[] = [
     description:
       'Start a running timer, or log a completed entry with --at and --dur.\n' +
       "Tags that don't exist yet are created automatically.",
-    arguments: [{ name: '"Description"', description: 'Entry description' }],
+    arguments: [{ name: '"Description"', description: 'Entry description', text: true }],
     options: trackOptions,
     examples: [
       'tgp track "Code review" -p "Dev-Pilot" -t dev,review',
@@ -227,7 +226,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a client',
     usage: clientAddUsage,
     description: 'Create a client in the workspace.',
-    arguments: [{ name: '"Client Name"', description: 'Name for the new client' }],
+    arguments: [{ name: '"Client Name"', description: 'Name for the new client', text: true }],
     options: clientAddOptions,
     requiresConfig: true,
     run: clientAdd,
@@ -271,7 +270,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a project',
     usage: projectCreateUsage,
     description: 'Create a project. Projects are private unless --public is given.',
-    arguments: [{ name: '"Project Name"', description: 'Name for the new project' }],
+    arguments: [{ name: '"Project Name"', description: 'Name for the new project', text: true }],
     options: projectCreateOptions,
     requiresConfig: true,
     run: projectCreate,
@@ -282,7 +281,7 @@ export const COMMANDS: Command[] = [
     summary: 'Edit a project',
     usage: projectEditUsage,
     description: 'Edit a project. Provide at least one option.',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     options: projectEditOptions,
     examples: ['tgp project-edit Backend -c "Acme Corp" --public', 'tgp project-edit 1234567890 --client ""'],
     requiresConfig: true,

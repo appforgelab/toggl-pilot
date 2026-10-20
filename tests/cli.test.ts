@@ -240,6 +240,36 @@ describe('main', () => {
       expect(auth).not.toHaveBeenCalled();
     });
 
+    it.each([
+      [
+        ['track', '-p', 'Dev', '-wip'],
+        'Unknown flag: -wip. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date. To pass a name that starts with "-", put -- before it.',
+      ],
+      [
+        ['track', 'Fix', '--dur', '-30m'],
+        'Missing value for --dur. Expected <duration>: Duration, e.g. 30m, 1h, 1h30m (requires --at).',
+      ],
+      [['week', 'last'], 'Unexpected argument: last.'],
+    ])('checks the arguments of commands with options before running them: %j', (argv, message) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(message);
+      expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(track).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [['project-edit', '-wip', '--name', 'Work'], true],
+      [['entry-edit', '-5', '-d', 'x'], false],
+    ])('suggests -- for a name position but not an ID position: %j', (argv, hinted) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      const message = errorSpy.mock.calls[0][0] as string;
+      expect(message.startsWith(`Unknown flag: ${argv[1]}.`)).toBe(true);
+      expect(message.includes('put -- before it')).toBe(hinted);
+    });
+
     it('leaves -- to the parser for commands with options', () => {
       main(['track', '--', '-x']);
 
