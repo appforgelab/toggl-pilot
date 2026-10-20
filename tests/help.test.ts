@@ -75,8 +75,9 @@ const SAMPLE_VALUES: Record<string, string> = {
 describe('command registry', () => {
   it('README lists exactly the commands where -- lets a name start with "-"', () => {
     const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf-8');
-    const paragraph = readme.split(/\n\s*\n/).find((p) => p.includes('put `--` before'))!;
-    const listed = [...paragraph.matchAll(/`([a-z]+-[a-z]+)`/g)].map((m) => m[1]);
+    const paragraph = readme.split(/\n\s*\n/).find((p) => p.includes('put `--` before'));
+    expect(paragraph, 'README paragraph about "put `--` before" not found').toBeDefined();
+    const listed = [...paragraph!.matchAll(/`([a-z]+(?:-[a-z]+)+)`/g)].map((m) => m[1]);
     const supported = COMMANDS.filter((c) => !c.options && c.arguments?.some((a) => a.text)).map(
       (c) => c.name
     );

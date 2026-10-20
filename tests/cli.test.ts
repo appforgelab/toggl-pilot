@@ -121,6 +121,15 @@ describe('main', () => {
       }
     );
 
+    it.each([[['help', '-v', 'tag-create']], [['help', '--help', 'tag-create']]])(
+      'skips leading flags to find the command name: %j',
+      (argv) => {
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+      }
+    );
+
     it('finds the command name after a leading --', () => {
       main(['help', '--', 'tag-create']);
 
@@ -178,7 +187,7 @@ describe('main', () => {
 
     it.each([
       [['tag-create', '--verbose'], '--verbose'],
-      [['tag-create', 'Bug', '-x'], '-x'],
+      [['tag-create', '-wip'], '-wip'],
     ])('rejects a flag for a command without options: %j', (argv, flag) => {
       expect(() => main(argv)).toThrow('exit');
 
@@ -210,6 +219,19 @@ describe('main', () => {
         expect(tagCreate).not.toHaveBeenCalled();
       }
     );
+
+    it.each([
+      [['tag-rename', '-5', 'Foo'], 'Unknown flag: -5.'],
+      [['tag-create', 'Bug', '-x'], 'Unknown flag: -x.'],
+      [
+        ['tag-rename', '5', '-wip'],
+        'Unknown flag: -wip. To pass a name that starts with "-", put -- before it.',
+      ],
+    ])('suggests -- only when the value sits where a name goes: %j', (argv, message) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(message);
+    });
 
     it('does not suggest -- when the argument is an ID, not a name', () => {
       expect(() => main(['auth', '-x'])).toThrow('exit');

@@ -14,7 +14,7 @@ export function main(argv: string[]): void | Promise<void> {
   // share one code path (bare `tgp help` shows the global help). Anything after
   // the command name is irrelevant: help never runs the command.
   if (name === 'help') {
-    const target = args.find((a) => a !== '--');
+    const target = args.find((a) => !a.startsWith('-'));
     return main(target === undefined ? [] : [target, '--help']);
   }
 
@@ -43,10 +43,13 @@ export function main(argv: string[]): void | Promise<void> {
   // nothing, so stray input is an error instead of data (e.g. `tgp stop --hlep`
   // must not stop the timer, and `tgp tag-create --verbose` must not create a tag).
   if (!command.options) {
-    const flag = flagArgs.find((a) => a.startsWith('-'));
+    const flagIndex = flagArgs.findIndex((a) => a.startsWith('-'));
+    const flag = flagIndex === -1 ? undefined : flagArgs[flagIndex];
     const unexpected = command.arguments ? undefined : commandArgs[0];
     if (flag !== undefined || unexpected !== undefined) {
-      const escapeHint = command.arguments?.some((a) => a.text)
+      // Everything before the first flag-like value is positional, so its index is
+      // the argument it was meant for; suggest `--` only if that is a name.
+      const escapeHint = command.arguments?.[flagIndex]?.text
         ? ' To pass a name that starts with "-", put -- before it.'
         : '';
       console.error(

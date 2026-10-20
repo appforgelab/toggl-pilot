@@ -228,8 +228,9 @@ export function requireOptionValue(
     return val;
   }
   if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !options.allowEmpty)) {
-    const expected = option.description.replace(/\s*\n\s*/g, ' ').replace(/\.$/, '');
-    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}.`);
+    const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
+    const period = /[.!?]$/.test(expected) ? '' : '.';
+    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}${period}`);
   }
   return val;
 }

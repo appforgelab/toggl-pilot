@@ -477,6 +477,11 @@ describe('requireOptionValue', () => {
     );
   });
 
+  it('does not add a period after a description ending in ? or !', () => {
+    const question = { long: '--x', value: '<x>', description: 'Which one?' };
+    expect(() => requireOptionValue(['--x'], 0, question)).toThrow(/Expected <x>: Which one\?$/);
+  });
+
   it('keeps the hint on one line and does not double a trailing period', () => {
     const wrapped = {
       long: '--at',
