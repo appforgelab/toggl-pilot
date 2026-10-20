@@ -258,7 +258,9 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '--color'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Missing value for --color. Expected <hex>: Project color, e.g. "#0b83d9".'
+    );
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -272,7 +274,7 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '-c'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c. Expected <client>: Client name or ID.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -286,7 +288,9 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '--color', '--public'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Missing value for --color. Expected <hex>: Project color, e.g. "#0b83d9".'
+    );
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -300,7 +304,7 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '-c', '--color', 'red'])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c. Expected <client>: Client name or ID.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -314,7 +318,9 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '--color', ''])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for --color.');
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Missing value for --color. Expected <hex>: Project color, e.g. "#0b83d9".'
+    );
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();
@@ -328,7 +334,7 @@ describe('projectCreate command', () => {
 
     await expect(projectCreate(['Project', '-c', ''])).rejects.toThrow('exit');
 
-    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c.');
+    expect(errorSpy).toHaveBeenCalledWith('Missing value for -c. Expected <client>: Client name or ID.');
     expect(exitSpy).toHaveBeenCalledWith(1);
     exitSpy.mockRestore();
     errorSpy.mockRestore();

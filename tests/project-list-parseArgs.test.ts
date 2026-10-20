@@ -15,7 +15,15 @@ describe('project-list parseArgs', () => {
     expect(parseArgs(['-a'])).toEqual({ includeArchived: true });
   });
 
-  it('throws usage on unknown flag', () => {
-    expect(() => parseArgs(['--unknown'])).toThrow('Usage: tgp project-list [--all|-a]');
+  it('rejects unknown flags with the valid one', () => {
+    expect(() => parseArgs(['--unknown'])).toThrow('Unknown flag: --unknown. Valid flag: -a/--all');
+  });
+
+  it('throws usage on positional arguments', () => {
+    expect(() => parseArgs(['archived'])).toThrow('Usage: tgp project-list [--all|-a]');
+  });
+
+  it('rejects --all given twice', () => {
+    expect(() => parseArgs(['-a', '--all'])).toThrow('-a/--all was given more than once.');
   });
 });

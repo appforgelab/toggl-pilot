@@ -1,6 +1,25 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration, parseDateArg, parseOrExit, DASH } from '../utils.js';
+import { formatDate, formatDuration, parseDateValue, parseOptions, parseOrExit, DASH } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const weekUsage = 'tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]';
+
+export const weekOptions: CommandOption[] = [
+  {
+    short: '-d',
+    long: '--date',
+    value: '<date>',
+    description: 'Week containing YYYY-MM-DD, "yesterday", or a day offset',
+  },
+  {
+    short: '-w',
+    long: '--week',
+    value: '<offset>',
+    description: 'Weeks from this one, e.g. -1 for last week',
+  },
+  { short: '-v', long: '--verbose', description: 'Show a per-day breakdown for each project' },
+];
 
 interface TimeEntry {
   id: number;
@@ -44,40 +63,28 @@ function formatShortDate(date: Date): string {
   return `${MONTHS[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function findFlag(args: string[], ...flags: string[]): number {
-  for (const f of flags) {
-    const idx = args.indexOf(f);
-    if (idx !== -1) return idx;
-  }
-  return -1;
-}
+const USAGE = `Usage: ${weekUsage}`;
 
 export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean } {
-  const verbose = findFlag(args, '--verbose', '-v') !== -1;
-  const dateIdx = findFlag(args, '--date', '-d');
-  const weekIdx = findFlag(args, '--week', '-w');
+  const { values, flags } = parseOptions(args, weekOptions, USAGE);
+  const date = values.get('--date');
+  const weekOffset = values.get('--week');
+  const verbose = flags.has('--verbose');
 
-  if (dateIdx !== -1 && weekIdx !== -1) {
+  if (date !== undefined && weekOffset !== undefined) {
     throw new Error('Cannot use both --date and --week');
   }
 
-  if (weekIdx !== -1) {
-    const val = args[weekIdx + 1];
-    if (!val) throw new Error('Missing value for --week');
-    const offset = parseInt(val, 10);
-    if (isNaN(offset)) throw new Error(`Invalid week: ${val}`);
+  if (weekOffset !== undefined) {
+    const offset = parseInt(weekOffset, 10);
+    if (isNaN(offset)) throw new Error(`Invalid week: ${weekOffset}`);
     const { monday: currentMonday } = getWeekBounds(new Date());
     const targetMonday = new Date(currentMonday);
     targetMonday.setDate(currentMonday.getDate() + offset * 7);
     return { refDate: targetMonday, verbose };
   }
 
-  if (dateIdx !== -1) {
-    if (!args[dateIdx + 1]) throw new Error('Missing value for --date');
-    return { refDate: parseDateArg(args), verbose };
-  }
-
-  return { refDate: new Date(), verbose };
+  return { refDate: date === undefined ? new Date() : parseDateValue(date), verbose };
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

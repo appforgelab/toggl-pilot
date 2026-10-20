@@ -1,6 +1,13 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, requireOptionValue } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const clientAddUsage = 'tgp client-add "Client Name" [--notes "Some notes"]';
+
+export const clientAddOptions: CommandOption[] = [
+  { long: '--notes', value: '<text>', description: 'Notes for the client' },
+];
 
 interface Client {
   id: number;
@@ -9,25 +16,29 @@ interface Client {
   wid: number;
 }
 
-const USAGE = 'Usage: tgp client-add "Client Name" [--notes "Some notes"]';
-const VALID_FLAGS = new Set(['--notes']);
+const USAGE = `Usage: ${clientAddUsage}`;
 
-function parseArgs(args: string[]) {
+export function parseArgs(args: string[]) {
   let name: string | null = null;
   let notes: string | null = null;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flag: --notes`);
-    }
-
-    if (args[i] === '--notes') {
-      notes = requireFlagValue(args, i, '--notes');
-      i++;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], clientAddOptions, seen);
+    if (!option) {
       if (name !== null) throw new Error(USAGE);
       name = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--notes':
+        notes = requireOptionValue(args, i, option);
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!name) {

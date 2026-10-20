@@ -1,7 +1,11 @@
 import { COMMANDS, GROUPS, type Command } from './registry.js';
+import type { CommandOption } from './types.js';
+import { optionLabel } from './utils.js';
+
+const HELP_OPTION: CommandOption = { short: '-h', long: '--help', description: 'Show this help' };
 
 export function isHelpFlag(arg: string): boolean {
-  return arg === '--help' || arg === '-h';
+  return arg === HELP_OPTION.short || arg === HELP_OPTION.long;
 }
 
 export function renderGlobalHelp(commands: Command[] = COMMANDS): string {
@@ -17,10 +21,22 @@ export function renderGlobalHelp(commands: Command[] = COMMANDS): string {
     }
   }
 
-  lines.push('', 'Run "tgp <command> --help" for details on a command.');
+  lines.push('', 'Run "tgp <command> --help" or "tgp help <command>" for details.');
   return lines.join('\n');
 }
 
 export function renderCommandHelp(command: Command): string {
-  return `Usage: ${command.usage}\n\n${command.summary}`;
+  const args = (command.arguments ?? []).map((a) => [a.name, a.description]);
+  const options = [...(command.options ?? []), HELP_OPTION].map((o) => [optionLabel(o), o.description]);
+  // Arguments and options share one description column.
+  const width = Math.max(...[...args, ...options].map(([label]) => label.length)) + 2;
+  const rows = (entries: string[][]) => entries.map(([label, text]) => `  ${label.padEnd(width)}${text}`);
+
+  const sections = [`Usage: ${command.usage}`, command.description];
+  if (args.length > 0) sections.push(['Arguments:', ...rows(args)].join('\n'));
+  sections.push(['Options:', ...rows(options)].join('\n'));
+  if (command.examples?.length) {
+    sections.push(['Examples:', ...command.examples.map((e) => `  ${e}`)].join('\n'));
+  }
+  return sections.join('\n\n');
 }

@@ -33,19 +33,31 @@ describe('client-list parseArgs', () => {
     });
   });
 
-  it('throws usage when status is missing', () => {
-    expect(() => parseArgs(['--status'])).toThrow(usage);
+  it('reports a missing status value', () => {
+    expect(() => parseArgs(['--status'])).toThrow('Missing value for --status.');
   });
 
   it('throws usage when status is invalid', () => {
     expect(() => parseArgs(['--status', 'deleted'])).toThrow(usage);
   });
 
-  it('throws usage when name is missing', () => {
-    expect(() => parseArgs(['--name'])).toThrow(usage);
+  it('reports a missing name value', () => {
+    expect(() => parseArgs(['--name'])).toThrow('Missing value for --name.');
   });
 
-  it('throws usage on unknown flag', () => {
-    expect(() => parseArgs(['--all'])).toThrow(usage);
+  it('rejects unknown flags with the valid ones', () => {
+    expect(() => parseArgs(['--all'])).toThrow('Unknown flag: --all. Valid flags: --status, --name');
+  });
+
+  it('throws usage on positional arguments', () => {
+    expect(() => parseArgs(['Acme'])).toThrow(usage);
+  });
+
+  it('rejects a repeated option', () => {
+    expect(() => parseArgs(['--name', 'Acme', '--name', 'Beta'])).toThrow('--name was given more than once.');
+  });
+
+  it('treats a flag in the value position as a missing value', () => {
+    expect(() => parseArgs(['--name', '--status'])).toThrow('Missing value for --name.');
   });
 });

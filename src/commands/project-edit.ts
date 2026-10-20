@@ -2,7 +2,24 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, nothingToEditError, requireOptionValue } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const projectEditUsage =
+  'tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
+
+export const projectEditOptions: CommandOption[] = [
+  { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
+  {
+    short: '-c',
+    long: '--client',
+    value: '<client>',
+    description: 'Client name or ID ("" removes the client)',
+  },
+  { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
+  { long: '--public', description: 'Make the project visible to all workspace members' },
+  { long: '--private', description: 'Make the project private' },
+];
 
 interface Project {
   id: number;
@@ -21,9 +38,7 @@ interface ParsedArgs {
   isPrivate: boolean | null;
 }
 
-const USAGE =
-  'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
-const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
+const USAGE = `Usage: ${projectEditUsage}`;
 
 export function parseArgs(args: string[]): ParsedArgs {
   const project = args[0];
@@ -31,44 +46,43 @@ export function parseArgs(args: string[]): ParsedArgs {
   let client: string | null = null;
   let color: string | null = null;
   let isPrivate: boolean | null = null;
+  const seen = new Set<CommandOption>();
 
   if (!project) {
     throw new Error(USAGE);
   }
 
   for (let i = 1; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -n/--name, -c/--client, --color, --public, --private`
-      );
-    }
-
-    if (args[i] === '-n' || args[i] === '--name') {
-      name = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-c' || args[i] === '--client') {
-      client = requireFlagValue(args, i, args[i], { allowEmpty: true });
-      i++;
-    } else if (args[i] === '--color') {
-      color = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '--public') {
-      if (isPrivate === true) {
-        throw new Error('Cannot use both --public and --private.');
-      }
-      isPrivate = false;
-    } else if (args[i] === '--private') {
-      if (isPrivate === false) {
-        throw new Error('Cannot use both --public and --private.');
-      }
-      isPrivate = true;
-    } else {
+    const option = matchFlag(args[i], projectEditOptions, seen);
+    if (!option) {
       throw new Error(`Unexpected argument: ${args[i]}.`);
     }
+
+    switch (option.long) {
+      case '--name':
+        name = requireOptionValue(args, i, option);
+        break;
+      case '--client':
+        client = requireOptionValue(args, i, option, { allowEmpty: true });
+        break;
+      case '--color':
+        color = requireOptionValue(args, i, option);
+        break;
+      case '--public':
+      case '--private':
+        if (isPrivate !== null) {
+          throw new Error('Cannot use both --public and --private.');
+        }
+        isPrivate = option.long === '--private';
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (name === null && client === null && color === null && isPrivate === null) {
-    throw new Error('Nothing to edit. Provide at least one of: -n, -c, --color, --public, --private');
+    throw nothingToEditError(projectEditOptions);
   }
 
   return { project, name, client, color, isPrivate };

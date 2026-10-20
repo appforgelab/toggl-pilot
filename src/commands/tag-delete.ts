@@ -1,11 +1,13 @@
 import { config } from '../config.js';
 import { del } from '../api.js';
 
+export const tagDeleteUsage = 'tgp tag-delete <tag_id>';
+
 export async function tagDelete(args: string[]) {
   const tagId = args[0];
 
   if (args.length !== 1 || !tagId) {
-    console.error('Usage: tgp tag-delete <tag_id>');
+    console.error(`Usage: ${tagDeleteUsage}`);
     process.exit(1);
   }
 

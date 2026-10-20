@@ -2,6 +2,8 @@ import { get, post } from '../api.js';
 import type { TimeEntry } from '../types.js';
 import { formatDate } from '../utils.js';
 
+export const resumeUsage = 'tgp resume [<entry_id>]';
+
 function isStoppedOn(entry: TimeEntry, day: Date): boolean {
   if (entry.stop === null || entry.duration < 0) return false;
   return formatDate(new Date(entry.stop)) === formatDate(day);
@@ -99,7 +101,7 @@ async function resumeById(rawId: string): Promise<void> {
 export async function resume(args: string[]) {
   const positional = args.filter((a) => !a.startsWith('-'));
   if (args.some((a) => a.startsWith('-')) || positional.length > 1) {
-    console.error('Usage: tgp resume [<entry_id>]');
+    console.error(`Usage: ${resumeUsage}`);
     process.exit(1);
   }
 

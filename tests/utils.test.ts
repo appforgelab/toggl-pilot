@@ -6,11 +6,16 @@ import {
   formatTime,
   buildStartTime,
   parseStartTime,
-  parseDateArg,
   parseOrExit,
   localDateWithOffset,
   localYesterdayDate,
-  requireFlagValue,
+  validFlagsHint,
+  parseDateValue,
+  matchFlag,
+  parseOptions,
+  optionLabel,
+  nothingToEditError,
+  requireOptionValue,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -271,27 +276,21 @@ describe('parseStartTime', () => {
   });
 });
 
-describe('parseDateArg', () => {
-  it('returns today when no -d flag', () => {
-    const result = parseDateArg([]);
-    const today = new Date();
-    expect(formatDate(result)).toBe(formatDate(today));
-  });
-
+describe('parseDateValue', () => {
   it('parses -d flag with date', () => {
-    const result = parseDateArg(['-d', '2025-01-15']);
+    const result = parseDateValue('2025-01-15');
     expect(formatDate(result)).toBe('2025-01-15');
   });
 
   it('parses --date flag with date', () => {
-    const result = parseDateArg(['--date', '2025-03-20']);
+    const result = parseDateValue('2025-03-20');
     expect(formatDate(result)).toBe('2025-03-20');
   });
 
   it('parses -d yesterday', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00'));
-    const result = parseDateArg(['-d', 'yesterday']);
+    const result = parseDateValue('yesterday');
     expect(result.getFullYear()).toBe(2025);
     expect(result.getMonth()).toBe(5);
     expect(result.getDate()).toBe(14);
@@ -301,7 +300,7 @@ describe('parseDateArg', () => {
   it('yesterday resolves correctly around midnight', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T00:30:00'));
-    const result = parseDateArg(['--date', 'yesterday']);
+    const result = parseDateValue('yesterday');
     expect(result.getFullYear()).toBe(2025);
     expect(result.getMonth()).toBe(5);
     expect(result.getDate()).toBe(14);
@@ -317,7 +316,7 @@ describe('parseDateArg', () => {
   ])('parses %s as a relative day offset', (offset, expected) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T00:30:00'));
-    const result = parseDateArg(['--date', offset]);
+    const result = parseDateValue(offset);
     expect(formatDate(result)).toBe(expected);
     expect(result.getHours()).toBe(12);
     vi.useRealTimers();
@@ -326,23 +325,23 @@ describe('parseDateArg', () => {
   it('resolves offsets across a year boundary', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-01-02T12:00:00'));
-    expect(formatDate(parseDateArg(['-d', '-3']))).toBe('2025-12-30');
+    expect(formatDate(parseDateValue('-3'))).toBe('2025-12-30');
     vi.useRealTimers();
   });
 
   it('resolves offsets across a leap day', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-03-01T12:00:00'));
-    expect(formatDate(parseDateArg(['-d', '-1']))).toBe('2024-02-29');
+    expect(formatDate(parseDateValue('-1'))).toBe('2024-02-29');
     vi.useRealTimers();
   });
 
   it.each(['-1.5', '1.5', '-2days', '9007199254740992'])('rejects invalid offset %s', (offset) => {
-    expect(() => parseDateArg(['-d', offset])).toThrow('Invalid date');
+    expect(() => parseDateValue(offset)).toThrow('Invalid date');
   });
 
   it('throws on invalid date', () => {
-    expect(() => parseDateArg(['-d', 'not-a-date'])).toThrow('Invalid date');
+    expect(() => parseDateValue('not-a-date')).toThrow('Invalid date');
   });
 });
 
@@ -429,64 +428,166 @@ describe('parseOrExit', () => {
   });
 });
 
-describe('requireFlagValue', () => {
+describe('nothingToEditError', () => {
+  it('lists the short form of each option where there is one', () => {
+    const options = [
+      { short: '-d', long: '--description', value: '<text>', description: '' },
+      { long: '--dur', value: '<duration>', description: '' },
+    ];
+    expect(nothingToEditError(options).message).toBe('Nothing to edit. Provide at least one of: -d, --dur');
+  });
+});
+
+describe('requireOptionValue', () => {
+  const project = { short: '-p', long: '--project', value: '<name>', description: 'Project name' };
+  const week = { short: '-w', long: '--week', value: '<offset>', description: 'Weeks from now' };
+  const missingProject = (flag: string) => `Missing value for ${flag}. Expected <name>: Project name.`;
+
   it('returns the next arg when present and not a flag', () => {
-    expect(requireFlagValue(['-p', 'Dev-Pilot'], 0, '-p')).toBe('Dev-Pilot');
+    expect(requireOptionValue(['-p', 'Dev-Pilot'], 0, project)).toBe('Dev-Pilot');
   });
 
-  it('throws when the flag is the last arg', () => {
-    expect(() => requireFlagValue(['-p'], 0, '-p')).toThrow('Missing value for -p.');
+  it('reports the flag as typed, with what the option expects', () => {
+    expect(() => requireOptionValue(['--project'], 0, project)).toThrow(missingProject('--project'));
   });
 
   it('throws when the next arg starts with -', () => {
-    expect(() => requireFlagValue(['-p', '--dur', '30m'], 0, '-p')).toThrow('Missing value for -p.');
+    expect(() => requireOptionValue(['-p', '--dur', '30m'], 0, project)).toThrow(missingProject('-p'));
   });
 
   it('throws on empty string by default', () => {
-    expect(() => requireFlagValue(['-p', ''], 0, '-p')).toThrow('Missing value for -p.');
+    expect(() => requireOptionValue(['-p', ''], 0, project)).toThrow(missingProject('-p'));
   });
 
   it('returns an empty string when allowEmpty is true', () => {
-    expect(requireFlagValue(['--client', ''], 0, '--client', { allowEmpty: true })).toBe('');
+    expect(requireOptionValue(['-p', ''], 0, project, { allowEmpty: true })).toBe('');
   });
 
   it('still rejects the next arg starting with - even when allowEmpty is true', () => {
-    expect(() => requireFlagValue(['--client', '--name', 'X'], 0, '--client', { allowEmpty: true })).toThrow(
-      'Missing value for --client.'
+    expect(() => requireOptionValue(['-p', '--name', 'X'], 0, project, { allowEmpty: true })).toThrow(
+      missingProject('-p')
     );
   });
 
-  it('includes a hint in the error message', () => {
-    expect(() => requireFlagValue(['-d'], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
-      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
+  it('accepts a negative number only with allowNegativeNumber', () => {
+    expect(requireOptionValue(['-w', '-1'], 0, week, { allowNegativeNumber: true })).toBe('-1');
+    expect(() => requireOptionValue(['-w', '-1'], 0, week)).toThrow('Missing value for -w.');
+    expect(() => requireOptionValue(['-w', '-v'], 0, week, { allowNegativeNumber: true })).toThrow(
+      'Missing value for -w.'
     );
   });
 
-  it('includes a hint even when allowEmpty is true and value is empty', () => {
-    expect(() => requireFlagValue(['-d', ''], 0, '-d', { hint: 'Use YYYY-MM-DD or "yesterday".' })).toThrow(
-      'Missing value for -d. Use YYYY-MM-DD or "yesterday".'
+  it('does not add a period after a description ending in ? or !', () => {
+    const question = { long: '--x', value: '<x>', description: 'Which one?' };
+    expect(() => requireOptionValue(['--x'], 0, question)).toThrow(/Expected <x>: Which one\?$/);
+  });
+
+  it('keeps the hint on one line and does not double a trailing period', () => {
+    const wrapped = {
+      long: '--at',
+      value: '<time>',
+      description: 'Start time as [H]H:MM\n(requires --dur).',
+    };
+    expect(() => requireOptionValue(['--at'], 0, wrapped)).toThrow(
+      /^Missing value for --at\. Expected <time>: Start time as \[H\]H:MM \(requires --dur\)\.$/
     );
   });
 });
 
-describe('parseDateArg missing-value behavior', () => {
-  it('throws when -d is the last arg', () => {
-    expect(() => parseDateArg(['-d'])).toThrow('Missing value for -d');
+describe('parseOptions missing values', () => {
+  it('does not double a trailing period in the description', () => {
+    const withPeriod = [{ long: '--name', value: '<filter>', description: 'Client name.' }];
+    expect(() => parseOptions(['--name'], withPeriod, 'Usage: x')).toThrow(
+      /^Missing value for --name\. Expected <filter>: Client name\.$/
+    );
   });
 
-  it('throws when -d is followed by another flag', () => {
-    expect(() => parseDateArg(['-d', '--foo'])).toThrow('Missing value for -d');
+  const options = [
+    { short: '-d', long: '--date', value: '<date>', description: 'YYYY-MM-DD or "yesterday"' },
+  ];
+  const usage = 'Usage: tgp test [-d <date>]';
+
+  it.each([[['-d']], [['-d', '--foo']], [['--date']], [['--date', '-v']], [['-d', '']]])(
+    'reports a missing value for %j, with what is expected',
+    (args) => {
+      expect(() => parseOptions(args, options, usage)).toThrow(
+        `Missing value for ${args[0]}. Expected <date>: YYYY-MM-DD or "yesterday".`
+      );
+    }
+  );
+});
+
+describe('option helpers', () => {
+  const options = [
+    { short: '-d', long: '--date', value: '<date>', description: '' },
+    { long: '--at', value: '<time>', description: '' },
+    { short: '-v', long: '--verbose', description: '' },
+  ];
+  const usage = 'Usage: tgp test [-d <date>] [--at <time>] [-v]';
+
+  it('validFlagsHint lists flags in order, singular for one flag', () => {
+    expect(validFlagsHint(options)).toBe('Valid flags: -d/--date, --at, -v/--verbose');
+    expect(validFlagsHint([options[1]])).toBe('Valid flag: --at');
   });
 
-  it('throws when --date is the last arg', () => {
-    expect(() => parseDateArg(['--date'])).toThrow('Missing value for --date');
+  it('matchFlag returns the option for either spelling, and undefined for non-flags', () => {
+    expect(matchFlag('-d', options, new Set())).toBe(options[0]);
+    expect(matchFlag('--date', options, new Set())).toBe(options[0]);
+    expect(matchFlag('yesterday', options, new Set())).toBeUndefined();
   });
 
-  it('throws when --date is followed by another flag', () => {
-    expect(() => parseDateArg(['--date', '-v'])).toThrow('Missing value for --date');
+  it('matchFlag rejects unknown flags with the valid ones', () => {
+    expect(() => matchFlag('--json', options, new Set())).toThrow(
+      'Unknown flag: --json. Valid flags: -d/--date, --at, -v/--verbose'
+    );
   });
 
-  it('throws when -d value is empty', () => {
-    expect(() => parseDateArg(['-d', ''])).toThrow('Missing value for -d');
+  it('matchFlag rejects an option already seen under either spelling', () => {
+    const seen = new Set<(typeof options)[number]>();
+    matchFlag('-d', options, seen);
+    expect(() => matchFlag('--date', options, seen)).toThrow('-d/--date was given more than once.');
+  });
+
+  it('parseOptions returns values and boolean flags keyed by long flag', () => {
+    expect(parseOptions(['-d', '-2', '-v', '--at', '09:00'], options, usage)).toEqual({
+      values: new Map([
+        ['--date', '-2'],
+        ['--at', '09:00'],
+      ]),
+      flags: new Set(['--verbose']),
+    });
+    expect(parseOptions([], options, usage)).toEqual({ values: new Map(), flags: new Set() });
+  });
+
+  it('parseOptions rejects a value without its flag', () => {
+    expect(() => parseOptions(['-v', '-2'], options, usage)).toThrow('Unknown flag: -2.');
+  });
+
+  it.each([
+    [['-v', '-v'], '-v/--verbose was given more than once.'],
+    [['-d', 'yesterday', '--date', '2026-01-01'], '-d/--date was given more than once.'],
+    [['--at', '09:00', '--at', '10:00'], '--at was given more than once.'],
+  ])('parseOptions rejects repeated options: %j', (args, message) => {
+    expect(() => parseOptions(args, options, usage)).toThrow(message);
+  });
+
+  it('parseOptions rejects positional arguments with the usage', () => {
+    expect(() => parseOptions(['yesterday'], options, usage)).toThrow(usage);
+  });
+
+  it('parseOptions does not read the next flag as a missing value', () => {
+    expect(() => parseOptions(['-d', '-v'], options, usage)).toThrow('Missing value for -d.');
+  });
+
+  it('optionLabel joins short and long flags with the value placeholder', () => {
+    expect(optionLabel(options[0])).toBe('-d, --date <date>');
+  });
+
+  it('optionLabel indents long-only flags so long flags line up', () => {
+    expect(optionLabel(options[1])).toBe('    --at <time>');
+  });
+
+  it('optionLabel omits the placeholder for boolean flags', () => {
+    expect(optionLabel(options[2])).toBe('-v, --verbose');
   });
 });

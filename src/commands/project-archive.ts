@@ -2,6 +2,8 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveProjectId } from '../projects.js';
 
+export const projectArchiveUsage = 'tgp project-archive <project>';
+
 interface Project {
   id: number;
 }
@@ -10,7 +12,7 @@ export async function projectArchive(args: string[]) {
   const projectInput = args[0];
 
   if (args.length !== 1 || !projectInput) {
-    console.error('Usage: tgp project-archive <project>');
+    console.error(`Usage: ${projectArchiveUsage}`);
     process.exit(1);
   }
 

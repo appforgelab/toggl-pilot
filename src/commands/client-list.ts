@@ -1,6 +1,14 @@
 import { get } from '../api.js';
 import { config } from '../config.js';
-import { DASH, parseOrExit } from '../utils.js';
+import { DASH, parseOptions, parseOrExit } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const clientListUsage = 'tgp client-list [--status active|archived|both] [--name <filter>]';
+
+export const clientListOptions: CommandOption[] = [
+  { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
+  { long: '--name', value: '<filter>', description: 'Client name to filter by' },
+];
 
 type ClientStatus = 'active' | 'archived' | 'both';
 
@@ -18,40 +26,20 @@ interface ClientListArgs {
   name?: string;
 }
 
-const USAGE = 'Usage: tgp client-list [--status active|archived|both] [--name <filter>]';
+const USAGE = `Usage: ${clientListUsage}`;
 
 function isClientStatus(value: string): value is ClientStatus {
   return value === 'active' || value === 'archived' || value === 'both';
 }
 
 export function parseArgs(args: string[]): ClientListArgs {
-  const parsed: ClientListArgs = { status: 'active' };
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg === '--status') {
-      const status = args[++i];
-      if (!status || !isClientStatus(status)) {
-        throw new Error(USAGE);
-      }
-      parsed.status = status;
-      continue;
-    }
-
-    if (arg === '--name') {
-      const name = args[++i];
-      if (!name) {
-        throw new Error(USAGE);
-      }
-      parsed.name = name;
-      continue;
-    }
-
+  const { values } = parseOptions(args, clientListOptions, USAGE);
+  const status = values.get('--status') ?? 'active';
+  if (!isClientStatus(status)) {
     throw new Error(USAGE);
   }
-
-  return parsed;
+  const name = values.get('--name');
+  return name === undefined ? { status } : { status, name };
 }
 
 function filterByStatus(clients: ClientListItem[], status: ClientStatus): ClientListItem[] {

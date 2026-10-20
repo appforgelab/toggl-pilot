@@ -1,6 +1,8 @@
 import { getWithToken } from '../api.js';
 import { setConfigVar } from '../config.js';
 
+export const authUsage = 'tgp auth <api-token>';
+
 interface Me {
   fullname: string;
   email: string;
@@ -9,7 +11,7 @@ interface Me {
 export async function auth(args: string[]) {
   const token = args[0];
   if (!token) {
-    console.error('Usage: tgp auth <api-token>');
+    console.error(`Usage: ${authUsage}`);
     console.error('Get your token at https://track.toggl.com/profile');
     process.exit(1);
   }

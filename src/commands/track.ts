@@ -1,14 +1,32 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import type { TimeEntry } from '../types.js';
+import type { CommandOption, TimeEntry } from '../types.js';
 import {
   parseDuration,
   buildStartTime,
   parseOrExit,
   localYesterdayDate,
   formatDate,
-  requireFlagValue,
+  matchFlag,
+  unhandledOption,
+  requireOptionValue,
 } from '../utils.js';
+
+export const trackUsage =
+  'tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
+
+export const trackOptions: CommandOption[] = [
+  { short: '-p', long: '--project', value: '<name>', description: 'Project name (case-insensitive)' },
+  { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names' },
+  { long: '--at', value: '<time>', description: 'Start time as [H]H:MM (requires --dur)' },
+  { long: '--dur', value: '<duration>', description: 'Duration, e.g. 30m, 1h, 1h30m (requires --at)' },
+  {
+    short: '-d',
+    long: '--date',
+    value: '<date>',
+    description: 'YYYY-MM-DD or "yesterday" (requires --at and --dur)',
+  },
+];
 
 function isValidCalendarDate(s: string): boolean {
   const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -25,9 +43,7 @@ interface Project {
   name: string;
 }
 
-const USAGE =
-  'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
+const USAGE = `Usage: ${trackUsage}`;
 
 export function parseArgs(args: string[]): {
   description: string;
@@ -43,35 +59,38 @@ export function parseArgs(args: string[]): {
   let at: string | null = null;
   let dur: string | null = null;
   let date: string | null = null;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date`
-      );
-    }
-
-    if (args[i] === '-p' || args[i] === '--project') {
-      project = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-t' || args[i] === '--tags') {
-      tags = requireFlagValue(args, i, args[i])
-        .split(',')
-        .map((t) => t.trim());
-      i++;
-    } else if (args[i] === '--at') {
-      at = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '--dur') {
-      dur = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-d' || args[i] === '--date') {
-      date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
-      i++;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], trackOptions, seen);
+    if (!option) {
       if (description !== null) throw new Error(USAGE);
       description = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--project':
+        project = requireOptionValue(args, i, option);
+        break;
+      case '--tags':
+        tags = requireOptionValue(args, i, option)
+          .split(',')
+          .map((t) => t.trim());
+        break;
+      case '--at':
+        at = requireOptionValue(args, i, option);
+        break;
+      case '--dur':
+        dur = requireOptionValue(args, i, option);
+        break;
+      case '--date':
+        date = requireOptionValue(args, i, option);
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!description) {

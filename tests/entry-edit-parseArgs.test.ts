@@ -160,4 +160,10 @@ describe('entry-edit parseArgs', () => {
   it('throws on --start with empty value', () => {
     expect(() => parseArgs(['12345', '--start', ''])).toThrow('Missing value for --start.');
   });
+
+  it('reports missing values with what the option expects', () => {
+    expect(() => parseArgs(['12345', '--start'])).toThrow(
+      'Missing value for --start. Expected <time>: New start: [H]H:MM today, or ISO 8601 with timezone.'
+    );
+  });
 });

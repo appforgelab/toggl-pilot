@@ -31,7 +31,13 @@ You can also set the `TOGGL_API_TOKEN` environment variable, which takes
 priority over the saved config.
 
 Run `tgp --help` (or just `tgp`) to see all available commands, and
-`tgp <command> --help` for a command's usage.
+`tgp <command> --help` (or `tgp help <command>`) for a command's usage, options,
+and examples.
+
+Arguments that start with `-` are treated as flags. In `tag-create`,
+`tag-rename`, `client-rename`, `project-rename`, `project-archive`,
+`project-restore`, and `project-delete`, put `--` before a name that starts with
+`-`, e.g. `tgp tag-create -- -wip`. (`-h` and `--help` always show help.)
 
 ## Commands
 

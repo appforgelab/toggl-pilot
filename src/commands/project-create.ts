@@ -1,7 +1,17 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, requireOptionValue } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const projectCreateUsage =
+  'tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
+
+export const projectCreateOptions: CommandOption[] = [
+  { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID' },
+  { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
+  { long: '--public', description: 'Make the project visible to all workspace members' },
+];
 
 interface Project {
   id: number;
@@ -10,32 +20,37 @@ interface Project {
   client_name: string | null;
 }
 
-const USAGE = 'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
-const VALID_FLAGS = new Set(['-c', '--client', '--color', '--public']);
+const USAGE = `Usage: ${projectCreateUsage}`;
 
-function parseArgs(args: string[]) {
+export function parseArgs(args: string[]) {
   let name: string | null = null;
   let client: string | null = null;
   let color: string | null = null;
   let isPublic = false;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -c/--client, --color, --public`);
-    }
-
-    if (args[i] === '-c' || args[i] === '--client') {
-      client = requireFlagValue(args, i, args[i] === '-c' ? '-c' : '--client');
-      i++;
-    } else if (args[i] === '--color') {
-      color = requireFlagValue(args, i, '--color');
-      i++;
-    } else if (args[i] === '--public') {
-      isPublic = true;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], projectCreateOptions, seen);
+    if (!option) {
       if (name !== null) throw new Error(USAGE);
       name = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--client':
+        client = requireOptionValue(args, i, option);
+        break;
+      case '--color':
+        color = requireOptionValue(args, i, option);
+        break;
+      case '--public':
+        isPublic = true;
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!name) {

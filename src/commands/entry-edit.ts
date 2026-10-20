@@ -1,5 +1,34 @@
 import { get, put } from '../api.js';
-import { parseDuration, parseOrExit, parseStartTime, requireFlagValue } from '../utils.js';
+import {
+  parseDuration,
+  parseOrExit,
+  parseStartTime,
+  matchFlag,
+  unhandledOption,
+  nothingToEditError,
+  requireOptionValue,
+} from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const entryEditUsage =
+  'tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
+
+export const entryEditOptions: CommandOption[] = [
+  { short: '-d', long: '--description', value: '<text>', description: 'New description' },
+  { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
+  {
+    short: '-t',
+    long: '--tags',
+    value: '<tags>',
+    description: 'Replace tags (comma-separated; "" clears)',
+  },
+  { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
+  {
+    long: '--start',
+    value: '<time>',
+    description: 'New start: [H]H:MM today, or ISO 8601 with timezone',
+  },
+];
 
 interface TimeEntry {
   id: number;
@@ -30,9 +59,7 @@ interface TimeEntryUpdate {
   tags?: string[];
 }
 
-const USAGE =
-  'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description', '--dur', '--start']);
+const USAGE = `Usage: ${entryEditUsage}`;
 
 function normalizeTags(tags: string[] | null): string[] {
   const normalized: string[] = [];
@@ -94,33 +121,36 @@ export function parseArgs(args: string[]): {
   let tags: string[] | null = null;
   let dur: string | null = null;
   let start: string | null = null;
+  const seen = new Set<CommandOption>();
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -d/--description, -p/--project, -t/--tags, --dur, --start`
-      );
-    }
-
-    if (args[i] === '-d' || args[i] === '--description') {
-      description = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-p' || args[i] === '--project') {
-      project = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '-t' || args[i] === '--tags') {
-      tags = normalizeTags(requireFlagValue(args, i, args[i], { allowEmpty: true }).split(','));
-      i++;
-    } else if (args[i] === '--dur') {
-      dur = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (args[i] === '--start') {
-      start = requireFlagValue(args, i, args[i]);
-      i++;
-    } else if (!args[i].startsWith('-')) {
+    const option = matchFlag(args[i], entryEditOptions, seen);
+    if (!option) {
       if (id !== null) throw new Error(USAGE);
       id = args[i];
+      continue;
     }
+
+    switch (option.long) {
+      case '--description':
+        description = requireOptionValue(args, i, option);
+        break;
+      case '--project':
+        project = requireOptionValue(args, i, option);
+        break;
+      case '--tags':
+        tags = normalizeTags(requireOptionValue(args, i, option, { allowEmpty: true }).split(','));
+        break;
+      case '--dur':
+        dur = requireOptionValue(args, i, option);
+        break;
+      case '--start':
+        start = requireOptionValue(args, i, option);
+        break;
+      default:
+        unhandledOption(option);
+    }
+    if (option.value) i++;
   }
 
   if (!id) {
@@ -128,10 +158,10 @@ export function parseArgs(args: string[]): {
   }
 
   if (!description && !project && !tags && !dur && !start) {
-    throw new Error('Nothing to edit. Provide at least one of: -d, -p, -t, --dur, --start');
+    throw nothingToEditError(entryEditOptions);
   }
 
-  return { id: id!, description, project, tags, dur, start };
+  return { id, description, project, tags, dur, start };
 }
 
 export async function entryEdit(args: string[]) {

@@ -4,15 +4,26 @@ vi.mock('../src/config.js', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/config.js')>()),
   hasConfig: vi.fn(),
 }));
-vi.mock('../src/commands/auth.js', () => ({ auth: vi.fn() }));
+vi.mock('../src/commands/auth.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/auth.js')>()),
+  auth: vi.fn(),
+}));
 vi.mock('../src/commands/version.js', () => ({ version: vi.fn() }));
 vi.mock('../src/commands/stop.js', () => ({ stop: vi.fn() }));
-vi.mock('../src/commands/tag-create.js', () => ({ tagCreate: vi.fn() }));
+vi.mock('../src/commands/track.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/track.js')>()),
+  track: vi.fn(),
+}));
+vi.mock('../src/commands/tag-create.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/tag-create.js')>()),
+  tagCreate: vi.fn(),
+}));
 
 import { hasConfig, ConfigNotFoundError } from '../src/config.js';
 import { auth } from '../src/commands/auth.js';
 import { version } from '../src/commands/version.js';
 import { stop } from '../src/commands/stop.js';
+import { track } from '../src/commands/track.js';
 import { tagCreate } from '../src/commands/tag-create.js';
 import { findCommand } from '../src/registry.js';
 import { renderCommandHelp, renderGlobalHelp } from '../src/help.js';
@@ -95,11 +106,144 @@ describe('main', () => {
     });
   });
 
+  describe('help <command>', () => {
+    it.each([[['help', 'stop']], [['help', 'stop', '--help']], [['help', 'stop', 'extra']]])(
+      'behaves like `<command> --help` for %j, without running it or requiring config',
+      (argv) => {
+        mockedHasConfig.mockReturnValue(false);
+
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledTimes(1);
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('stop')!));
+        expect(stop).not.toHaveBeenCalled();
+        expect(exitSpy).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([[['help', '-v', 'tag-create']], [['help', '--help', 'tag-create']]])(
+      'skips leading flags to find the command name: %j',
+      (argv) => {
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+      }
+    );
+
+    it('finds the command name after a leading --', () => {
+      main(['help', '--', 'tag-create']);
+
+      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+    });
+
+    it('shows help instead of running the command when the arguments include --', () => {
+      main(['help', 'auth', '--', 'MYTOKEN']);
+
+      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('auth')!));
+      expect(auth).not.toHaveBeenCalled();
+    });
+
+    it.each([[['help', '--help']], [['help', '-h']], [['help', 'help']]])(
+      'prints grouped help for %j',
+      (argv) => {
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledTimes(1);
+        expect(logSpy).toHaveBeenCalledWith(renderGlobalHelp());
+      }
+    );
+
+    it('rejects an unknown command', () => {
+      expect(() => main(['help', 'nope'])).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Unknown command: nope');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(logSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('dispatch', () => {
     it('passes the remaining args to the command', () => {
       main(['tag-create', 'Bug']);
 
       expect(tagCreate).toHaveBeenCalledWith(['Bug']);
+    });
+
+    it.each([
+      [['stop', 'now'], 'Unexpected argument: now.'],
+      [['stop', '--hlep'], 'Unknown flag: --hlep.'],
+      [['version', 'extra'], 'Unexpected argument: extra.'],
+      [['stop', '--', 'x'], 'Unexpected argument: x.'],
+      [['stop', '--', '-x'], 'Unexpected argument: -x.'],
+    ])('rejects arguments for a command that takes none: %j', (argv, message) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(message);
+      expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(stop).not.toHaveBeenCalled();
+      expect(version).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [['tag-create', '--verbose'], '--verbose'],
+      [['tag-create', '-wip'], '-wip'],
+    ])('rejects a flag for a command without options: %j', (argv, flag) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        `Unknown flag: ${flag}. To pass a name that starts with "-", put -- before it.`
+      );
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(tagCreate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [['tag-create', '--', '-wip'], ['-wip']],
+      [['tag-create', 'Bug', '--'], ['Bug']],
+    ])('passes values after -- through as data: %j', (argv, expected) => {
+      main(argv);
+
+      expect(tagCreate).toHaveBeenCalledWith(expected);
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(exitSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([[['tag-create', '--', '--help']], [['tag-create', '--', '-h']]])(
+      'shows help for a help flag even after --: %j',
+      (argv) => {
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+        expect(tagCreate).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([
+      [['tag-rename', '-5', 'Foo'], 'Unknown flag: -5.'],
+      [['tag-create', 'Bug', '-x'], 'Unknown flag: -x.'],
+      [
+        ['tag-rename', '5', '-wip'],
+        'Unknown flag: -wip. To pass a name that starts with "-", put -- before it.',
+      ],
+    ])('suggests -- only when the value sits where a name goes: %j', (argv, message) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith(message);
+    });
+
+    it('does not suggest -- when the argument is an ID, not a name', () => {
+      expect(() => main(['auth', '-x'])).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Unknown flag: -x.');
+      expect(auth).not.toHaveBeenCalled();
+    });
+
+    it('leaves -- to the parser for commands with options', () => {
+      main(['track', '--', '-x']);
+
+      expect(track).toHaveBeenCalledWith(['--', '-x']);
     });
 
     it('rejects config-requiring commands when no config exists', () => {

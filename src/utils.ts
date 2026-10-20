@@ -1,3 +1,5 @@
+import type { CommandOption } from './types.js';
+
 export const DASH = '—';
 
 export function parseOrExit<T>(fn: () => T): T {
@@ -149,45 +151,126 @@ export function localYesterdayDate(): Date {
   return localDateWithOffset(-1);
 }
 
-export function requireFlagValue(
+/**
+ * Parse a date value: YYYY-MM-DD, "yesterday", or an integer day offset from
+ * today (e.g. -2). Relative values use the local calendar date, at noon.
+ */
+export function parseDateValue(val: string): Date {
+  if (val === 'yesterday') return localYesterdayDate();
+  if (/^[+-]?\d+$/.test(val)) {
+    const offsetDays = Number(val);
+    if (Number.isSafeInteger(offsetDays)) {
+      const date = localDateWithOffset(offsetDays);
+      if (!isNaN(date.getTime())) return date;
+    }
+  }
+  const d = new Date(val + 'T12:00:00');
+  if (!isNaN(d.getTime())) return d;
+  throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
+}
+
+// Two renderings of the same option, on purpose: errors list flags compactly on
+// one line, while `--help` shows a column with the value placeholder.
+
+/** `-p/--project`, for error messages. */
+function flagLabel(option: CommandOption): string {
+  return option.short ? `${option.short}/${option.long}` : option.long;
+}
+
+/** `-p, --project <name>`, for `--help`. Long-only flags are indented so all long flags line up. */
+export function optionLabel(option: CommandOption): string {
+  const flags = option.short ? `${option.short}, ${option.long}` : `    ${option.long}`;
+  return option.value ? `${flags} ${option.value}` : flags;
+}
+
+/** `Valid flags: -p/--project, --at`, for unknown-flag errors. */
+export function validFlagsHint(options: CommandOption[]): string {
+  return `Valid flag${options.length === 1 ? '' : 's'}: ${options.map(flagLabel).join(', ')}`;
+}
+
+/**
+ * If `arg` is a flag, return its option, throwing if the flag is unknown or the
+ * option was already given (tracked in `seen`, so `-d x --date y` is caught).
+ * Returns undefined for arguments that aren't flags.
+ */
+export function matchFlag(
+  arg: string,
+  options: CommandOption[],
+  seen: Set<CommandOption>
+): CommandOption | undefined {
+  if (!arg.startsWith('-')) return undefined;
+  const option = options.find((o) => o.short === arg || o.long === arg);
+  if (!option) {
+    throw new Error(`Unknown flag: ${arg}. ${validFlagsHint(options)}`);
+  }
+  if (seen.has(option)) {
+    throw new Error(`${flagLabel(option)} was given more than once.`);
+  }
+  seen.add(option);
+  return option;
+}
+
+/**
+ * The value after the flag at `args[index]`, which matched `option`. Anything
+ * starting with `-` counts as missing (it's the next flag), except negative
+ * numbers when `allowNegativeNumber` is set (e.g. `-w -1`). A missing value is
+ * reported with what the option expects, e.g.
+ * `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
+ */
+export function requireOptionValue(
   args: string[],
   index: number,
-  flagName: string,
-  options: { hint?: string; allowEmpty?: boolean } = {}
+  option: CommandOption,
+  options: { allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
 ): string {
   const val = args[index + 1];
-  const hintSuffix = options.hint ? ` ${options.hint}` : '';
-  if (val === undefined || (val !== '' && val.startsWith('-'))) {
-    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
+  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
+    return val;
   }
-  if (val === '' && !options.allowEmpty) {
-    throw new Error(`Missing value for ${flagName}.${hintSuffix}`);
+  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !options.allowEmpty)) {
+    const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
+    const period = /[.!?]$/.test(expected) ? '' : '.';
+    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}${period}`);
   }
   return val;
 }
 
-export function parseDateArg(args: string[]): Date {
-  const idx = args.indexOf('-d') !== -1 ? args.indexOf('-d') : args.indexOf('--date');
-  if (idx !== -1) {
-    const flag = args[idx];
-    const candidate = args[idx + 1];
-    const val =
-      candidate !== undefined && /^-\d/.test(candidate)
-        ? candidate
-        : requireFlagValue(args, idx, flag, {
-            hint: 'Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).',
-          });
-    if (val === 'yesterday') return localYesterdayDate();
-    if (/^[+-]?\d+$/.test(val)) {
-      const offsetDays = Number(val);
-      if (Number.isSafeInteger(offsetDays)) {
-        const date = localDateWithOffset(offsetDays);
-        if (!isNaN(date.getTime())) return date;
-      }
+/**
+ * Parse the arguments of a command that takes only options. Returns the values
+ * of options that take one, and the set of boolean options given, both keyed by
+ * long flag. Positional arguments are rejected with `usage`. Values may be
+ * negative numbers (e.g. `-w -1`), but anything else starting with `-` counts as
+ * a missing value.
+ */
+export function parseOptions(
+  args: string[],
+  options: CommandOption[],
+  usage: string
+): { values: Map<string, string>; flags: Set<string> } {
+  const values = new Map<string, string>();
+  const flags = new Set<string>();
+  const seen = new Set<CommandOption>();
+  for (let i = 0; i < args.length; i++) {
+    const option = matchFlag(args[i], options, seen);
+    if (!option) throw new Error(usage);
+    if (option.value) {
+      values.set(option.long, requireOptionValue(args, i, option, { allowNegativeNumber: true }));
+      i++;
+    } else {
+      flags.add(option.long);
     }
-    const d = new Date(val + 'T12:00:00');
-    if (!isNaN(d.getTime())) return d;
-    throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
   }
-  return new Date();
+  return { values, flags };
+}
+
+/** `Nothing to edit. Provide at least one of: -d, -p, --dur`, for edit commands. */
+export function nothingToEditError(options: CommandOption[]): Error {
+  return new Error(
+    `Nothing to edit. Provide at least one of: ${options.map((o) => o.short ?? o.long).join(', ')}`
+  );
+}
+
+/** For a parser's `default:` case: an option listed in `<command>Options` that the parser doesn't handle. */
+export function unhandledOption(option: CommandOption): never {
+  throw new Error(`Bug: ${option.long} is documented but not handled by the parser.`);
 }

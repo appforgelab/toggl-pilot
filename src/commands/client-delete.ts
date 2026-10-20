@@ -1,11 +1,13 @@
 import { config } from '../config.js';
 import { del } from '../api.js';
 
+export const clientDeleteUsage = 'tgp client-delete <client_id>';
+
 export async function clientDelete(args: string[]) {
   const clientId = args[0];
 
   if (args.length !== 1 || !clientId) {
-    console.error('Usage: tgp client-delete <client_id>');
+    console.error(`Usage: ${clientDeleteUsage}`);
     process.exit(1);
   }
 

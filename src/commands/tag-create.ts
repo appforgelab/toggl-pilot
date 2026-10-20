@@ -1,6 +1,8 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 
+export const tagCreateUsage = 'tgp tag-create "Tag Name"';
+
 interface Tag {
   id: number;
   name: string;
@@ -10,7 +12,7 @@ export async function tagCreate(args: string[]) {
   const name = args[0];
 
   if (args.length !== 1 || !name) {
-    console.error('Usage: tgp tag-create "Tag Name"');
+    console.error(`Usage: ${tagCreateUsage}`);
     process.exit(1);
   }
 
