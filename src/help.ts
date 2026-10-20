@@ -19,7 +19,7 @@ export function renderGlobalHelp(commands: Command[] = COMMANDS): string {
     }
   }
 
-  lines.push('', 'Run "tgp <command> --help" for details on a command.');
+  lines.push('', 'Run "tgp <command> --help" or "tgp help <command>" for details.');
   return lines.join('\n');
 }
 

@@ -61,7 +61,8 @@ Example PR title: `feat: set up version management and workflow (#42)`
 - **New commands** must be added to `COMMANDS` in `src/registry.ts` — it drives both dispatch
   (`src/cli.ts`) and `tgp --help`. Keep its `usage` string in sync with the command's own
   `Usage:` error message. `--help`/`-h` is intercepted before dispatch, so commands never
-  see it as an argument.
+  see it as an argument. `help` itself is not a registry command: `src/cli.ts` rewrites
+  `tgp help <command>` to `tgp <command> --help`.
 - **When adding or changing a flag**, update the command's `options` in `src/registry.ts` too.
   `tests/help.test.ts` checks that documented flags appear in `usage`, and for commands that
   export `VALID_FLAGS` that `options` lists exactly those flags. Help text must fit in 80

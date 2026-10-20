@@ -2,26 +2,6 @@ import { hasConfig, ConfigNotFoundError } from './config.js';
 import { findCommand } from './registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from './help.js';
 
-function unknownCommand(name: string): never {
-  console.error(`Unknown command: ${name}`);
-  console.error('Run "tgp --help" to see available commands.');
-  process.exit(1);
-}
-
-/** `tgp help [<command>]` */
-function help(args: string[]): void {
-  const [name, ...extra] = args;
-  if (name === undefined || isHelpFlag(name)) {
-    console.log(renderGlobalHelp());
-    return;
-  }
-  if (extra.length > 0) {
-    console.error('Usage: tgp help [<command>]');
-    process.exit(1);
-  }
-  console.log(renderCommandHelp(findCommand(name) ?? unknownCommand(name)));
-}
-
 export function main(argv: string[]): void | Promise<void> {
   const [name, ...args] = argv;
 
@@ -30,12 +10,18 @@ export function main(argv: string[]): void | Promise<void> {
     return;
   }
 
+  // `tgp help <command> ...` is an alias for `tgp <command> ... --help`, so both
+  // forms share one code path (bare `tgp help` shows the global help).
   if (name === 'help') {
-    help(args);
-    return;
+    return main(args.length > 0 ? [...args, '--help'] : []);
   }
 
-  const command = findCommand(name) ?? unknownCommand(name);
+  const command = findCommand(name);
+  if (!command) {
+    console.error(`Unknown command: ${name}`);
+    console.error('Run "tgp --help" to see available commands.');
+    process.exit(1);
+  }
 
   // Intercept help before dispatch so a help flag is never handed to a command
   // as an argument (e.g. `tgp stop --help` must not stop the running timer, and

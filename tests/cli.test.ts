@@ -96,34 +96,34 @@ describe('main', () => {
   });
 
   describe('help <command>', () => {
-    it('prints the same help as <command> --help without running it or requiring config', () => {
-      mockedHasConfig.mockReturnValue(false);
+    it.each([[['help', 'stop']], [['help', 'stop', '--help']], [['help', 'stop', 'extra']]])(
+      'behaves like `<command> --help` for %j, without running it or requiring config',
+      (argv) => {
+        mockedHasConfig.mockReturnValue(false);
 
-      main(['help', 'stop']);
+        main(argv);
 
-      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('stop')!));
-      expect(stop).not.toHaveBeenCalled();
-      expect(exitSpy).not.toHaveBeenCalled();
-    });
+        expect(logSpy).toHaveBeenCalledTimes(1);
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('stop')!));
+        expect(stop).not.toHaveBeenCalled();
+        expect(exitSpy).not.toHaveBeenCalled();
+      }
+    );
 
-    it.each([[['help', '--help']], [['help', '-h']]])('prints grouped help for %j', (argv) => {
-      main(argv);
+    it.each([[['help', '--help']], [['help', '-h']], [['help', 'help']]])(
+      'prints grouped help for %j',
+      (argv) => {
+        main(argv);
 
-      expect(logSpy).toHaveBeenCalledWith(renderGlobalHelp());
-    });
+        expect(logSpy).toHaveBeenCalledTimes(1);
+        expect(logSpy).toHaveBeenCalledWith(renderGlobalHelp());
+      }
+    );
 
     it('rejects an unknown command', () => {
       expect(() => main(['help', 'nope'])).toThrow('exit');
 
       expect(errorSpy).toHaveBeenCalledWith('Unknown command: nope');
-      expect(exitSpy).toHaveBeenCalledWith(1);
-      expect(logSpy).not.toHaveBeenCalled();
-    });
-
-    it('rejects extra arguments', () => {
-      expect(() => main(['help', 'stop', 'extra'])).toThrow('exit');
-
-      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp help [<command>]');
       expect(exitSpy).toHaveBeenCalledWith(1);
       expect(logSpy).not.toHaveBeenCalled();
     });

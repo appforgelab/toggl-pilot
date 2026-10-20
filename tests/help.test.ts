@@ -102,7 +102,7 @@ describe('renderGlobalHelp', () => {
 
   it('starts with the usage line and ends with the per-command hint', () => {
     expect(lines[0]).toBe('Usage: tgp <command> [options]');
-    expect(lines.at(-1)).toBe('Run "tgp <command> --help" for details on a command.');
+    expect(lines.at(-1)).toBe('Run "tgp <command> --help" or "tgp help <command>" for details.');
   });
 
   it('lists group headings in order', () => {

@@ -196,9 +196,9 @@ export const COMMANDS: Command[] = [
     usage:
       'tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]',
     description:
-      'Edit a time entry. Provide at least one option. Running entries stay\n' +
-      'running. On a stopped entry, --dur keeps the start time fixed and --start\n' +
-      'keeps the end time fixed.',
+      'Edit a time entry. Provide at least one option. Running entries keep\n' +
+      'running. --dur only works on stopped entries and keeps the start time\n' +
+      'fixed. On a stopped entry, --start alone keeps the end time fixed.',
     arguments: [{ name: '<entry_id>', description: 'Entry ID from "tgp entry-list"' }],
     options: [
       { short: '-d', long: '--description', value: '<text>', description: 'New description' },
@@ -209,7 +209,7 @@ export const COMMANDS: Command[] = [
         value: '<tags>',
         description: 'Replace tags (comma-separated; "" clears)',
       },
-      { long: '--dur', value: '<duration>', description: 'New duration, e.g. 30m, 1h, 1h30m' },
+      { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
       {
         long: '--start',
         value: '<time>',
@@ -269,7 +269,7 @@ export const COMMANDS: Command[] = [
     description: 'List clients in the workspace. Shows active clients by default.',
     options: [
       { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
-      { long: '--name', value: '<filter>', description: 'Case-insensitive name filter' },
+      { long: '--name', value: '<filter>', description: 'Filter by client name' },
     ],
     requiresConfig: true,
     run: clientList,
