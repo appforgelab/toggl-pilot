@@ -1,6 +1,23 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { formatDate, formatDuration, parseDateArg, parseOrExit, DASH } from '../utils.js';
+import { formatDate, formatDuration, parseDateArg, parseOrExit, rejectUnknownArgs, DASH } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const weekOptions: CommandOption[] = [
+  {
+    short: '-d',
+    long: '--date',
+    value: '<date>',
+    description: 'Week containing YYYY-MM-DD, "yesterday", or a day offset',
+  },
+  {
+    short: '-w',
+    long: '--week',
+    value: '<offset>',
+    description: 'Week offset: 0 is this week, -1 last week',
+  },
+  { short: '-v', long: '--verbose', description: 'Show a per-day breakdown for each project' },
+];
 
 interface TimeEntry {
   id: number;
@@ -52,7 +69,10 @@ function findFlag(args: string[], ...flags: string[]): number {
   return -1;
 }
 
+const USAGE = 'Usage: tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]';
+
 export function parseWeekArgs(args: string[]): { refDate: Date; verbose: boolean } {
+  rejectUnknownArgs(args, weekOptions, USAGE);
   const verbose = findFlag(args, '--verbose', '-v') !== -1;
   const dateIdx = findFlag(args, '--date', '-d');
   const weekIdx = findFlag(args, '--week', '-w');

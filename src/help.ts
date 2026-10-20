@@ -1,4 +1,5 @@
-import { COMMANDS, GROUPS, type Command, type CommandOption } from './registry.js';
+import { COMMANDS, GROUPS, type Command } from './registry.js';
+import type { CommandOption } from './types.js';
 
 const HELP_OPTION: CommandOption = { short: '-h', long: '--help', description: 'Show this help' };
 

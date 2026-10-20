@@ -3,20 +3,20 @@ import { version } from './commands/version.js';
 import { me } from './commands/me.js';
 import { workspaceList } from './commands/workspace-list.js';
 import { workspaceUse } from './commands/workspace-use.js';
-import { entryList } from './commands/entry-list.js';
-import { track } from './commands/track.js';
+import { entryList, entryListOptions } from './commands/entry-list.js';
+import { track, trackOptions } from './commands/track.js';
 import { stop } from './commands/stop.js';
 import { resume } from './commands/resume.js';
-import { entryEdit } from './commands/entry-edit.js';
-import { week } from './commands/week.js';
+import { entryEdit, entryEditOptions } from './commands/entry-edit.js';
+import { week, weekOptions } from './commands/week.js';
 import { entryDelete } from './commands/entry-delete.js';
-import { clientList } from './commands/client-list.js';
-import { clientAdd } from './commands/client-add.js';
+import { clientList, clientListOptions } from './commands/client-list.js';
+import { clientAdd, clientAddOptions } from './commands/client-add.js';
 import { clientDelete } from './commands/client-delete.js';
 import { clientRename } from './commands/client-rename.js';
-import { projectList } from './commands/project-list.js';
-import { projectCreate } from './commands/project-create.js';
-import { projectEdit } from './commands/project-edit.js';
+import { projectList, projectListOptions } from './commands/project-list.js';
+import { projectCreate, projectCreateOptions } from './commands/project-create.js';
+import { projectEdit, projectEditOptions } from './commands/project-edit.js';
 import { projectRename } from './commands/project-rename.js';
 import { projectDelete } from './commands/project-delete.js';
 import { projectArchive } from './commands/project-archive.js';
@@ -25,6 +25,9 @@ import { tagList } from './commands/tag-list.js';
 import { tagCreate } from './commands/tag-create.js';
 import { tagRename } from './commands/tag-rename.js';
 import { tagDelete } from './commands/tag-delete.js';
+import type { CommandOption } from './types.js';
+
+export type { CommandOption };
 
 export const GROUPS = ['General', 'Entries', 'Clients', 'Projects', 'Tags'] as const;
 
@@ -33,14 +36,6 @@ export type CommandGroup = (typeof GROUPS)[number];
 export interface CommandArgument {
   /** Written exactly as it appears in `usage`, e.g. `<entry_id>` or `"Tag Name"`. */
   name: string;
-  description: string;
-}
-
-export interface CommandOption {
-  short?: string;
-  long: string;
-  /** Placeholder for the flag's value, e.g. `<name>`. Omit for boolean flags. */
-  value?: string;
   description: string;
 }
 
@@ -125,14 +120,7 @@ export const COMMANDS: Command[] = [
     summary: 'List time entries for a day',
     usage: 'tgp entry-list [-d YYYY-MM-DD|yesterday|<offset>]',
     description: 'List time entries for a day, with totals by project. Defaults to today.',
-    options: [
-      {
-        short: '-d',
-        long: '--date',
-        value: '<date>',
-        description: 'YYYY-MM-DD, "yesterday", or a day offset (e.g. -2)',
-      },
-    ],
+    options: entryListOptions,
     examples: ['tgp entry-list -d yesterday', 'tgp entry-list -d -2', 'tgp entry-list -d 2026-04-29'],
     requiresConfig: true,
     run: entryList,
@@ -147,18 +135,7 @@ export const COMMANDS: Command[] = [
       'Start a running timer, or log a completed entry with --at and --dur.\n' +
       "Tags that don't exist yet are created automatically.",
     arguments: [{ name: '"Description"', description: 'Entry description' }],
-    options: [
-      { short: '-p', long: '--project', value: '<name>', description: 'Project name (case-insensitive)' },
-      { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names' },
-      { long: '--at', value: '<time>', description: 'Start time as [H]H:MM (requires --dur)' },
-      { long: '--dur', value: '<duration>', description: 'Duration, e.g. 30m, 1h, 1h30m (requires --at)' },
-      {
-        short: '-d',
-        long: '--date',
-        value: '<date>',
-        description: 'YYYY-MM-DD or "yesterday" (requires --at and --dur)',
-      },
-    ],
+    options: trackOptions,
     examples: [
       'tgp track "Code review" -p "Dev-Pilot" -t dev,review',
       'tgp track "Standup" --at 09:00 --dur 30m',
@@ -200,22 +177,7 @@ export const COMMANDS: Command[] = [
       'running. --dur only works on stopped entries and keeps the start time\n' +
       'fixed. On a stopped entry, --start alone keeps the end time fixed.',
     arguments: [{ name: '<entry_id>', description: 'Entry ID from "tgp entry-list"' }],
-    options: [
-      { short: '-d', long: '--description', value: '<text>', description: 'New description' },
-      { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
-      {
-        short: '-t',
-        long: '--tags',
-        value: '<tags>',
-        description: 'Replace tags (comma-separated; "" clears)',
-      },
-      { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
-      {
-        long: '--start',
-        value: '<time>',
-        description: 'New start: [H]H:MM today, or ISO 8601 with timezone',
-      },
-    ],
+    options: entryEditOptions,
     examples: [
       'tgp entry-edit 4383745312 -d "Fixed typo" -t dev,review',
       'tgp entry-edit 4383745312 --start 11:20 --dur 1h30m',
@@ -232,21 +194,7 @@ export const COMMANDS: Command[] = [
     description:
       'Show project totals for a week (Monday to Sunday). Defaults to the\n' +
       "current week. --date and --week can't be combined.",
-    options: [
-      {
-        short: '-d',
-        long: '--date',
-        value: '<date>',
-        description: 'Week containing YYYY-MM-DD, "yesterday", or a day offset',
-      },
-      {
-        short: '-w',
-        long: '--week',
-        value: '<offset>',
-        description: 'Week offset: 0 is this week, -1 last week',
-      },
-      { short: '-v', long: '--verbose', description: 'Show a per-day breakdown for each project' },
-    ],
+    options: weekOptions,
     examples: ['tgp week -w -1', 'tgp week -d 2026-04-01', 'tgp week -v -w -1'],
     requiresConfig: true,
     run: week,
@@ -267,10 +215,7 @@ export const COMMANDS: Command[] = [
     summary: 'List workspace clients',
     usage: 'tgp client-list [--status active|archived|both] [--name <filter>]',
     description: 'List clients in the workspace. Shows active clients by default.',
-    options: [
-      { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
-      { long: '--name', value: '<filter>', description: 'Filter by client name' },
-    ],
+    options: clientListOptions,
     requiresConfig: true,
     run: clientList,
   },
@@ -281,7 +226,7 @@ export const COMMANDS: Command[] = [
     usage: 'tgp client-add "Client Name" [--notes "Some notes"]',
     description: 'Create a client in the workspace.',
     arguments: [{ name: '"Client Name"', description: 'Name for the new client' }],
-    options: [{ long: '--notes', value: '<text>', description: 'Notes for the client' }],
+    options: clientAddOptions,
     requiresConfig: true,
     run: clientAdd,
   },
@@ -314,7 +259,7 @@ export const COMMANDS: Command[] = [
     summary: 'List workspace projects',
     usage: 'tgp project-list [--all|-a]',
     description: 'List active projects in the workspace.',
-    options: [{ short: '-a', long: '--all', description: 'Include archived projects' }],
+    options: projectListOptions,
     requiresConfig: true,
     run: projectList,
   },
@@ -325,11 +270,7 @@ export const COMMANDS: Command[] = [
     usage: 'tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]',
     description: 'Create a project. Projects are private unless --public is given.',
     arguments: [{ name: '"Project Name"', description: 'Name for the new project' }],
-    options: [
-      { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID' },
-      { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
-      { long: '--public', description: 'Make the project visible to all workspace members' },
-    ],
+    options: projectCreateOptions,
     requiresConfig: true,
     run: projectCreate,
   },
@@ -341,18 +282,7 @@ export const COMMANDS: Command[] = [
       'tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]',
     description: 'Edit a project. Provide at least one option.',
     arguments: [{ name: '<project>', description: PROJECT_ARG }],
-    options: [
-      { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
-      {
-        short: '-c',
-        long: '--client',
-        value: '<client>',
-        description: 'Client name or ID ("" removes the client)',
-      },
-      { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
-      { long: '--public', description: 'Make the project visible to all workspace members' },
-      { long: '--private', description: 'Make the project private' },
-    ],
+    options: projectEditOptions,
     examples: ['tgp project-edit Backend -c "Acme Corp" --public', 'tgp project-edit 1234567890 --client ""'],
     requiresConfig: true,
     run: projectEdit,

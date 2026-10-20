@@ -11,6 +11,9 @@ import {
   localDateWithOffset,
   localYesterdayDate,
   requireFlagValue,
+  flagSet,
+  validFlagsHint,
+  rejectUnknownArgs,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -488,5 +491,44 @@ describe('parseDateArg missing-value behavior', () => {
 
   it('throws when -d value is empty', () => {
     expect(() => parseDateArg(['-d', ''])).toThrow('Missing value for -d');
+  });
+});
+
+describe('option helpers', () => {
+  const options = [
+    { short: '-d', long: '--date', value: '<date>', description: '' },
+    { long: '--at', value: '<time>', description: '' },
+    { short: '-v', long: '--verbose', description: '' },
+  ];
+  const usage = 'Usage: tgp test [-d <date>] [--at <time>] [-v]';
+
+  it('flagSet lists every spelling', () => {
+    expect(flagSet(options)).toEqual(new Set(['-d', '--date', '--at', '-v', '--verbose']));
+  });
+
+  it('validFlagsHint lists flags in order, singular for one flag', () => {
+    expect(validFlagsHint(options)).toBe('Valid flags: -d/--date, --at, -v/--verbose');
+    expect(validFlagsHint([options[1]])).toBe('Valid flag: --at');
+  });
+
+  it.each([[[]], [['-v']], [['-d', '-2', '-v']], [['--at', '09:00', '--date', 'yesterday']], [['-d']]])(
+    'rejectUnknownArgs accepts %j',
+    (args) => {
+      expect(() => rejectUnknownArgs(args, options, usage)).not.toThrow();
+    }
+  );
+
+  it('rejectUnknownArgs rejects unknown flags with the valid ones', () => {
+    expect(() => rejectUnknownArgs(['-v', '--json'], options, usage)).toThrow(
+      'Unknown flag: --json. Valid flags: -d/--date, --at, -v/--verbose'
+    );
+  });
+
+  it('rejectUnknownArgs rejects a value without its flag', () => {
+    expect(() => rejectUnknownArgs(['-v', '-2'], options, usage)).toThrow('Unknown flag: -2.');
+  });
+
+  it('rejectUnknownArgs rejects positional arguments with the usage', () => {
+    expect(() => rejectUnknownArgs(['yesterday'], options, usage)).toThrow(usage);
   });
 });

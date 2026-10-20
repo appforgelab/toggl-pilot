@@ -1,6 +1,11 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import { DASH, parseOrExit } from '../utils.js';
+import { DASH, flagSet, parseOrExit } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const projectListOptions: CommandOption[] = [
+  { short: '-a', long: '--all', description: 'Include archived projects' },
+];
 
 interface Project {
   id: number;
@@ -17,7 +22,7 @@ export function parseArgs(args: string[]): { includeArchived: boolean } {
     return { includeArchived: false };
   }
 
-  if (args.length === 1 && (args[0] === '--all' || args[0] === '-a')) {
+  if (args.length === 1 && flagSet(projectListOptions).has(args[0])) {
     return { includeArchived: true };
   }
 

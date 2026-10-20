@@ -1,7 +1,14 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const projectCreateOptions: CommandOption[] = [
+  { short: '-c', long: '--client', value: '<client>', description: 'Client name or ID' },
+  { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
+  { long: '--public', description: 'Make the project visible to all workspace members' },
+];
 
 interface Project {
   id: number;
@@ -11,7 +18,7 @@ interface Project {
 }
 
 const USAGE = 'Usage: tgp project-create "Project Name" [-c "Client Name"] [--color "#0b83d9"] [--public]';
-export const VALID_FLAGS = new Set(['-c', '--client', '--color', '--public']);
+const VALID_FLAGS = flagSet(projectCreateOptions);
 
 function parseArgs(args: string[]) {
   let name: string | null = null;
@@ -21,7 +28,7 @@ function parseArgs(args: string[]) {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flags: -c/--client, --color, --public`);
+      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(projectCreateOptions)}`);
     }
 
     if (args[i] === '-c' || args[i] === '--client') {

@@ -1,5 +1,30 @@
 import { get, put } from '../api.js';
-import { parseDuration, parseOrExit, parseStartTime, requireFlagValue } from '../utils.js';
+import {
+  parseDuration,
+  parseOrExit,
+  parseStartTime,
+  requireFlagValue,
+  flagSet,
+  validFlagsHint,
+} from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const entryEditOptions: CommandOption[] = [
+  { short: '-d', long: '--description', value: '<text>', description: 'New description' },
+  { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
+  {
+    short: '-t',
+    long: '--tags',
+    value: '<tags>',
+    description: 'Replace tags (comma-separated; "" clears)',
+  },
+  { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
+  {
+    long: '--start',
+    value: '<time>',
+    description: 'New start: [H]H:MM today, or ISO 8601 with timezone',
+  },
+];
 
 interface TimeEntry {
   id: number;
@@ -32,16 +57,7 @@ interface TimeEntryUpdate {
 
 const USAGE =
   'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
-export const VALID_FLAGS = new Set([
-  '-p',
-  '--project',
-  '-t',
-  '--tags',
-  '-d',
-  '--description',
-  '--dur',
-  '--start',
-]);
+const VALID_FLAGS = flagSet(entryEditOptions);
 
 function normalizeTags(tags: string[] | null): string[] {
   const normalized: string[] = [];
@@ -106,9 +122,7 @@ export function parseArgs(args: string[]): {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -d/--description, -p/--project, -t/--tags, --dur, --start`
-      );
+      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(entryEditOptions)}`);
     }
 
     if (args[i] === '-d' || args[i] === '--description') {

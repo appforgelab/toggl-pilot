@@ -2,7 +2,21 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const projectEditOptions: CommandOption[] = [
+  { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
+  {
+    short: '-c',
+    long: '--client',
+    value: '<client>',
+    description: 'Client name or ID ("" removes the client)',
+  },
+  { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
+  { long: '--public', description: 'Make the project visible to all workspace members' },
+  { long: '--private', description: 'Make the project private' },
+];
 
 interface Project {
   id: number;
@@ -23,7 +37,7 @@ interface ParsedArgs {
 
 const USAGE =
   'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
-export const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
+const VALID_FLAGS = flagSet(projectEditOptions);
 
 export function parseArgs(args: string[]): ParsedArgs {
   const project = args[0];
@@ -38,9 +52,7 @@ export function parseArgs(args: string[]): ParsedArgs {
 
   for (let i = 1; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -n/--name, -c/--client, --color, --public, --private`
-      );
+      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(projectEditOptions)}`);
     }
 
     if (args[i] === '-n' || args[i] === '--name') {

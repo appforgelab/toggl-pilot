@@ -1,10 +1,34 @@
 import { config } from '../config.js';
 import { get } from '../api.js';
-import type { TimeEntry } from '../types.js';
-import { formatDate, formatTime, formatDuration, parseDateArg, parseOrExit, DASH } from '../utils.js';
+import type { CommandOption, TimeEntry } from '../types.js';
+import {
+  formatDate,
+  formatTime,
+  formatDuration,
+  parseDateArg,
+  parseOrExit,
+  rejectUnknownArgs,
+  DASH,
+} from '../utils.js';
+
+export const entryListOptions: CommandOption[] = [
+  {
+    short: '-d',
+    long: '--date',
+    value: '<date>',
+    description: 'YYYY-MM-DD, "yesterday", or a day offset (e.g. -2)',
+  },
+];
+
+const USAGE = 'Usage: tgp entry-list [-d YYYY-MM-DD|yesterday|<offset>]';
+
+export function parseArgs(args: string[]): Date {
+  rejectUnknownArgs(args, entryListOptions, USAGE);
+  return parseDateArg(args);
+}
 
 export async function entryList(args: string[]) {
-  const date = parseOrExit(() => parseDateArg(args));
+  const date = parseOrExit(() => parseArgs(args));
   const dayStr = formatDate(date);
   const nextDay = formatDate(new Date(date.getTime() + 86400000));
 

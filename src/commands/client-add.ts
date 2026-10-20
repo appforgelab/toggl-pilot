@@ -1,6 +1,11 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
-import { parseOrExit, requireFlagValue } from '../utils.js';
+import { parseOrExit, requireFlagValue, flagSet, validFlagsHint } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const clientAddOptions: CommandOption[] = [
+  { long: '--notes', value: '<text>', description: 'Notes for the client' },
+];
 
 interface Client {
   id: number;
@@ -10,7 +15,7 @@ interface Client {
 }
 
 const USAGE = 'Usage: tgp client-add "Client Name" [--notes "Some notes"]';
-export const VALID_FLAGS = new Set(['--notes']);
+const VALID_FLAGS = flagSet(clientAddOptions);
 
 function parseArgs(args: string[]) {
   let name: string | null = null;
@@ -18,7 +23,7 @@ function parseArgs(args: string[]) {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(`Unknown flag: ${args[i]}. Valid flag: --notes`);
+      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(clientAddOptions)}`);
     }
 
     if (args[i] === '--notes') {

@@ -1,11 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { COMMANDS, GROUPS, findCommand } from '../src/registry.js';
 import { isHelpFlag, optionLabel, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
-import { VALID_FLAGS as trackFlags } from '../src/commands/track.js';
-import { VALID_FLAGS as entryEditFlags } from '../src/commands/entry-edit.js';
-import { VALID_FLAGS as projectCreateFlags } from '../src/commands/project-create.js';
-import { VALID_FLAGS as projectEditFlags } from '../src/commands/project-edit.js';
-import { VALID_FLAGS as clientAddFlags } from '../src/commands/client-add.js';
+import { entryListOptions } from '../src/commands/entry-list.js';
+import { trackOptions } from '../src/commands/track.js';
+import { entryEditOptions } from '../src/commands/entry-edit.js';
+import { weekOptions } from '../src/commands/week.js';
+import { clientListOptions } from '../src/commands/client-list.js';
+import { clientAddOptions } from '../src/commands/client-add.js';
+import { projectListOptions } from '../src/commands/project-list.js';
+import { projectCreateOptions } from '../src/commands/project-create.js';
+import { projectEditOptions } from '../src/commands/project-edit.js';
+import { flagSet } from '../src/utils.js';
 
 const MAX_WIDTH = 80;
 
@@ -75,15 +80,38 @@ describe('command registry', () => {
   });
 
   it.each([
-    ['track', trackFlags],
-    ['entry-edit', entryEditFlags],
-    ['project-create', projectCreateFlags],
-    ['project-edit', projectEditFlags],
-    ['client-add', clientAddFlags],
-  ] as const)('%s help lists exactly the flags its parser accepts', (name, validFlags) => {
-    const flags = findCommand(name)!.options!.flatMap((o) => (o.short ? [o.short, o.long] : [o.long]));
-    expect(flags).toHaveLength(new Set(flags).size);
-    expect(new Set(flags)).toEqual(validFlags);
+    ['entry-list', entryListOptions],
+    ['track', trackOptions],
+    ['entry-edit', entryEditOptions],
+    ['week', weekOptions],
+    ['client-list', clientListOptions],
+    ['client-add', clientAddOptions],
+    ['project-list', projectListOptions],
+    ['project-create', projectCreateOptions],
+    ['project-edit', projectEditOptions],
+  ] as const)('%s help shows the option list its parser validates against', (name, options) => {
+    expect(findCommand(name)!.options).toBe(options);
+  });
+
+  it('documents options for every command whose parser has them', () => {
+    const withOptions = COMMANDS.filter((c) => c.options?.length).map((c) => c.name);
+    expect(withOptions).toEqual([
+      'entry-list',
+      'track',
+      'entry-edit',
+      'week',
+      'client-list',
+      'client-add',
+      'project-list',
+      'project-create',
+      'project-edit',
+    ]);
+  });
+
+  it.each(COMMANDS.map((c) => [c.name, c]))('%s has no duplicate flags', (_, command) => {
+    const options = command.options ?? [];
+    const count = options.reduce((n, o) => n + (o.short ? 2 : 1), 0);
+    expect(flagSet(options).size).toBe(count);
   });
 });
 

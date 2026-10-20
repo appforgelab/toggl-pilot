@@ -1,3 +1,5 @@
+import type { CommandOption } from './types.js';
+
 export const DASH = '—';
 
 export function parseOrExit<T>(fn: () => T): T {
@@ -190,4 +192,32 @@ export function parseDateArg(args: string[]): Date {
     throw new Error(`Invalid date: ${val}. Use YYYY-MM-DD, "yesterday", or an integer day offset (e.g. -2).`);
   }
   return new Date();
+}
+
+/** Every spelling of every option, e.g. `-p` and `--project`. */
+export function flagSet(options: CommandOption[]): Set<string> {
+  return new Set(options.flatMap((o) => (o.short ? [o.short, o.long] : [o.long])));
+}
+
+/** `Valid flags: -p/--project, --at`, for unknown-flag errors. */
+export function validFlagsHint(options: CommandOption[]): string {
+  const list = options.map((o) => (o.short ? `${o.short}/${o.long}` : o.long)).join(', ');
+  return `Valid flag${options.length === 1 ? '' : 's'}: ${list}`;
+}
+
+/**
+ * For commands that take only options: throw on anything that isn't a
+ * documented flag or the value following a flag that takes one. Values are
+ * skipped by position, so negative offsets like `-w -1` aren't mistaken for flags.
+ */
+export function rejectUnknownArgs(args: string[], options: CommandOption[], usage: string): void {
+  const flags = flagSet(options);
+  const valueFlags = flagSet(options.filter((o) => o.value));
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!flags.has(arg)) {
+      throw new Error(arg.startsWith('-') ? `Unknown flag: ${arg}. ${validFlagsHint(options)}` : usage);
+    }
+    if (valueFlags.has(arg)) i++;
+  }
 }

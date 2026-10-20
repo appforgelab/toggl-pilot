@@ -144,6 +144,22 @@ describe('parseWeekArgs', () => {
     expect(() => parseWeekArgs(['--week', 'abc'])).toThrow('Invalid week');
   });
 
+  it('rejects unknown flags', () => {
+    expect(() => parseWeekArgs(['--json'])).toThrow(
+      'Unknown flag: --json. Valid flags: -d/--date, -w/--week, -v/--verbose'
+    );
+  });
+
+  it('rejects an offset given without --week or --date', () => {
+    expect(() => parseWeekArgs(['-v', '-1'])).toThrow('Unknown flag: -1.');
+  });
+
+  it('rejects positional arguments', () => {
+    expect(() => parseWeekArgs(['last'])).toThrow(
+      'Usage: tgp week [-d YYYY-MM-DD|yesterday|<offset>] [-w <offset>] [-v]'
+    );
+  });
+
   it('throws when --date or --week is missing its value', () => {
     expect(() => parseWeekArgs(['--date'])).toThrow();
     expect(() => parseWeekArgs(['--week'])).toThrow();

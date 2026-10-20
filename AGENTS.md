@@ -63,10 +63,13 @@ Example PR title: `feat: set up version management and workflow (#42)`
   `Usage:` error message. `--help`/`-h` is intercepted before dispatch, so commands never
   see it as an argument. `help` itself is not a registry command: `src/cli.ts` rewrites
   `tgp help <command>` to `tgp <command> --help`.
-- **When adding or changing a flag**, update the command's `options` in `src/registry.ts` too.
-  `tests/help.test.ts` checks that documented flags appear in `usage`, and for commands that
-  export `VALID_FLAGS` that `options` lists exactly those flags. Help text must fit in 80
-  columns (the `Usage:` line is exempt); break `description` lines with `\n`.
+- **Flags are defined once**, in the `<command>Options` array exported by the command file
+  (e.g. `trackOptions` in `src/commands/track.ts`). The parser builds its accepted flags and
+  its `Unknown flag ... Valid flags:` message from it (`flagSet`, `validFlagsHint`, or
+  `rejectUnknownArgs` for option-only commands in `src/utils.ts`), and the registry passes the
+  same array to `--help`. To add a flag, add it there and handle it in the parser; also add it
+  to the `usage` strings. Help text must fit in 80 columns (the `Usage:` line is exempt);
+  break `description` lines with `\n`.
 
 ## API Quota (Free Plan)
 

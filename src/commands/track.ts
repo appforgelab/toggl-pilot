@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { get, post } from '../api.js';
-import type { TimeEntry } from '../types.js';
+import type { CommandOption, TimeEntry } from '../types.js';
 import {
   parseDuration,
   buildStartTime,
@@ -8,7 +8,22 @@ import {
   localYesterdayDate,
   formatDate,
   requireFlagValue,
+  flagSet,
+  validFlagsHint,
 } from '../utils.js';
+
+export const trackOptions: CommandOption[] = [
+  { short: '-p', long: '--project', value: '<name>', description: 'Project name (case-insensitive)' },
+  { short: '-t', long: '--tags', value: '<tags>', description: 'Comma-separated tag names' },
+  { long: '--at', value: '<time>', description: 'Start time as [H]H:MM (requires --dur)' },
+  { long: '--dur', value: '<duration>', description: 'Duration, e.g. 30m, 1h, 1h30m (requires --at)' },
+  {
+    short: '-d',
+    long: '--date',
+    value: '<date>',
+    description: 'YYYY-MM-DD or "yesterday" (requires --at and --dur)',
+  },
+];
 
 function isValidCalendarDate(s: string): boolean {
   const match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -27,7 +42,7 @@ interface Project {
 
 const USAGE =
   'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
-export const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
+const VALID_FLAGS = flagSet(trackOptions);
 
 export function parseArgs(args: string[]): {
   description: string;
@@ -46,9 +61,7 @@ export function parseArgs(args: string[]): {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i].startsWith('-') && !VALID_FLAGS.has(args[i])) {
-      throw new Error(
-        `Unknown flag: ${args[i]}. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date`
-      );
+      throw new Error(`Unknown flag: ${args[i]}. ${validFlagsHint(trackOptions)}`);
     }
 
     if (args[i] === '-p' || args[i] === '--project') {

@@ -1,6 +1,12 @@
 import { get } from '../api.js';
 import { config } from '../config.js';
-import { DASH, parseOrExit } from '../utils.js';
+import { DASH, flagSet, parseOrExit } from '../utils.js';
+import type { CommandOption } from '../types.js';
+
+export const clientListOptions: CommandOption[] = [
+  { long: '--status', value: '<status>', description: 'active, archived, or both (default: active)' },
+  { long: '--name', value: '<filter>', description: 'Filter by client name' },
+];
 
 type ClientStatus = 'active' | 'archived' | 'both';
 
@@ -19,6 +25,7 @@ interface ClientListArgs {
 }
 
 const USAGE = 'Usage: tgp client-list [--status active|archived|both] [--name <filter>]';
+const VALID_FLAGS = flagSet(clientListOptions);
 
 function isClientStatus(value: string): value is ClientStatus {
   return value === 'active' || value === 'archived' || value === 'both';
@@ -29,6 +36,10 @@ export function parseArgs(args: string[]): ClientListArgs {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+
+    if (!VALID_FLAGS.has(arg)) {
+      throw new Error(USAGE);
+    }
 
     if (arg === '--status') {
       const status = args[++i];
