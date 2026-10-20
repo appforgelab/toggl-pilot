@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
 import { resolveClientId } from '../clients.js';
-import { parseOrExit, requireFlagValue, matchFlag, unhandledOption } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, requireOptionValue } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectCreateUsage =
@@ -39,10 +39,10 @@ export function parseArgs(args: string[]) {
 
     switch (option.long) {
       case '--client':
-        client = requireFlagValue(args, i, args[i]);
+        client = requireOptionValue(args, i, option);
         break;
       case '--color':
-        color = requireFlagValue(args, i, args[i]);
+        color = requireOptionValue(args, i, option);
         break;
       case '--public':
         isPublic = true;

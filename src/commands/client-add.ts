@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { post } from '../api.js';
-import { parseOrExit, requireFlagValue, matchFlag, unhandledOption } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, requireOptionValue } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const clientAddUsage = 'tgp client-add "Client Name" [--notes "Some notes"]';
@@ -33,7 +33,7 @@ export function parseArgs(args: string[]) {
 
     switch (option.long) {
       case '--notes':
-        notes = requireFlagValue(args, i, args[i]);
+        notes = requireOptionValue(args, i, option);
         break;
       default:
         unhandledOption(option);

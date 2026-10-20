@@ -231,6 +231,21 @@ export function matchFlag(
 }
 
 /**
+ * The value after the flag at `args[index]`, which matched `option`. A missing
+ * value is reported with what the option expects, e.g.
+ * `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
+ */
+export function requireOptionValue(
+  args: string[],
+  index: number,
+  option: CommandOption,
+  options: { allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
+): string {
+  const hint = `Expected ${option.value}: ${option.description.replace(/\.$/, '')}.`;
+  return requireFlagValue(args, index, args[index], { ...options, hint });
+}
+
+/**
  * Parse the arguments of a command that takes only options. Returns the values
  * of options that take one, and the set of boolean options given, both keyed by
  * long flag. Positional arguments are rejected with `usage`. Values may be
@@ -249,8 +264,7 @@ export function parseOptions(
     const option = matchFlag(args[i], options, seen);
     if (!option) throw new Error(usage);
     if (option.value) {
-      const hint = `Expected ${option.value}: ${option.description.replace(/\.$/, '')}.`;
-      values.set(option.long, requireFlagValue(args, i, args[i], { hint, allowNegativeNumber: true }));
+      values.set(option.long, requireOptionValue(args, i, option, { allowNegativeNumber: true }));
       i++;
     } else {
       flags.add(option.long);

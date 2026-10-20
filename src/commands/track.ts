@@ -7,9 +7,9 @@ import {
   parseOrExit,
   localYesterdayDate,
   formatDate,
-  requireFlagValue,
   matchFlag,
   unhandledOption,
+  requireOptionValue,
 } from '../utils.js';
 
 export const trackUsage =
@@ -71,21 +71,21 @@ export function parseArgs(args: string[]): {
 
     switch (option.long) {
       case '--project':
-        project = requireFlagValue(args, i, args[i]);
+        project = requireOptionValue(args, i, option);
         break;
       case '--tags':
-        tags = requireFlagValue(args, i, args[i])
+        tags = requireOptionValue(args, i, option)
           .split(',')
           .map((t) => t.trim());
         break;
       case '--at':
-        at = requireFlagValue(args, i, args[i]);
+        at = requireOptionValue(args, i, option);
         break;
       case '--dur':
-        dur = requireFlagValue(args, i, args[i]);
+        dur = requireOptionValue(args, i, option);
         break;
       case '--date':
-        date = requireFlagValue(args, i, args[i], { hint: 'Use YYYY-MM-DD or "yesterday".' });
+        date = requireOptionValue(args, i, option);
         break;
       default:
         unhandledOption(option);

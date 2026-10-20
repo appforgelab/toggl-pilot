@@ -121,6 +121,13 @@ describe('main', () => {
       }
     );
 
+    it('shows help instead of running the command when the arguments include --', () => {
+      main(['help', 'auth', '--', 'MYTOKEN']);
+
+      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('auth')!));
+      expect(auth).not.toHaveBeenCalled();
+    });
+
     it.each([[['help', '--help']], [['help', '-h']], [['help', 'help']]])(
       'prints grouped help for %j',
       (argv) => {
@@ -152,6 +159,7 @@ describe('main', () => {
       [['stop', '--hlep'], 'Unknown flag: --hlep.'],
       [['version', 'extra'], 'Unexpected argument: extra.'],
       [['stop', '--', 'x'], 'Unexpected argument: x.'],
+      [['stop', '--', '-x'], 'Unexpected argument: -x.'],
     ])('rejects arguments for a command that takes none: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
 
@@ -168,9 +176,7 @@ describe('main', () => {
     ])('rejects a flag for a command without options: %j', (argv, flag) => {
       expect(() => main(argv)).toThrow('exit');
 
-      expect(errorSpy).toHaveBeenCalledWith(
-        `Unknown flag: ${flag}. To pass a value that starts with "-", put -- before it.`
-      );
+      expect(errorSpy).toHaveBeenCalledWith(`Unknown flag: ${flag}.`);
       expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
       expect(exitSpy).toHaveBeenCalledWith(1);
       expect(tagCreate).not.toHaveBeenCalled();
@@ -178,7 +184,6 @@ describe('main', () => {
 
     it.each([
       [['tag-create', '--', '-wip'], ['-wip']],
-      [['tag-create', '--', '--help'], ['--help']],
       [['tag-create', 'Bug', '--'], ['Bug']],
     ])('passes values after -- through as data: %j', (argv, expected) => {
       main(argv);
@@ -187,6 +192,16 @@ describe('main', () => {
       expect(logSpy).not.toHaveBeenCalled();
       expect(exitSpy).not.toHaveBeenCalled();
     });
+
+    it.each([[['tag-create', '--', '--help']], [['tag-create', '--', '-h']]])(
+      'shows help for a help flag even after --: %j',
+      (argv) => {
+        main(argv);
+
+        expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('tag-create')!));
+        expect(tagCreate).not.toHaveBeenCalled();
+      }
+    );
 
     it('leaves -- to the parser for commands with options', () => {
       main(['track', '--', '-x']);

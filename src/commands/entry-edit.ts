@@ -3,10 +3,10 @@ import {
   parseDuration,
   parseOrExit,
   parseStartTime,
-  requireFlagValue,
   matchFlag,
   unhandledOption,
   nothingToEditError,
+  requireOptionValue,
 } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
@@ -133,19 +133,19 @@ export function parseArgs(args: string[]): {
 
     switch (option.long) {
       case '--description':
-        description = requireFlagValue(args, i, args[i]);
+        description = requireOptionValue(args, i, option);
         break;
       case '--project':
-        project = requireFlagValue(args, i, args[i]);
+        project = requireOptionValue(args, i, option);
         break;
       case '--tags':
-        tags = normalizeTags(requireFlagValue(args, i, args[i], { allowEmpty: true }).split(','));
+        tags = normalizeTags(requireOptionValue(args, i, option, { allowEmpty: true }).split(','));
         break;
       case '--dur':
-        dur = requireFlagValue(args, i, args[i]);
+        dur = requireOptionValue(args, i, option);
         break;
       case '--start':
-        start = requireFlagValue(args, i, args[i]);
+        start = requireOptionValue(args, i, option);
         break;
       default:
         unhandledOption(option);

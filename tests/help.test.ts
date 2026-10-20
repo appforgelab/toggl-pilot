@@ -22,7 +22,8 @@ function usageMentions(usage: string, token: string): boolean {
 /**
  * The positional tokens of a usage line: everything after `tgp <name>` except
  * option groups such as `[-p "Project"]` or `[--at [H]H:MM]` (brackets may nest).
- * Optional positionals keep their brackets, e.g. `[<entry_id>]`.
+ * Optional positionals keep their brackets, e.g. `[<entry_id>]`. Assumes balanced
+ * brackets, which a separate test checks.
  */
 function usagePositionals(command: Command): string[] {
   const rest = command.usage.slice(`tgp ${command.name}`.length);
@@ -37,9 +38,6 @@ function usagePositionals(command: Command): string[] {
       kept += rest[i];
     }
   }
-  const opens = command.usage.split('[').length;
-  const closes = command.usage.split(']').length;
-  if (opens !== closes) throw new Error(`Unbalanced brackets in usage: ${command.usage}`);
   return kept.match(/"[^"]*"|\S+/g) ?? [];
 }
 
@@ -99,6 +97,19 @@ describe('command registry', () => {
     expect(findCommand('trac')).toBeUndefined();
     expect(findCommand('--help')).toBeUndefined();
   });
+
+  it.each(COMMANDS.map((c) => [c.name, c]))(
+    '%s usage has balanced, properly nested brackets',
+    (_, command) => {
+      let depth = 0;
+      for (const ch of command.usage) {
+        if (ch === '[') depth++;
+        if (ch === ']') depth--;
+        expect(depth, command.usage).toBeGreaterThanOrEqual(0);
+      }
+      expect(depth, command.usage).toBe(0);
+    }
+  );
 
   it.each(COMMANDS.map((c) => [c.name, c]))(
     '%s documents exactly the positional arguments in its usage',

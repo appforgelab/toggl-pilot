@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit, requireFlagValue, matchFlag, unhandledOption, nothingToEditError } from '../utils.js';
+import { parseOrExit, matchFlag, unhandledOption, nothingToEditError, requireOptionValue } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectEditUsage =
@@ -60,13 +60,13 @@ export function parseArgs(args: string[]): ParsedArgs {
 
     switch (option.long) {
       case '--name':
-        name = requireFlagValue(args, i, args[i]);
+        name = requireOptionValue(args, i, option);
         break;
       case '--client':
-        client = requireFlagValue(args, i, args[i], { allowEmpty: true });
+        client = requireOptionValue(args, i, option, { allowEmpty: true });
         break;
       case '--color':
-        color = requireFlagValue(args, i, args[i]);
+        color = requireOptionValue(args, i, option);
         break;
       case '--public':
       case '--private':
