@@ -6,8 +6,11 @@ Add shell tab completion for commands, flags, and dynamic data (project names, t
 
 ## Approach
 
-- Use a CLI parser that auto-generates completion scripts for bash/zsh/fish (e.g. `commander`, `yargs`, `oclif`)
-- For **static** completion (commands, flags): handled by the parser out of the box
+- Generate completion scripts for bash/zsh/fish from the command registry (`COMMANDS` in
+  `src/registry.ts`), which already drives dispatch and `--help`. tgp deliberately has no CLI
+  parser dependency (see #97)
+- For **static** completion (commands, flags): command names come from `COMMANDS[].name`, flags
+  from each command's structured `options` (`short`, `long`, and whether it takes a `value`)
 - For **dynamic** completion (project names, tags): fetch from API with a cache
 
 ## Caching Strategy
@@ -45,6 +48,6 @@ Could be offered as a fallback or optional mode.
 
 ## Dependencies
 
-- CLI parser with completion support (research needed: `commander` vs `yargs` vs `oclif`)
+- A small generator that turns `COMMANDS` into bash/zsh/fish completion scripts
 - File system access for cache
 - Consider: should the cache be per-workspace?

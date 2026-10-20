@@ -62,6 +62,10 @@ Example PR title: `feat: set up version management and workflow (#42)`
   (`src/cli.ts`) and `tgp --help`. Keep its `usage` string in sync with the command's own
   `Usage:` error message. `--help`/`-h` is intercepted before dispatch, so commands never
   see it as an argument.
+- **When adding or changing a flag**, update the command's `options` in `src/registry.ts` too.
+  `tests/help.test.ts` checks that documented flags appear in `usage`, and for commands that
+  export `VALID_FLAGS` that `options` lists exactly those flags. Help text must fit in 80
+  columns (the `Usage:` line is exempt); break `description` lines with `\n`.
 
 ## API Quota (Free Plan)
 

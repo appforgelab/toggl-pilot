@@ -10,7 +10,7 @@ interface Client {
 }
 
 const USAGE = 'Usage: tgp client-add "Client Name" [--notes "Some notes"]';
-const VALID_FLAGS = new Set(['--notes']);
+export const VALID_FLAGS = new Set(['--notes']);
 
 function parseArgs(args: string[]) {
   let name: string | null = null;

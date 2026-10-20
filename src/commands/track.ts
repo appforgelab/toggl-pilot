@@ -27,7 +27,7 @@ interface Project {
 
 const USAGE =
   'Usage: tgp track "Description" [-p "Project name"] [-t tag1,tag2] [--at [H]H:MM] [--dur 1h30m] [-d YYYY-MM-DD|yesterday]';
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
+export const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '--at', '--dur', '-d', '--date']);
 
 export function parseArgs(args: string[]): {
   description: string;

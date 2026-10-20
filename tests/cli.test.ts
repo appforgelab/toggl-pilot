@@ -95,6 +95,40 @@ describe('main', () => {
     });
   });
 
+  describe('help <command>', () => {
+    it('prints the same help as <command> --help without running it or requiring config', () => {
+      mockedHasConfig.mockReturnValue(false);
+
+      main(['help', 'stop']);
+
+      expect(logSpy).toHaveBeenCalledWith(renderCommandHelp(findCommand('stop')!));
+      expect(stop).not.toHaveBeenCalled();
+      expect(exitSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([[['help', '--help']], [['help', '-h']]])('prints grouped help for %j', (argv) => {
+      main(argv);
+
+      expect(logSpy).toHaveBeenCalledWith(renderGlobalHelp());
+    });
+
+    it('rejects an unknown command', () => {
+      expect(() => main(['help', 'nope'])).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Unknown command: nope');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(logSpy).not.toHaveBeenCalled();
+    });
+
+    it('rejects extra arguments', () => {
+      expect(() => main(['help', 'stop', 'extra'])).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Usage: tgp help [<command>]');
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(logSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('dispatch', () => {
     it('passes the remaining args to the command', () => {
       main(['tag-create', 'Bug']);

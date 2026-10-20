@@ -32,7 +32,16 @@ interface TimeEntryUpdate {
 
 const USAGE =
   'Usage: tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
-const VALID_FLAGS = new Set(['-p', '--project', '-t', '--tags', '-d', '--description', '--dur', '--start']);
+export const VALID_FLAGS = new Set([
+  '-p',
+  '--project',
+  '-t',
+  '--tags',
+  '-d',
+  '--description',
+  '--dur',
+  '--start',
+]);
 
 function normalizeTags(tags: string[] | null): string[] {
   const normalized: string[] = [];

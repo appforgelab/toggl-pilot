@@ -31,7 +31,8 @@ You can also set the `TOGGL_API_TOKEN` environment variable, which takes
 priority over the saved config.
 
 Run `tgp --help` (or just `tgp`) to see all available commands, and
-`tgp <command> --help` for a command's usage.
+`tgp <command> --help` (or `tgp help <command>`) for a command's usage, options,
+and examples.
 
 ## Commands
 

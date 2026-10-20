@@ -23,7 +23,7 @@ interface ParsedArgs {
 
 const USAGE =
   'Usage: tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
-const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
+export const VALID_FLAGS = new Set(['-n', '--name', '-c', '--client', '--color', '--public', '--private']);
 
 export function parseArgs(args: string[]): ParsedArgs {
   const project = args[0];
