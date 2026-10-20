@@ -37,8 +37,9 @@ and examples.
 Arguments that start with `-` are treated as flags. To pass a value that starts
 with `-`, either put `--` before it, which ends the options
 (`tgp tag-create -- -wip`, `tgp track -p Dev -- -wip`), or attach it to a long
-option with `=` (`tgp entry-edit 123 --description=-draft`). `-h` and `--help`
-always show help.
+option with `=` (`tgp entry-edit 123 --description=-draft`). Day and week
+offsets take negative numbers directly (`tgp entry-list -d -2`, `tgp week -w -1`).
+`-h` and `--help` always show help.
 
 ## Commands
 

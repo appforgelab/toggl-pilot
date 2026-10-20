@@ -203,10 +203,26 @@ export class UnknownFlagError extends Error {
   }
 }
 
-function missingValue(flag: string, option: CommandOption): Error {
+/**
+ * `Missing value for -d. Expected <text>: New description.` When the next
+ * argument starts with "-" but isn't one of the command's flags, it was probably
+ * meant as the value, so the `--long=value` form is suggested.
+ */
+function missingValue(
+  flag: string,
+  option: CommandOption,
+  next?: string,
+  options: CommandOption[] = []
+): Error {
   const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
   const period = /[.!?]$/.test(expected) ? '' : '.';
-  return new Error(`Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`);
+  let message = `Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`;
+  const isFlag = (arg: string) =>
+    options.some((o) => arg === o.short || arg === o.long || arg.startsWith(`${o.long}=`));
+  if (next !== undefined && next.startsWith('-') && next !== '--' && !isFlag(next)) {
+    message += ` If "${next}" is the value, write ${option.long}=${next}.`;
+  }
+  return new Error(message);
 }
 
 /**
@@ -214,13 +230,18 @@ function missingValue(flag: string, option: CommandOption): Error {
  * as missing (it's the next flag), except a negative number for an option that
  * accepts one (e.g. `-w -1`).
  */
-function requireOptionValue(args: string[], index: number, option: CommandOption): string {
+function requireOptionValue(
+  args: string[],
+  index: number,
+  option: CommandOption,
+  options: CommandOption[]
+): string {
   const val = args[index + 1];
   if (option.negativeNumber && val !== undefined && /^-\d/.test(val)) {
     return val;
   }
   if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !option.allowEmpty)) {
-    throw missingValue(args[index], option);
+    throw missingValue(args[index], option, val, options);
   }
   return val;
 }
@@ -269,7 +290,7 @@ export function parseCommandLine(
       if (value === '' && !option.allowEmpty) throw missingValue(flag, option);
       values.set(option.long, value);
     } else {
-      values.set(option.long, requireOptionValue(flagArgs, i, option));
+      values.set(option.long, requireOptionValue(args, i, option, options));
       i++;
     }
   }

@@ -10,6 +10,18 @@ vi.mock('../src/commands/auth.js', async (importOriginal) => ({
 }));
 vi.mock('../src/commands/version.js', () => ({ version: vi.fn() }));
 vi.mock('../src/commands/stop.js', () => ({ stop: vi.fn() }));
+vi.mock('../src/commands/project-edit.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/project-edit.js')>()),
+  projectEdit: vi.fn(),
+}));
+vi.mock('../src/commands/entry-edit.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/entry-edit.js')>()),
+  entryEdit: vi.fn(),
+}));
+vi.mock('../src/commands/week.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/commands/week.js')>()),
+  week: vi.fn(),
+}));
 vi.mock('../src/commands/track.js', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/commands/track.js')>()),
   track: vi.fn(),
@@ -23,6 +35,9 @@ import { hasConfig, ConfigNotFoundError } from '../src/config.js';
 import { auth } from '../src/commands/auth.js';
 import { version } from '../src/commands/version.js';
 import { stop } from '../src/commands/stop.js';
+import { projectEdit } from '../src/commands/project-edit.js';
+import { entryEdit } from '../src/commands/entry-edit.js';
+import { week } from '../src/commands/week.js';
 import { track } from '../src/commands/track.js';
 import { tagCreate } from '../src/commands/tag-create.js';
 import { findCommand } from '../src/registry.js';
@@ -186,14 +201,15 @@ describe('main', () => {
     });
 
     it.each([
-      [['tag-create', '--verbose'], '--verbose'],
-      [['tag-create', '-wip'], '-wip'],
-    ])('rejects a flag for a command without options: %j', (argv, flag) => {
+      [['tag-create', '--verbose'], 'Unknown flag: --verbose.'],
+      [
+        ['tag-create', '-wip'],
+        'Unknown flag: -wip. To pass a name that starts with "-", put -- after any options and before the name.',
+      ],
+    ])('rejects a flag for a command without options: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
 
-      expect(errorSpy).toHaveBeenCalledWith(
-        `Unknown flag: ${flag}. To pass a name that starts with "-", put -- before it.`
-      );
+      expect(errorSpy).toHaveBeenCalledWith(message);
       expect(errorSpy).toHaveBeenCalledWith('Usage: tgp tag-create "Tag Name"');
       expect(exitSpy).toHaveBeenCalledWith(1);
       expect(tagCreate).not.toHaveBeenCalled();
@@ -225,7 +241,7 @@ describe('main', () => {
       [['tag-create', 'Bug', '-x'], 'Unknown flag: -x.'],
       [
         ['tag-rename', '5', '-wip'],
-        'Unknown flag: -wip. To pass a name that starts with "-", put -- before it.',
+        'Unknown flag: -wip. To pass a name that starts with "-", put -- after any options and before the name.',
       ],
     ])('suggests -- only when the value sits where a name goes: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
@@ -243,20 +259,27 @@ describe('main', () => {
     it.each([
       [
         ['track', '-p', 'Dev', '-wip'],
-        'Unknown flag: -wip. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date. To pass a name that starts with "-", put -- before it.',
+        'Unknown flag: -wip. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date. To pass a name that starts with "-", put -- after any options and before the name.',
+      ],
+      [
+        ['track', '--tag', 'dev', 'Fix'],
+        'Unknown flag: --tag. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date',
       ],
       [
         ['track', 'Fix', '--dur', '-30m'],
-        'Missing value for --dur. Expected <duration>: Duration, e.g. 30m, 1h, 1h30m (requires --at).',
+        'Missing value for --dur. Expected <duration>: Duration, e.g. 30m, 1h, 1h30m (requires --at). If "-30m" is the value, write --dur=-30m.',
       ],
       [['week', 'last'], 'Unexpected argument: last.'],
-    ])('checks the arguments of commands with options before running them: %j', (argv, message) => {
+      [['tag-create', 'Bug', 'Report'], 'Unexpected argument: Report.'],
+      [['tag-create'], 'Missing argument: "Tag Name".'],
+      [['entry-edit', '-d', 'x'], 'Missing argument: <entry_id>.'],
+    ])('checks the arguments before running the command: %j', (argv, message) => {
       expect(() => main(argv)).toThrow('exit');
 
       expect(errorSpy).toHaveBeenCalledWith(message);
       expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand(argv[0])!.usage}`);
       expect(exitSpy).toHaveBeenCalledWith(1);
-      expect(track).not.toHaveBeenCalled();
+      for (const run of [track, week, tagCreate, entryEdit]) expect(run).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -267,7 +290,16 @@ describe('main', () => {
 
       const message = errorSpy.mock.calls[0][0] as string;
       expect(message.startsWith(`Unknown flag: ${argv[1]}.`)).toBe(true);
-      expect(message.includes('put -- before it')).toBe(hinted);
+      expect(message.includes('put -- after any options and before the name')).toBe(hinted);
+      expect(projectEdit).not.toHaveBeenCalled();
+      expect(entryEdit).not.toHaveBeenCalled();
+    });
+
+    it('accepts the advised form: options first, then -- and the name', () => {
+      main(['project-edit', '--name', 'Work', '--', '-wip']);
+
+      expect(projectEdit).toHaveBeenCalledWith(['--name', 'Work', '--', '-wip']);
+      expect(errorSpy).not.toHaveBeenCalled();
     });
 
     it('leaves -- to the parser for commands with options', () => {

@@ -73,7 +73,8 @@ Example PR title: `feat: set up version management and workflow (#42)`
   parser.
 - **`src/cli.ts` checks every command's arguments** with `parseCommandLine` against the
   registry before dispatch, so syntax errors never reach a command: a command without
-  `options` takes no flags, and one without `arguments` takes nothing. Commands with options
+  `options` takes no flags, and the number of positionals must match `arguments` (names in
+  brackets, like `[<entry_id>]`, are optional). Commands with options
   get the raw arguments and parse them again for the values; the others get just the
   positionals. Mark free-text arguments (names, not IDs) with `text: true` so an unknown flag
   in that position suggests `--`. Help flags show help even after `--`.

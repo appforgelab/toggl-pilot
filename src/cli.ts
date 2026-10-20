@@ -55,16 +55,23 @@ function checkArguments(command: Command, args: string[]): ReturnType<typeof par
   try {
     parsed = parseCommandLine(args, command.options ?? []);
   } catch (e) {
-    // Suggest `--` only if the flag-like value sits where a name goes, not an ID.
     let message = (e as Error).message;
-    if (e instanceof UnknownFlagError && command.arguments?.[e.position]?.text) {
-      message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- before it.`;
+    // Suggest `--` for something like `-wip` where a name goes, but not for an ID
+    // position or anything shaped like a flag (`-x`, `--tag`), which is likelier a typo.
+    if (e instanceof UnknownFlagError && command.arguments?.[e.position]?.text && /^-[^-]./.test(e.flag)) {
+      message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
     }
     return rejectArguments(command, message);
   }
 
-  if (!command.arguments && parsed.positionals.length > 0) {
-    return rejectArguments(command, `Unexpected argument: ${parsed.positionals[0]}.`);
+  // Optional arguments are written in brackets, e.g. `[<entry_id>]`.
+  const declared = command.arguments ?? [];
+  const missing = declared.slice(parsed.positionals.length).find((a) => !a.name.startsWith('['));
+  if (missing) {
+    return rejectArguments(command, `Missing argument: ${missing.name}.`);
+  }
+  if (parsed.positionals.length > declared.length) {
+    return rejectArguments(command, `Unexpected argument: ${parsed.positionals[declared.length]}.`);
   }
   return parsed;
 }

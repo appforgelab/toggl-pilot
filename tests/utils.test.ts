@@ -471,6 +471,21 @@ describe('parseCommandLine option values', () => {
     expect(() => valueOf(['-p', '-x'], { ...project, allowEmpty: true })).toThrow(missingProject('-p'));
   });
 
+  it('suggests --long=value when the next arg looks like a value rather than a flag', () => {
+    const description = {
+      short: '-d',
+      long: '--description',
+      value: '<text>',
+      description: 'New description',
+    };
+    expect(() => parseCommandLine(['-d', '-1'], [description])).toThrow(
+      'Missing value for -d. Expected <text>: New description. If "-1" is the value, write --description=-1.'
+    );
+    expect(() => parseCommandLine(['-d', '--description'], [description])).toThrow(
+      /^Missing value for -d\. Expected <text>: New description\.$/
+    );
+  });
+
   it('accepts a negative number only for options marked negativeNumber', () => {
     expect(valueOf(['-w', '-1'], { ...week, negativeNumber: true })).toBe('-1');
     expect(() => valueOf(['-w', '-1'], week)).toThrow('Missing value for -w.');
