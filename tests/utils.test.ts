@@ -11,11 +11,11 @@ import {
   localYesterdayDate,
   validFlagsHint,
   parseDateValue,
-  matchFlag,
   parseOptions,
   optionLabel,
   nothingToEditError,
-  requireOptionValue,
+  parseCommandLine,
+  UnknownFlagError,
 } from '../src/utils.js';
 
 describe('formatDuration', () => {
@@ -438,48 +438,92 @@ describe('nothingToEditError', () => {
   });
 });
 
-describe('requireOptionValue', () => {
+describe('parseCommandLine option values', () => {
   const project = { short: '-p', long: '--project', value: '<name>', description: 'Project name' };
   const week = { short: '-w', long: '--week', value: '<offset>', description: 'Weeks from now' };
   const missingProject = (flag: string) => `Missing value for ${flag}. Expected <name>: Project name.`;
+  const valueOf = (
+    args: string[],
+    option: typeof project & { allowEmpty?: boolean; negativeNumber?: boolean }
+  ) => parseCommandLine(args, [option]).values.get(option.long);
 
   it('returns the next arg when present and not a flag', () => {
-    expect(requireOptionValue(['-p', 'Dev-Pilot'], 0, project)).toBe('Dev-Pilot');
+    expect(valueOf(['-p', 'Dev-Pilot'], project)).toBe('Dev-Pilot');
   });
 
   it('reports the flag as typed, with what the option expects', () => {
-    expect(() => requireOptionValue(['--project'], 0, project)).toThrow(missingProject('--project'));
+    expect(() => valueOf(['--project'], project)).toThrow(missingProject('--project'));
   });
 
   it('throws when the next arg starts with -', () => {
-    expect(() => requireOptionValue(['-p', '--dur', '30m'], 0, project)).toThrow(missingProject('-p'));
+    expect(() => valueOf(['-p', '-x'], project)).toThrow(missingProject('-p'));
   });
 
   it('throws on empty string by default', () => {
-    expect(() => requireOptionValue(['-p', ''], 0, project)).toThrow(missingProject('-p'));
+    expect(() => valueOf(['-p', ''], project)).toThrow(missingProject('-p'));
   });
 
-  it('returns an empty string when allowEmpty is true', () => {
-    expect(requireOptionValue(['-p', ''], 0, project, { allowEmpty: true })).toBe('');
+  it('returns an empty string when the option allows it', () => {
+    expect(valueOf(['-p', ''], { ...project, allowEmpty: true })).toBe('');
   });
 
-  it('still rejects the next arg starting with - even when allowEmpty is true', () => {
-    expect(() => requireOptionValue(['-p', '--name', 'X'], 0, project, { allowEmpty: true })).toThrow(
-      missingProject('-p')
+  it('still rejects the next arg starting with - when the option allows empty values', () => {
+    expect(() => valueOf(['-p', '-x'], { ...project, allowEmpty: true })).toThrow(missingProject('-p'));
+  });
+
+  it('suggests --long=value for a free-text option when the next arg looks like a value', () => {
+    const description = {
+      short: '-d',
+      long: '--description',
+      value: '<text>',
+      description: 'New description',
+      text: true,
+    };
+    expect(() => parseCommandLine(['-d', '-1'], [description])).toThrow(
+      'Missing value for -d. Expected <text>: New description. If "-1" is the value, write --description=-1.'
+    );
+    expect(() => parseCommandLine(['-d', '-draft notes'], [description])).toThrow(
+      `If "-draft notes" is the value, write --description='-draft notes'.`
     );
   });
 
-  it('accepts a negative number only with allowNegativeNumber', () => {
-    expect(requireOptionValue(['-w', '-1'], 0, week, { allowNegativeNumber: true })).toBe('-1');
-    expect(() => requireOptionValue(['-w', '-1'], 0, week)).toThrow('Missing value for -w.');
-    expect(() => requireOptionValue(['-w', '-v'], 0, week, { allowNegativeNumber: true })).toThrow(
-      'Missing value for -w.'
+  it('quotes the suggested value so the shell does not expand it', () => {
+    const description = {
+      short: '-d',
+      long: '--description',
+      value: '<text>',
+      description: 'New description',
+      text: true,
+    };
+    expect(() => parseCommandLine(['-d', "-$5 it's"], [description])).toThrow(
+      `write --description='-$5 it'\\''s'.`
     );
+  });
+
+  it.each([
+    ['a mistyped long flag', ['-d', '--descr'], true],
+    ["one of the command's short flags", ['-d', '-p'], true],
+    ['a value for an option that is not free text', ['--dur', '-30m'], false],
+    ['a short flag with = attached', ['-d', '-p=Dev'], true],
+    ['a short flag in another case', ['-d', '-P'], true],
+  ])('does not suggest --long=value for %s', (_, args, text) => {
+    const options = [
+      { short: '-d', long: '--description', value: '<text>', description: 'New description', text },
+      { short: '-p', long: '--project', value: '<name>', description: 'Project' },
+      { long: '--dur', value: '<duration>', description: 'Duration' },
+    ];
+    expect(() => parseCommandLine(args, options)).toThrow(/^Missing value for [^.]+\. Expected [^.]+\.$/);
+  });
+
+  it('accepts a negative number only for options marked negativeNumber', () => {
+    expect(valueOf(['-w', '-1'], { ...week, negativeNumber: true })).toBe('-1');
+    expect(() => valueOf(['-w', '-1'], week)).toThrow('Missing value for -w.');
+    expect(() => valueOf(['-w', '-v'], { ...week, negativeNumber: true })).toThrow('Missing value for -w.');
   });
 
   it('does not add a period after a description ending in ? or !', () => {
     const question = { long: '--x', value: '<x>', description: 'Which one?' };
-    expect(() => requireOptionValue(['--x'], 0, question)).toThrow(/Expected <x>: Which one\?$/);
+    expect(() => parseCommandLine(['--x'], [question])).toThrow(/Expected <x>: Which one\?$/);
   });
 
   it('keeps the hint on one line and does not double a trailing period', () => {
@@ -488,8 +532,63 @@ describe('requireOptionValue', () => {
       value: '<time>',
       description: 'Start time as [H]H:MM\n(requires --dur).',
     };
-    expect(() => requireOptionValue(['--at'], 0, wrapped)).toThrow(
+    expect(() => parseCommandLine(['--at'], [wrapped])).toThrow(
       /^Missing value for --at\. Expected <time>: Start time as \[H\]H:MM \(requires --dur\)\.$/
+    );
+  });
+});
+
+describe('parseCommandLine', () => {
+  const options = [
+    { short: '-p', long: '--project', value: '<name>', description: 'Project name' },
+    { short: '-t', long: '--tags', value: '<tags>', description: 'Tags', allowEmpty: true },
+    { long: '--public', description: 'Public' },
+  ];
+
+  it('separates positionals, values, and boolean flags', () => {
+    expect(parseCommandLine(['Fix', '-p', 'Dev', '--public', 'extra'], options)).toEqual({
+      positionals: ['Fix', 'extra'],
+      values: new Map([['--project', 'Dev']]),
+      flags: new Set(['--public']),
+    });
+  });
+
+  it('treats everything after -- as positional', () => {
+    expect(parseCommandLine(['-p', 'Dev', '--', '-wip', '--public', '--'], options)).toEqual({
+      positionals: ['-wip', '--public', '--'],
+      values: new Map([['--project', 'Dev']]),
+      flags: new Set(),
+    });
+  });
+
+  it('does not use -- as a missing value', () => {
+    expect(() => parseCommandLine(['-p', '--', 'x'], options)).toThrow('Missing value for -p.');
+  });
+
+  it('accepts --long=value, including values that start with -', () => {
+    expect(parseCommandLine(['--project=-draft', 'Fix'], options).values.get('--project')).toBe('-draft');
+    expect(parseCommandLine(['--project=a=b'], options).values.get('--project')).toBe('a=b');
+  });
+
+  it('applies the empty-value rule to --long=', () => {
+    expect(() => parseCommandLine(['--project='], options)).toThrow(
+      'Missing value for --project. Expected <name>: Project name.'
+    );
+    expect(parseCommandLine(['--tags='], options).values.get('--tags')).toBe('');
+  });
+
+  it('rejects = on an option that takes no value', () => {
+    expect(() => parseCommandLine(['--public=yes'], options)).toThrow('--public does not take a value.');
+  });
+
+  it('does not support = on short flags', () => {
+    expect(() => parseCommandLine(['-p=Dev'], options)).toThrow('Unknown flag: -p=Dev.');
+  });
+
+  it('rejects unknown flags and repeats, including the = form', () => {
+    expect(() => parseCommandLine(['--color=red'], options)).toThrow('Unknown flag: --color.');
+    expect(() => parseCommandLine(['-p', 'A', '--project=B'], options)).toThrow(
+      '-p/--project was given more than once.'
     );
   });
 });
@@ -519,7 +618,7 @@ describe('parseOptions missing values', () => {
 
 describe('option helpers', () => {
   const options = [
-    { short: '-d', long: '--date', value: '<date>', description: '' },
+    { short: '-d', long: '--date', value: '<date>', description: '', negativeNumber: true },
     { long: '--at', value: '<time>', description: '' },
     { short: '-v', long: '--verbose', description: '' },
   ];
@@ -530,22 +629,37 @@ describe('option helpers', () => {
     expect(validFlagsHint([options[1]])).toBe('Valid flag: --at');
   });
 
-  it('matchFlag returns the option for either spelling, and undefined for non-flags', () => {
-    expect(matchFlag('-d', options, new Set())).toBe(options[0]);
-    expect(matchFlag('--date', options, new Set())).toBe(options[0]);
-    expect(matchFlag('yesterday', options, new Set())).toBeUndefined();
+  it('accepts either spelling of a flag', () => {
+    expect(parseCommandLine(['-v'], options).flags).toEqual(new Set(['--verbose']));
+    expect(parseCommandLine(['--verbose'], options).flags).toEqual(new Set(['--verbose']));
   });
 
-  it('matchFlag rejects unknown flags with the valid ones', () => {
-    expect(() => matchFlag('--json', options, new Set())).toThrow(
+  it('rejects unknown flags with the valid ones and their position', () => {
+    let error: unknown;
+    try {
+      parseCommandLine(['first', '--json'], options);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(UnknownFlagError);
+    expect((error as UnknownFlagError).message).toBe(
       'Unknown flag: --json. Valid flags: -d/--date, --at, -v/--verbose'
+    );
+    expect((error as UnknownFlagError).position).toBe(1);
+  });
+
+  it('reports an unknown flag without a hint when there are no options', () => {
+    expect(() => parseCommandLine(['-x'], [])).toThrow(/^Unknown flag: -x\.$/);
+  });
+
+  it('rejects an option already given under either spelling', () => {
+    expect(() => parseCommandLine(['-d', 'x', '--date', 'y'], options)).toThrow(
+      '-d/--date was given more than once.'
     );
   });
 
-  it('matchFlag rejects an option already seen under either spelling', () => {
-    const seen = new Set<(typeof options)[number]>();
-    matchFlag('-d', options, seen);
-    expect(() => matchFlag('--date', options, seen)).toThrow('-d/--date was given more than once.');
+  it('keeps --=x whole instead of reading it as -- with a value', () => {
+    expect(() => parseCommandLine(['--=x'], options)).toThrow('Unknown flag: --=x.');
   });
 
   it('parseOptions returns values and boolean flags keyed by long flag', () => {

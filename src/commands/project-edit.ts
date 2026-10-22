@@ -2,19 +2,21 @@ import { config } from '../config.js';
 import { put } from '../api.js';
 import { resolveClientId } from '../clients.js';
 import { resolveProjectId } from '../projects.js';
-import { parseOrExit, matchFlag, unhandledOption, nothingToEditError, requireOptionValue } from '../utils.js';
+import { parseOrExit, nothingToEditError, parseCommandLine } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
 export const projectEditUsage =
   'tgp project-edit <project> [-n "New Name"] [-c "Client Name"] [--color "#0b83d9"] [--public|--private]';
 
 export const projectEditOptions: CommandOption[] = [
-  { short: '-n', long: '--name', value: '<name>', description: 'New project name' },
+  { short: '-n', long: '--name', value: '<name>', description: 'New project name', text: true },
   {
     short: '-c',
     long: '--client',
     value: '<client>',
     description: 'Client name or ID ("" removes the client)',
+    allowEmpty: true,
+    text: true,
   },
   { long: '--color', value: '<hex>', description: 'Project color, e.g. "#0b83d9"' },
   { long: '--public', description: 'Make the project visible to all workspace members' },
@@ -41,45 +43,22 @@ interface ParsedArgs {
 const USAGE = `Usage: ${projectEditUsage}`;
 
 export function parseArgs(args: string[]): ParsedArgs {
-  const project = args[0];
-  let name: string | null = null;
-  let client: string | null = null;
-  let color: string | null = null;
-  let isPrivate: boolean | null = null;
-  const seen = new Set<CommandOption>();
-
+  const { positionals, values, flags } = parseCommandLine(args, projectEditOptions);
+  const [project, extra] = positionals;
   if (!project) {
     throw new Error(USAGE);
   }
-
-  for (let i = 1; i < args.length; i++) {
-    const option = matchFlag(args[i], projectEditOptions, seen);
-    if (!option) {
-      throw new Error(`Unexpected argument: ${args[i]}.`);
-    }
-
-    switch (option.long) {
-      case '--name':
-        name = requireOptionValue(args, i, option);
-        break;
-      case '--client':
-        client = requireOptionValue(args, i, option, { allowEmpty: true });
-        break;
-      case '--color':
-        color = requireOptionValue(args, i, option);
-        break;
-      case '--public':
-      case '--private':
-        if (isPrivate !== null) {
-          throw new Error('Cannot use both --public and --private.');
-        }
-        isPrivate = option.long === '--private';
-        break;
-      default:
-        unhandledOption(option);
-    }
-    if (option.value) i++;
+  if (extra !== undefined) {
+    throw new Error(`Unexpected argument: ${extra}.`);
   }
+  if (flags.has('--public') && flags.has('--private')) {
+    throw new Error('Cannot use both --public and --private.');
+  }
+
+  const name = values.get('--name') ?? null;
+  const client = values.get('--client') ?? null;
+  const color = values.get('--color') ?? null;
+  const isPrivate = flags.has('--private') ? true : flags.has('--public') ? false : null;
 
   if (name === null && client === null && color === null && isPrivate === null) {
     throw nothingToEditError(projectEditOptions);

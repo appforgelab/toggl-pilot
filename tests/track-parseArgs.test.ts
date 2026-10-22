@@ -187,4 +187,8 @@ describe('track parseArgs', () => {
       'Missing value for -p. Expected <name>: Project name (case-insensitive).'
     );
   });
+
+  it('accepts a description that starts with - after --', () => {
+    expect(parseArgs(['-p', 'Dev', '--', '-wip']).description).toBe('-wip');
+  });
 });

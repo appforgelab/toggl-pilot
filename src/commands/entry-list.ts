@@ -19,6 +19,7 @@ export const entryListOptions: CommandOption[] = [
     long: '--date',
     value: '<date>',
     description: 'YYYY-MM-DD, "yesterday", or a day offset (e.g. -2)',
+    negativeNumber: true,
   },
 ];
 

@@ -188,78 +188,146 @@ export function validFlagsHint(options: CommandOption[]): string {
   return `Valid flag${options.length === 1 ? '' : 's'}: ${options.map(flagLabel).join(', ')}`;
 }
 
-/**
- * If `arg` is a flag, return its option, throwing if the flag is unknown or the
- * option was already given (tracked in `seen`, so `-d x --date y` is caught).
- * Returns undefined for arguments that aren't flags.
- */
-export function matchFlag(
-  arg: string,
-  options: CommandOption[],
-  seen: Set<CommandOption>
-): CommandOption | undefined {
-  if (!arg.startsWith('-')) return undefined;
-  const option = options.find((o) => o.short === arg || o.long === arg);
-  if (!option) {
-    throw new Error(`Unknown flag: ${arg}. ${validFlagsHint(options)}`);
+/** An argument that looks like a flag but isn't one of the command's options. */
+export class UnknownFlagError extends Error {
+  constructor(
+    readonly flag: string,
+    /** How many positionals came before it: the index of the argument it would have been. */
+    readonly position: number,
+    options: CommandOption[]
+  ) {
+    super(
+      options.length > 0 ? `Unknown flag: ${flag}. ${validFlagsHint(options)}` : `Unknown flag: ${flag}.`
+    );
+    this.name = 'UnknownFlagError';
   }
-  if (seen.has(option)) {
-    throw new Error(`${flagLabel(option)} was given more than once.`);
-  }
-  seen.add(option);
-  return option;
 }
 
 /**
- * The value after the flag at `args[index]`, which matched `option`. Anything
- * starting with `-` counts as missing (it's the next flag), except negative
- * numbers when `allowNegativeNumber` is set (e.g. `-w -1`). A missing value is
- * reported with what the option expects, e.g.
- * `Missing value for -d. Expected <date>: YYYY-MM-DD or "yesterday".`
+ * Whether a dash-led argument is more likely a flag (or a mistyped one) than a
+ * value such as a name that starts with "-": anything starting with `--`, one of
+ * the command's short flags in either case, or one with `=` attached (`-p=Dev`).
+ * Shared by the hints that suggest `--` and `--long=value`.
  */
-export function requireOptionValue(
+export function looksLikeFlag(arg: string, options: CommandOption[]): boolean {
+  if (arg.startsWith('--')) return true;
+  const lower = arg.toLowerCase();
+  return options.some(
+    (o) => o.short && (lower === o.short.toLowerCase() || lower.startsWith(`${o.short.toLowerCase()}=`))
+  );
+}
+
+/** Quote a value for the shell only when needed, with single quotes so nothing in it is expanded. */
+function shellQuote(value: string): string {
+  return /^[\w@%+:,./-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+/**
+ * `Missing value for -d. Expected <text>: New description.` For a free-text
+ * option, a following dash-led argument that doesn't look like a flag (such as
+ * `-1` or `-draft`) was probably meant as the value, so the `--long=value` form
+ * is suggested.
+ */
+function missingValue(
+  flag: string,
+  option: CommandOption,
+  next?: string,
+  options: CommandOption[] = []
+): Error {
+  const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
+  const period = /[.!?]$/.test(expected) ? '' : '.';
+  let message = `Missing value for ${flag}. Expected ${option.value}: ${expected}${period}`;
+  if (option.text && next !== undefined && /^-[^-]/.test(next) && !looksLikeFlag(next, options)) {
+    message += ` If "${next}" is the value, write ${option.long}=${shellQuote(next)}.`;
+  }
+  return new Error(message);
+}
+
+/**
+ * The value after the flag at `args[index]`. Anything starting with `-` counts
+ * as missing (it's the next flag), except a negative number for an option that
+ * accepts one (e.g. `-w -1`).
+ */
+function requireOptionValue(
   args: string[],
   index: number,
   option: CommandOption,
-  options: { allowEmpty?: boolean; allowNegativeNumber?: boolean } = {}
+  options: CommandOption[]
 ): string {
   const val = args[index + 1];
-  if (options.allowNegativeNumber && val !== undefined && /^-\d/.test(val)) {
+  if (option.negativeNumber && val !== undefined && /^-\d/.test(val)) {
     return val;
   }
-  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !options.allowEmpty)) {
-    const expected = option.description.replace(/\s*\n\s*/g, ' ').trim();
-    const period = /[.!?]$/.test(expected) ? '' : '.';
-    throw new Error(`Missing value for ${args[index]}. Expected ${option.value}: ${expected}${period}`);
+  if (val === undefined || (val !== '' && val.startsWith('-')) || (val === '' && !option.allowEmpty)) {
+    throw missingValue(args[index], option, val, options);
   }
   return val;
 }
 
 /**
- * Parse the arguments of a command that takes only options. Returns the values
- * of options that take one, and the set of boolean options given, both keyed by
- * long flag. Positional arguments are rejected with `usage`. Values may be
- * negative numbers (e.g. `-w -1`), but anything else starting with `-` counts as
- * a missing value.
+ * Parse a command's arguments against its options. Returns the positional
+ * arguments, the values of options that take one, and the boolean options given
+ * (both keyed by long flag). Unknown flags throw UnknownFlagError; repeated
+ * flags and missing values throw too.
+ *
+ * A value can start with "-" in two ways: after `--`, every argument is
+ * positional (`tgp track -p Dev -- -wip`), and a long option's value can be
+ * attached with `=` (`--description=-draft`). Options marked `negativeNumber`
+ * also take values like `-2` directly.
+ */
+export function parseCommandLine(
+  args: string[],
+  options: CommandOption[]
+): { positionals: string[]; values: Map<string, string>; flags: Set<string> } {
+  const end = args.indexOf('--');
+  const flagArgs = end === -1 ? args : args.slice(0, end);
+  const positionals: string[] = [];
+  const values = new Map<string, string>();
+  const flags = new Set<string>();
+  const seen = new Set<CommandOption>();
+
+  for (let i = 0; i < flagArgs.length; i++) {
+    const arg = flagArgs[i];
+    if (!arg.startsWith('-')) {
+      positionals.push(arg);
+      continue;
+    }
+    // `--name=value`; an `=` right after `--` isn't preceded by a name, so `--=x` stays whole.
+    const eq = arg.startsWith('--') ? arg.indexOf('=', 3) : -1;
+    const flag = eq === -1 ? arg : arg.slice(0, eq);
+    const option = options.find((o) => o.short === flag || o.long === flag);
+    if (!option) throw new UnknownFlagError(flag, positionals.length, options);
+    if (seen.has(option)) throw new Error(`${flagLabel(option)} was given more than once.`);
+    seen.add(option);
+
+    if (!option.value) {
+      if (eq !== -1) throw new Error(`${option.long} does not take a value.`);
+      flags.add(option.long);
+    } else if (eq !== -1) {
+      const value = arg.slice(eq + 1);
+      if (value === '' && !option.allowEmpty) throw missingValue(flag, option);
+      values.set(option.long, value);
+    } else {
+      values.set(option.long, requireOptionValue(args, i, option, options));
+      i++;
+    }
+  }
+
+  if (end !== -1) positionals.push(...args.slice(end + 1));
+  return { positionals, values, flags };
+}
+
+/**
+ * Parse the arguments of a command that takes only options (see
+ * parseCommandLine); any positional argument is rejected with `usage`.
  */
 export function parseOptions(
   args: string[],
   options: CommandOption[],
   usage: string
 ): { values: Map<string, string>; flags: Set<string> } {
-  const values = new Map<string, string>();
-  const flags = new Set<string>();
-  const seen = new Set<CommandOption>();
-  for (let i = 0; i < args.length; i++) {
-    const option = matchFlag(args[i], options, seen);
-    if (!option) throw new Error(usage);
-    if (option.value) {
-      values.set(option.long, requireOptionValue(args, i, option, { allowNegativeNumber: true }));
-      i++;
-    } else {
-      flags.add(option.long);
-    }
-  }
+  const { positionals, values, flags } = parseCommandLine(args, options);
+  if (positionals.length > 0) throw new Error(usage);
   return { values, flags };
 }
 
@@ -268,9 +336,4 @@ export function nothingToEditError(options: CommandOption[]): Error {
   return new Error(
     `Nothing to edit. Provide at least one of: ${options.map((o) => o.short ?? o.long).join(', ')}`
   );
-}
-
-/** For a parser's `default:` case: an option listed in `<command>Options` that the parser doesn't handle. */
-export function unhandledOption(option: CommandOption): never {
-  throw new Error(`Bug: ${option.long} is documented but not handled by the parser.`);
 }

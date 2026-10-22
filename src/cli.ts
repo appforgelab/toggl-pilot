@@ -1,6 +1,7 @@
 import { hasConfig, ConfigNotFoundError } from './config.js';
-import { findCommand } from './registry.js';
+import { findCommand, type Command } from './registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from './help.js';
+import { looksLikeFlag, parseCommandLine, UnknownFlagError } from './utils.js';
 
 export function main(argv: string[]): void | Promise<void> {
   const [name, ...args] = argv;
@@ -33,37 +34,57 @@ export function main(argv: string[]): void | Promise<void> {
     return;
   }
 
-  // For commands without options, `--` ends flags so a name may start with "-"
-  // (e.g. `tgp tag-create -- -wip`); the `--` itself is not passed on.
-  const end = command.options ? -1 : args.indexOf('--');
-  const flagArgs = end === -1 ? args : args.slice(0, end);
-  const commandArgs = args.filter((_, i) => i !== end);
-
-  // A command without options takes no flags, and one without arguments takes
-  // nothing, so stray input is an error instead of data (e.g. `tgp stop --hlep`
-  // must not stop the timer, and `tgp tag-create --verbose` must not create a tag).
-  if (!command.options) {
-    const flagIndex = flagArgs.findIndex((a) => a.startsWith('-'));
-    const flag = flagIndex === -1 ? undefined : flagArgs[flagIndex];
-    const unexpected = command.arguments ? undefined : commandArgs[0];
-    if (flag !== undefined || unexpected !== undefined) {
-      // Everything before the first flag-like value is positional, so its index is
-      // the argument it was meant for; suggest `--` only if that is a name.
-      const escapeHint = command.arguments?.[flagIndex]?.text
-        ? ' To pass a name that starts with "-", put -- before it.'
-        : '';
-      console.error(
-        flag !== undefined ? `Unknown flag: ${flag}.${escapeHint}` : `Unexpected argument: ${unexpected}.`
-      );
-      console.error(`Usage: ${command.usage}`);
-      process.exit(1);
-    }
-  }
+  // Check the arguments against the registry before dispatch, so syntax errors
+  // never reach a command: stray input is an error instead of data (e.g.
+  // `tgp stop --hlep` must not stop the timer, and `tgp tag-create --verbose`
+  // must not create a tag), and `--` works the same everywhere.
+  const parsed = checkArguments(command, args);
 
   if (command.requiresConfig && !hasConfig()) {
     console.error(new ConfigNotFoundError().message);
     process.exit(1);
   }
 
-  return command.run(commandArgs);
+  // Commands with options parse their own arguments again for the values; the
+  // others take just the positionals (without `--`).
+  return command.run(command.options ? args : parsed.positionals);
+}
+
+function checkArguments(command: Command, args: string[]): ReturnType<typeof parseCommandLine> {
+  let parsed: ReturnType<typeof parseCommandLine>;
+  try {
+    parsed = parseCommandLine(args, command.options ?? []);
+  } catch (e) {
+    let message = (e as Error).message;
+    // Suggest `--` for a value like `-wip` or `-1` where a name goes, but not for an
+    // ID position or for something that looks like a (mistyped) flag.
+    if (
+      e instanceof UnknownFlagError &&
+      command.arguments?.[e.position]?.text &&
+      !looksLikeFlag(e.flag, command.options ?? [])
+    ) {
+      message = `${message.replace(/\.?$/, '.')} To pass a name that starts with "-", put -- after any options and before the name.`;
+    }
+    return rejectArguments(command, message);
+  }
+
+  const declared = command.arguments ?? [];
+  const missing = declared.slice(parsed.positionals.length).find((a) => !a.optional);
+  if (missing) {
+    return rejectArguments(command, `Missing argument: ${missing.name}. Expected: ${missing.description}.`);
+  }
+  if (parsed.positionals.length > declared.length) {
+    // Don't echo the value for a command that takes a secret: it may be a pasted token.
+    const message = declared.some((a) => a.secret)
+      ? 'Too many arguments.'
+      : `Unexpected argument: ${parsed.positionals[declared.length]}.`;
+    return rejectArguments(command, message);
+  }
+  return parsed;
+}
+
+function rejectArguments(command: Command, message: string): never {
+  console.error(message);
+  console.error(`Usage: ${command.usage}`);
+  process.exit(1);
 }

@@ -3,10 +3,8 @@ import {
   parseDuration,
   parseOrExit,
   parseStartTime,
-  matchFlag,
-  unhandledOption,
   nothingToEditError,
-  requireOptionValue,
+  parseCommandLine,
 } from '../utils.js';
 import type { CommandOption } from '../types.js';
 
@@ -14,13 +12,21 @@ export const entryEditUsage =
   'tgp entry-edit <entry_id> [-d "New desc"] [-p "Project"] [-t tag1,tag2] [--dur 1h30m] [--start [H]H:MM]';
 
 export const entryEditOptions: CommandOption[] = [
-  { short: '-d', long: '--description', value: '<text>', description: 'New description' },
-  { short: '-p', long: '--project', value: '<name>', description: 'New project name (case-insensitive)' },
+  { short: '-d', long: '--description', value: '<text>', description: 'New description', text: true },
+  {
+    short: '-p',
+    long: '--project',
+    value: '<name>',
+    description: 'New project name (case-insensitive)',
+    text: true,
+  },
   {
     short: '-t',
     long: '--tags',
     value: '<tags>',
     description: 'Replace tags (comma-separated; "" clears)',
+    allowEmpty: true,
+    text: true,
   },
   { long: '--dur', value: '<duration>', description: 'New duration, e.g. 1h30m (stopped entries only)' },
   {
@@ -115,47 +121,18 @@ export function parseArgs(args: string[]): {
   dur: string | null;
   start: string | null;
 } {
-  let id: string | null = null;
-  let description: string | null = null;
-  let project: string | null = null;
-  let tags: string[] | null = null;
-  let dur: string | null = null;
-  let start: string | null = null;
-  const seen = new Set<CommandOption>();
-
-  for (let i = 0; i < args.length; i++) {
-    const option = matchFlag(args[i], entryEditOptions, seen);
-    if (!option) {
-      if (id !== null) throw new Error(USAGE);
-      id = args[i];
-      continue;
-    }
-
-    switch (option.long) {
-      case '--description':
-        description = requireOptionValue(args, i, option);
-        break;
-      case '--project':
-        project = requireOptionValue(args, i, option);
-        break;
-      case '--tags':
-        tags = normalizeTags(requireOptionValue(args, i, option, { allowEmpty: true }).split(','));
-        break;
-      case '--dur':
-        dur = requireOptionValue(args, i, option);
-        break;
-      case '--start':
-        start = requireOptionValue(args, i, option);
-        break;
-      default:
-        unhandledOption(option);
-    }
-    if (option.value) i++;
-  }
-
-  if (!id) {
+  const { positionals, values } = parseCommandLine(args, entryEditOptions);
+  const [id] = positionals;
+  if (positionals.length !== 1 || !id) {
     throw new Error(USAGE);
   }
+
+  const description = values.get('--description') ?? null;
+  const project = values.get('--project') ?? null;
+  const rawTags = values.get('--tags');
+  const tags = rawTags === undefined ? null : normalizeTags(rawTags.split(','));
+  const dur = values.get('--dur') ?? null;
+  const start = values.get('--start') ?? null;
 
   if (!description && !project && !tags && !dur && !start) {
     throw nothingToEditError(entryEditOptions);

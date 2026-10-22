@@ -35,12 +35,18 @@ export interface CommandArgument {
   /** Written exactly as it appears in `usage`, e.g. `<entry_id>` or `"Tag Name"`. */
   name: string;
   description: string;
+  /** May be left out (written in brackets in `usage`, e.g. `[<entry_id>]`). */
+  optional?: boolean;
   /**
-   * Free text such as a name (not an ID), which may legitimately start with "-".
-   * Only used by commands without options, where `--` lets such a value through
-   * and the unknown-flag error suggests it (see src/cli.ts).
+   * Free text such as a name (not an ID), which may legitimately start with "-":
+   * an unknown-flag error in this position suggests `--` (see src/cli.ts).
    */
   text?: boolean;
+  /**
+   * Sensitive, such as an API token: argument errors for this command never echo the
+   * input, since a surplus value may be a pasted token (see src/cli.ts).
+   */
+  secret?: boolean;
 }
 
 export interface Command {
@@ -75,7 +81,13 @@ export const COMMANDS: Command[] = [
     description:
       'Verify an API token and save it to the config file.\n' +
       'Get your token at https://track.toggl.com/profile',
-    arguments: [{ name: '<api-token>', description: 'Toggl Track API token' }],
+    arguments: [
+      {
+        name: '<api-token>',
+        description: 'Toggl Track API token from https://track.toggl.com/profile',
+        secret: true,
+      },
+    ],
     requiresConfig: false,
     run: auth,
   },
@@ -137,7 +149,7 @@ export const COMMANDS: Command[] = [
     description:
       'Start a running timer, or log a completed entry with --at and --dur.\n' +
       "Tags that don't exist yet are created automatically.",
-    arguments: [{ name: '"Description"', description: 'Entry description' }],
+    arguments: [{ name: '"Description"', description: 'Entry description', text: true }],
     options: trackOptions,
     examples: [
       'tgp track "Code review" -p "Dev-Pilot" -t dev,review',
@@ -165,7 +177,7 @@ export const COMMANDS: Command[] = [
       'Start a new timer with the description, project, and tags of a stopped\n' +
       'entry. Without an ID, resumes the latest entry stopped today, falling\n' +
       'back to yesterday.',
-    arguments: [{ name: '[<entry_id>]', description: 'Optional entry ID from "tgp entry-list"' }],
+    arguments: [{ name: '[<entry_id>]', description: 'Entry ID from "tgp entry-list"', optional: true }],
     requiresConfig: true,
     run: resume,
   },
@@ -227,7 +239,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a client',
     usage: clientAddUsage,
     description: 'Create a client in the workspace.',
-    arguments: [{ name: '"Client Name"', description: 'Name for the new client' }],
+    arguments: [{ name: '"Client Name"', description: 'Name for the new client', text: true }],
     options: clientAddOptions,
     requiresConfig: true,
     run: clientAdd,
@@ -271,7 +283,7 @@ export const COMMANDS: Command[] = [
     summary: 'Create a project',
     usage: projectCreateUsage,
     description: 'Create a project. Projects are private unless --public is given.',
-    arguments: [{ name: '"Project Name"', description: 'Name for the new project' }],
+    arguments: [{ name: '"Project Name"', description: 'Name for the new project', text: true }],
     options: projectCreateOptions,
     requiresConfig: true,
     run: projectCreate,
@@ -282,7 +294,7 @@ export const COMMANDS: Command[] = [
     summary: 'Edit a project',
     usage: projectEditUsage,
     description: 'Edit a project. Provide at least one option.',
-    arguments: [{ name: '<project>', description: PROJECT_ARG }],
+    arguments: [{ name: '<project>', description: PROJECT_ARG, text: true }],
     options: projectEditOptions,
     examples: ['tgp project-edit Backend -c "Acme Corp" --public', 'tgp project-edit 1234567890 --client ""'],
     requiresConfig: true,

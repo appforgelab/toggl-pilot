@@ -20,4 +20,13 @@ export interface CommandOption {
   /** Placeholder for the flag's value, e.g. `<name>`. Omit for boolean flags. */
   value?: string;
   description: string;
+  /** Accept an empty value, e.g. `--tags ""` to clear tags. */
+  allowEmpty?: boolean;
+  /** Accept a negative number as the value, e.g. `-d -2` for a day offset. */
+  negativeNumber?: boolean;
+  /**
+   * The value is free text such as a name, so it may legitimately start with "-";
+   * a missing-value error then suggests the `--long=value` form.
+   */
+  text?: boolean;
 }

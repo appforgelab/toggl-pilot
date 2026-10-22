@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { COMMANDS, GROUPS, findCommand, type Command } from '../src/registry.js';
 import { isHelpFlag, renderCommandHelp, renderGlobalHelp } from '../src/help.js';
@@ -42,17 +41,38 @@ function usagePositionals(command: Command): string[] {
   return kept.match(/"[^"]*"|\S+/g) ?? [];
 }
 
-/** Each command with options, its parser, and the minimal positional args it needs. */
-const PARSERS: [string, (args: string[]) => unknown, string[]][] = [
-  ['entry-list', parseEntryList, []],
-  ['track', parseTrack, ['Desc']],
-  ['entry-edit', parseEntryEdit, ['123']],
-  ['week', parseWeekArgs, []],
-  ['client-list', parseClientList, []],
-  ['client-add', parseClientAdd, ['Acme']],
-  ['project-list', parseProjectList, []],
-  ['project-create', parseProjectCreate, ['Name']],
-  ['project-edit', parseProjectEdit, ['proj']],
+/**
+ * Each command with options, its parser, the positional args it needs, and
+ * "carrier" args that make the parse valid on their own (edit commands need at
+ * least one change). The first carrier that doesn't use the option under test
+ * is used.
+ */
+const PARSERS: [string, (args: string[]) => unknown, string[], string[][]][] = [
+  ['entry-list', parseEntryList, [], [[]]],
+  ['track', parseTrack, ['Desc'], [[]]],
+  [
+    'entry-edit',
+    parseEntryEdit,
+    ['123'],
+    [
+      ['-d', 'Old'],
+      ['--dur', '2h'],
+    ],
+  ],
+  ['week', parseWeekArgs, [], [[]]],
+  ['client-list', parseClientList, [], [[]]],
+  ['client-add', parseClientAdd, ['Acme'], [[]]],
+  ['project-list', parseProjectList, [], [[]]],
+  ['project-create', parseProjectCreate, ['Name'], [[]]],
+  [
+    'project-edit',
+    parseProjectEdit,
+    ['proj'],
+    [
+      ['--color', '#000000'],
+      ['-n', 'Old'],
+    ],
+  ],
 ];
 
 /** A valid value for every option that takes one, keyed by long flag. */
@@ -73,17 +93,6 @@ const SAMPLE_VALUES: Record<string, string> = {
 };
 
 describe('command registry', () => {
-  it('README lists exactly the commands where -- lets a name start with "-"', () => {
-    const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf-8');
-    const paragraph = readme.split(/\n\s*\n/).find((p) => p.includes('put `--` before'));
-    expect(paragraph, 'README paragraph about "put `--` before" not found').toBeDefined();
-    const listed = [...paragraph!.matchAll(/`([a-z]+(?:-[a-z]+)+)`/g)].map((m) => m[1]);
-    const supported = COMMANDS.filter((c) => !c.options && c.arguments?.some((a) => a.text)).map(
-      (c) => c.name
-    );
-    expect(listed.sort()).toEqual(supported.sort());
-  });
-
   it('has unique command names', () => {
     const names = COMMANDS.map((c) => c.name);
     expect(new Set(names).size).toBe(names.length);
@@ -109,6 +118,15 @@ describe('command registry', () => {
     expect(findCommand('trac')).toBeUndefined();
     expect(findCommand('--help')).toBeUndefined();
   });
+
+  it.each(COMMANDS.map((c) => [c.name, c]))(
+    '%s marks exactly the bracketed arguments optional',
+    (_, command) => {
+      for (const arg of command.arguments ?? []) {
+        expect(!!arg.optional, arg.name).toBe(arg.name.startsWith('['));
+      }
+    }
+  );
 
   it.each(COMMANDS.map((c) => [c.name, c]))(
     '%s usage has balanced, properly nested brackets',
@@ -285,7 +303,7 @@ describe('renderCommandHelp', () => {
   );
 });
 
-describe.each(PARSERS)('%s parser', (name, parse, base) => {
+describe.each(PARSERS)('%s parser', (name, parse, base, carriers) => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-15T12:00:00'));
@@ -301,18 +319,13 @@ describe.each(PARSERS)('%s parser', (name, parse, base) => {
       const value = option.value ? [SAMPLE_VALUES[flag]] : [];
       expect(value, `add a sample value for ${flag} to SAMPLE_VALUES`).not.toContain(undefined);
 
-      // Throws "Bug: ... not handled" if the parser has no case for the option.
-      const result = parse([...base, flag, ...value]);
+      const carrier = carriers.find((c) => !c.includes(flag) && !(option.short && c.includes(option.short)));
+      expect(carrier, `add a carrier for ${name} that doesn't use ${flag}`).toBeDefined();
 
-      // Where the base args parse on their own, the option must change the result
-      // (catches an option that is accepted but ignored).
-      let baseline: unknown;
-      try {
-        baseline = parse(base);
-      } catch {
-        return;
-      }
-      expect(result).not.toEqual(baseline);
+      // The option must change the parsed result (catches an option that is
+      // accepted but never read by the parser).
+      const baseline = parse([...base, ...carrier!]);
+      expect(parse([...base, ...carrier!, flag, ...value])).not.toEqual(baseline);
     }
   );
 });

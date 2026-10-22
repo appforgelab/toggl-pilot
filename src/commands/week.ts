@@ -11,12 +11,14 @@ export const weekOptions: CommandOption[] = [
     long: '--date',
     value: '<date>',
     description: 'Week containing YYYY-MM-DD, "yesterday", or a day offset',
+    negativeNumber: true,
   },
   {
     short: '-w',
     long: '--week',
     value: '<offset>',
     description: 'Weeks from this one, e.g. -1 for last week',
+    negativeNumber: true,
   },
   { short: '-v', long: '--verbose', description: 'Show a per-day breakdown for each project' },
 ];
