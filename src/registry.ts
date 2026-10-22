@@ -42,6 +42,11 @@ export interface CommandArgument {
    * an unknown-flag error in this position suggests `--` (see src/cli.ts).
    */
   text?: boolean;
+  /**
+   * Sensitive, such as an API token: argument errors for this command never echo the
+   * input, since a surplus value may be a pasted token (see src/cli.ts).
+   */
+  secret?: boolean;
 }
 
 export interface Command {
@@ -77,7 +82,11 @@ export const COMMANDS: Command[] = [
       'Verify an API token and save it to the config file.\n' +
       'Get your token at https://track.toggl.com/profile',
     arguments: [
-      { name: '<api-token>', description: 'Toggl Track API token from https://track.toggl.com/profile' },
+      {
+        name: '<api-token>',
+        description: 'Toggl Track API token from https://track.toggl.com/profile',
+        secret: true,
+      },
     ],
     requiresConfig: false,
     run: auth,

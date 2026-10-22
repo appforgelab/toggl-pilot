@@ -261,6 +261,19 @@ describe('main', () => {
     });
 
     it.each([
+      [['auth', 'DUMMY_TOKEN_A', 'DUMMY_TOKEN_B']],
+      [['auth', 'DUMMY_TOKEN_A', '--', 'DUMMY_TOKEN_B']],
+    ])('never echoes a surplus auth argument, which may be a token: %j', (argv) => {
+      expect(() => main(argv)).toThrow('exit');
+
+      expect(errorSpy).toHaveBeenCalledWith('Too many arguments.');
+      expect(errorSpy).toHaveBeenCalledWith(`Usage: ${findCommand('auth')!.usage}`);
+      const output = [...errorSpy.mock.calls, ...logSpy.mock.calls].flat().join('\n');
+      expect(output).not.toContain('DUMMY_TOKEN');
+      expect(auth).not.toHaveBeenCalled();
+    });
+
+    it.each([
       [
         ['track', '-p', 'Dev', '-wip'],
         'Unknown flag: -wip. Valid flags: -p/--project, -t/--tags, --at, --dur, -d/--date. To pass a name that starts with "-", put -- after any options and before the name.',

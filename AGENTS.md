@@ -79,7 +79,8 @@ Example PR title: `feat: set up version management and workflow (#42)`
   keeps the two in sync). Commands with options
   get the raw arguments and parse them again for the values; the others get just the
   positionals. Mark free-text arguments (names, not IDs) with `text: true` so an unknown flag
-  in that position suggests `--`. Help flags show help even after `--`.
+  in that position suggests `--`, and sensitive ones (API tokens) with `secret: true` so a
+  surplus argument isn't echoed in the error. Help flags show help even after `--`.
 - **To add a flag**, add it to `<command>Options`, read it from `values`/`flags` in the
   parser, update `<command>Usage`, and add a sample value to `SAMPLE_VALUES` in
   `tests/help.test.ts` (that test fails if a documented option doesn't change the parse

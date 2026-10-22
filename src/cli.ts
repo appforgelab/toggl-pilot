@@ -74,7 +74,11 @@ function checkArguments(command: Command, args: string[]): ReturnType<typeof par
     return rejectArguments(command, `Missing argument: ${missing.name}. Expected: ${missing.description}.`);
   }
   if (parsed.positionals.length > declared.length) {
-    return rejectArguments(command, `Unexpected argument: ${parsed.positionals[declared.length]}.`);
+    // Don't echo the value for a command that takes a secret: it may be a pasted token.
+    const message = declared.some((a) => a.secret)
+      ? 'Too many arguments.'
+      : `Unexpected argument: ${parsed.positionals[declared.length]}.`;
+    return rejectArguments(command, message);
   }
   return parsed;
 }
