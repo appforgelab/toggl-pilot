@@ -43,7 +43,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.0.0",
     "eslint": "^10.2.1",
-    "markdownlint-cli": "^0.49.0",
+    "markdownlint-cli": "^0.50.0",
     "prettier": "^3.8.3",
     "tsup": "^9.0.0",
     "tsx": "^4.19.3",
